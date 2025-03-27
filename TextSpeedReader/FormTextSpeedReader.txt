@@ -1,0 +1,672 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+using System.Drawing.Text;
+using Microsoft.VisualBasic.FileIO;
+
+namespace TextSpeedReader
+{
+    public partial class FormTextSpeedReader : Form
+    {
+        // 視窗最小尺寸設定
+        public override System.Drawing.Size MinimumSize { get; set; }
+        // 系統字體列表
+        public FontFamily[] m_FontFamilies;
+
+        // 檔案瀏覽器根目錄路徑
+        string m_FullPath = @"C:/";
+        // 當前選中的樹狀目錄節點文字
+        string m_TreeViewSelectedNodeText = "";
+        // 支援的文字檔案類型
+        string[] m_TexExtensions = { ".txt", ".cs", ".html" };
+        // 可選擇的字體大小列表
+        int[] m_FontSize = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22,24,26,28,32,36,48,66,72,100,125,150,200,300,400,500 };
+        // 網頁瀏覽器縮放比例
+        int m_WebBrowserZoom = 100;
+        // 網頁瀏覽器可選擇的縮放大小
+        int[] m_WebBrowserSize = { 10, 25, 33, 50, 66, 75, 100, 110, 125, 150, 175, 200, 250, 300, 400, 500, 600 };
+        // ListView 欄位排序器
+        ListViewColumnSorter m_LvwColumnSorter = new ListViewColumnSorter();
+
+        // 最近閱讀檔案清單結構
+        public struct RecentReadList
+        {
+            public string FileFullName;    // 檔案完整路徑
+            public int LastCharCount;      // 上次閱讀位置(字元數)
+        }
+        // 最近閱讀檔案清單
+        public List<RecentReadList> m_RecentReadList = new List<RecentReadList>();
+        // 當前閱讀檔案在清單中的索引
+        public int m_RecentReadListIndex = -1;
+
+        // 建構函式
+        public FormTextSpeedReader()
+        {
+            InitializeComponent();
+            PopulateTreeViewAll(1);        // 初始化檔案樹狀圖
+            GetRecentReadList();           // 讀取最近閱讀清單
+            GetSystemFonts();              // 獲取系統字體
+            SetFormSize();                 // 設定視窗大小
+        }
+
+        // 設定視窗大小和位置
+        private void SetFormSize()
+        {
+            // 設定最小視窗大小
+            MinimumSize = new Size(1320, 800);
+            // 獲取螢幕工作區域大小
+            System.Drawing.Rectangle workingRectangle = Screen.PrimaryScreen.WorkingArea;
+            // 設定視窗大小略小於工作區域
+            this.Size = new System.Drawing.Size(workingRectangle.Width - 10, workingRectangle.Height - 10);
+            // 將視窗置中
+            Point newPosition = new Point(0, 0);
+            newPosition.X = (workingRectangle.Width - this.Width) / 2;
+            newPosition.Y = (workingRectangle.Height - this.Height) / 2;
+            this.Location = newPosition;
+        }
+
+        //初始並填入TreeViewFloder的資料
+        private void PopulateTreeView(int subFolderDeepthLimited)
+        {
+            treeViewFolder.Nodes.Clear();
+            TreeNode rootNode;
+            //TreeNode rootNodeD; //第二個根節點
+
+            DirectoryInfo info = new DirectoryInfo(m_FullPath);
+            //string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            //DirectoryInfo info = new DirectoryInfo(folderPath);
+            if (info.Exists)
+            {
+                rootNode = new TreeNode(info.Name.Substring(0, info.Name.Length - 1));
+                Console.WriteLine("info.Name " + info.Name);
+                rootNode.Tag = info;
+                GetDirectories(info.GetDirectories(), rootNode, 0, subFolderDeepthLimited);
+                treeViewFolder.Nodes.Add(rootNode);
+                treeViewFolder.SelectedNode = treeViewFolder.Nodes[0];
+                m_TreeViewSelectedNodeText = treeViewFolder.SelectedNode.FullPath;
+                treeViewFolder.SelectedNode.Expand();
+                //treeViewFolder.ExpandAll();
+            }
+        }
+        private void PopulateTreeViewAll(int subFolderDeepthLimited)
+        {
+            treeViewFolder.Nodes.Clear();
+            string[] AllDisk = {@"C:\\", @"D:\\", @"E:\\", @"F:\\", @"G:\\", @"H:\\", @"I:\\", @"J:\\", @"K:\\" };
+            foreach (var item in AllDisk)
+            {
+                TreeNode rootNode;
+                DirectoryInfo info = new DirectoryInfo(item);
+                //string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                //DirectoryInfo info = new DirectoryInfo(folderPath);
+                if (info.Exists)
+                {
+                    rootNode = new TreeNode(info.Name.Substring(0, info.Name.Length - 1));
+                    Console.WriteLine("info.Name " + info.Name);
+                    rootNode.Tag = info;
+                    GetDirectories(info.GetDirectories(), rootNode, 0, subFolderDeepthLimited);
+                    treeViewFolder.Nodes.Add(rootNode);
+                    treeViewFolder.SelectedNode = treeViewFolder.Nodes[0];
+                    m_TreeViewSelectedNodeText = treeViewFolder.SelectedNode.FullPath;
+                    treeViewFolder.SelectedNode.Expand();
+                    //treeViewFolder.ExpandAll();
+                }
+
+            }
+        }
+
+        //取得次目錄資料，可以設定取得多少層次以下的目錄資料
+        private void GetDirectories(DirectoryInfo[] subDirs, TreeNode nodeToAddTo, int subFolderDeepth, int subFolderDeepthLimited)
+        {
+            TreeNode aNode;
+            DirectoryInfo[] subSubDirs;
+            foreach (DirectoryInfo subDir in subDirs)
+            {
+                //Console.WriteLine(subDir.FullName);
+                aNode = new TreeNode(subDir.Name, 0, 0);
+                aNode.Tag = subDir;
+                aNode.ImageKey = "folder";
+                try
+                {
+                    subSubDirs = subDir.GetDirectories();
+                    if (subSubDirs.Length != 0 && subFolderDeepth < (subFolderDeepthLimited - 1))
+                    {
+                        GetDirectories(subSubDirs, aNode, subFolderDeepth+1, subFolderDeepthLimited);
+                    }
+                    nodeToAddTo.Nodes.Add(aNode);
+
+                }
+                catch (Exception exc)
+                {
+                    //MessageBox.Show("Import failed because " + exc.Message + " , please try again later.");
+                }
+            }
+        }
+
+        //TreeView新選擇之後的觸發事件，用鍵盤或滑鼠都能偵測到 Handle the After_Select event.
+        private void treeViewFolder_AfterSelect(System.Object sender, System.Windows.Forms.TreeViewEventArgs e)
+        {
+            /*
+            // Vary the response depending on which TreeViewAction
+            // triggered the event. 
+            switch ((e.Action))
+            {
+                case TreeViewAction.ByKeyboard:
+                    MessageBox.Show("You like the keyboard!");
+                    break;
+                case TreeViewAction.ByMouse:
+                    MessageBox.Show("You like the mouse!");
+                    break;
+            }
+            */
+            TreeNode newSelected = e.Node;
+            //Console.WriteLine(e.Node.FullPath);
+            m_TreeViewSelectedNodeText = e.Node.FullPath;
+            listViewFile.Items.Clear();
+            DirectoryInfo nodeDirInfo = (DirectoryInfo)newSelected.Tag;
+            if (newSelected.GetNodeCount(false) == 0)
+            {
+                GetDirectories(nodeDirInfo.GetDirectories(), e.Node, 0, 1);
+            }
+
+
+            ListViewItem.ListViewSubItem[] subItems;
+            ListViewItem item = null;
+            //目錄不列入
+            /*
+            foreach (DirectoryInfo dir in nodeDirInfo.GetDirectories())
+            {
+                item = new ListViewItem(dir.Name, 0);
+                subItems = new ListViewItem.ListViewSubItem[]
+                    {new ListViewItem.ListViewSubItem(item, "Directory"),
+             new ListViewItem.ListViewSubItem(item,
+                dir.LastAccessTime.ToShortDateString())};
+                item.SubItems.AddRange(subItems);
+                listViewFile.Items.Add(item);
+            }
+            */
+
+            listViewFile.BeginUpdate();
+            foreach (FileInfo file in nodeDirInfo.GetFiles())
+            {
+                foreach (var itemExt in m_TexExtensions)
+                {
+                    if (file.Extension.ToLower() == itemExt)
+                    {
+                        item = new ListViewItem(file.Name, 1);
+                        //subItems = new ListViewItem.ListViewSubItem[]
+                        //   { new ListViewItem.ListViewSubItem(item, "File"),
+                        //      new ListViewItem.ListViewSubItem(item,
+                        //      file.LastAccessTime.ToShortDateString())};
+                        subItems = new ListViewItem.ListViewSubItem[]
+                           { new ListViewItem.ListViewSubItem(item, file.LastAccessTime.ToShortDateString())};
+
+                        item.SubItems.AddRange(subItems);
+                        listViewFile.Items.Add(item);
+                    }
+                }
+            }
+
+            listViewFile.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+            // 创建一个ListView排序类的对象，并设置listView1的排序器
+            //m_LvwColumnSorter = new ListViewColumnSorter();
+            this.listViewFile.ListViewItemSorter = m_LvwColumnSorter;
+            listViewFile.EndUpdate();
+        }
+
+        //滑鼠點擊後，這方法不好，先取消。
+        void treeViewFolder_NodeMouseClick2(object sender, TreeNodeMouseClickEventArgs e)
+        {
+
+        }
+
+        //離開
+        private void QuitButton_Click(object sender, EventArgs e)
+        {
+            const string message = "確定要離開?";
+            const string caption = "結束本程式";
+            var result = MessageBox.Show(message, caption,
+                                         MessageBoxButtons.YesNo,
+                                         MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                Application.Exit();
+            }
+        }
+
+        //選取檔案名
+        private void ListViewFile_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            /*
+            ListView.SelectedListViewItemCollection itemCollection = this.listViewFile.SelectedItems;
+            foreach (ListViewItem item in itemCollection)
+            {
+                richTextBoxText.Text += item.Text;
+                //price += Double.Parse(item.SubItems[1].Text);
+            }
+            // Output the price to TextBox1.
+            //TextBox1.Text = price.ToString();
+            */
+
+            //if (this.listViewFile.SelectedItems[0].Text.Substring(this.listViewFile.SelectedItems[0].Text.Length - 4).ToLower() == ".txt")
+            if (Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower() == ".txt")
+            {
+                string tmpString = "";
+                string tmpFullFileName = m_TreeViewSelectedNodeText + @"\" + this.listViewFile.SelectedItems[0].Text;
+                //JTextFileLib.instance.ReadTxtFile("aaa", ref tmpString, false);
+                if (JTextFileLib.instance.ReadTxtFile(tmpFullFileName, ref tmpString, false))
+                {
+                    if (m_RecentReadListIndex >= 0) //把目前這個文字檔案的游標位置回寫到m_RecentReadList歷史清單中，先判斷是否有資料(避免新開啟程式無清單資料)，
+                    {
+                        Console.WriteLine(m_RecentReadList[m_RecentReadListIndex].LastCharCount);
+                        RecentReadList tmpRecentReadList = m_RecentReadList[m_RecentReadListIndex];
+                        //get the first visible char index
+                        int firstVisibleChar = richTextBoxText.GetCharIndexFromPosition(new Point(0, 0));
+                        tmpRecentReadList.LastCharCount = firstVisibleChar;
+                        //tmpRecentReadList.LastCharCount = richTextBoxText.SelectionStart;
+                        m_RecentReadList[m_RecentReadListIndex] = tmpRecentReadList;
+
+                        //修改listViewRecentFiles資料
+                        listViewRecentFiles.Items[m_RecentReadListIndex].SubItems[1].Text = m_RecentReadList[m_RecentReadListIndex].LastCharCount.ToString();
+                    }
+
+                    //比對這次新選擇的檔案是否已經放進舊檔案清單中
+                    int tmpCount = 0;
+                    m_RecentReadListIndex = -1;
+                    foreach (var item in m_RecentReadList)
+                    {
+                        if (item.FileFullName == tmpFullFileName) //在舊清單中找到新選擇的檔名
+                        {
+                            m_RecentReadListIndex = tmpCount;
+                            break;
+                        }
+                        tmpCount++;
+                    }
+                    if (m_RecentReadListIndex == -1) //沒在舊清單中找到，添加在舊清單之後
+                    {
+                        RecentReadList tmpRecentReadList = new RecentReadList();
+                        tmpRecentReadList.FileFullName = tmpFullFileName;
+                        tmpRecentReadList.LastCharCount = 0;
+                        m_RecentReadList.Add(tmpRecentReadList);
+                        m_RecentReadListIndex = m_RecentReadList.Count - 1;
+
+                        //添加到listViewRecentFiles
+                        ListViewItem item = new ListViewItem(m_RecentReadList[m_RecentReadListIndex].FileFullName, 1);
+                        //subItems = new ListViewItem.ListViewSubItem[]
+                        //   { new ListViewItem.ListViewSubItem(item, "File"),
+                        //      new ListViewItem.ListViewSubItem(item,
+                        //      file.LastAccessTime.ToShortDateString())};
+                        ListViewItem.ListViewSubItem[] subItems = new ListViewItem.ListViewSubItem[]
+                           { new ListViewItem.ListViewSubItem(item, m_RecentReadList[m_RecentReadListIndex].LastCharCount.ToString())};
+                        item.SubItems.AddRange(subItems);
+                        listViewRecentFiles.Items.Add(item);
+                    }
+                    this.richTextBoxText.Visible = true;
+                    webBrowser1.Visible = false;
+                    this.richTextBoxText.Text = tmpString;
+                    richTextBoxText.SelectionStart = m_RecentReadList[m_RecentReadListIndex].LastCharCount;
+                    richTextBoxText.ScrollToCaret();
+                }
+            }
+            if (Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower() == ".html")
+            {
+                try
+                {
+                    this.richTextBoxText.Visible = false;
+                    webBrowser1.Visible = true;
+                    //webBrowser1.Navigate(new Uri(m_TreeViewSelectedNodeText + @"\" + this.listViewFile.SelectedItems[0].Text));
+                    //webBrowser1.Navigate("file:///D:/3D_prj/VS_2013_prj/TextSpeedReader/TextSpeedReader/WEB/MirrorFiction.html");
+                    //webBrowser1.Navigate("file:///D:/3D_prj/VS_2013_prj/TextSpeedReader/TextSpeedReader/網頁/MirrorFiction.html");
+                    webBrowser1.Navigate("file:///" + m_TreeViewSelectedNodeText + @"\" + this.listViewFile.SelectedItems[0].Text);
+                }
+                catch (System.UriFormatException exc)
+                {
+                    Console.WriteLine(exc);
+                    return;
+                }
+            }
+
+        }
+
+        private void Navigate(String address)
+        {
+            if (String.IsNullOrEmpty(address)) return;
+            if (address.Equals("about:blank")) return;
+            if (!address.StartsWith("http://") &&
+                !address.StartsWith("https://"))
+            {
+                address = "http://" + address;
+            }
+            try
+            {
+                webBrowser1.Navigate(new Uri(address));
+            }
+            catch (System.UriFormatException)
+            {
+                return;
+            }
+        }
+
+        // Updates the URL in TextBoxAddress upon navigation.
+        private void webBrowser1_Navigated(object sender,
+            WebBrowserNavigatedEventArgs e)
+        {
+            //toolStripTextBox1.Text = webBrowser1.Url.ToString();
+        }
+
+        private void FolderPathButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string startupPath = Application.StartupPath;
+                using (FolderBrowserDialog dialog = new FolderBrowserDialog())
+                {
+                    dialog.Description = "請選取目錄";
+                    dialog.ShowNewFolderButton = false;
+                    //dialog.RootFolder = Environment.SpecialFolder.MyComputer; //沒用，.MyComputer只會取得空字串，可以試試MyDocument
+                    dialog.SelectedPath = m_FullPath;
+                    if (dialog.ShowDialog() == DialogResult.OK)
+                    {
+                        m_FullPath = dialog.SelectedPath;
+                        Console.WriteLine("dialog.RootFolder " + dialog.RootFolder);
+                        Console.WriteLine("dialog.SelectedPath " + dialog.SelectedPath);
+                        PopulateTreeView(Regex.Matches(m_FullPath, @"\\").Count);
+                        Console.WriteLine("\\ Count " + Regex.Matches(m_FullPath, @"\\").Count);
+
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("Import failed because " + exc.Message + " , please try again later.");
+            }
+
+        }
+
+        private void listViewFile_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            // 检查点击的列是不是现在的排序列.
+            if (e.Column == m_LvwColumnSorter.SortColumn)
+            {
+                // 重新设置此列的排序方法.
+                if (m_LvwColumnSorter.Order == SortOrder.Ascending)
+                {
+                    m_LvwColumnSorter.Order = SortOrder.Descending;
+                }
+                else
+                {
+                    m_LvwColumnSorter.Order = SortOrder.Ascending;
+                }
+            }
+            else
+            {
+                // 设置排序列，默认为正向排序
+                m_LvwColumnSorter.SortColumn = e.Column;
+                m_LvwColumnSorter.Order = SortOrder.Ascending;
+            }
+
+            // 用新的排序方法对ListView排序
+            this.listViewFile.Sort();
+        }
+
+        private void FontSizeAdd(object sender, EventArgs e)
+        {
+            if (richTextBoxText.Visible)
+            {
+                Font tmpFont = richTextBoxText.Font;
+                float tmpFontSize = richTextBoxText.Font.Size;
+                for (int i = 0; i < m_FontSize.Length; i++)
+                {
+                    if (m_FontSize[i] > tmpFontSize)
+                    {
+                        tmpFontSize = m_FontSize[i];
+                        Console.WriteLine("tmpFontSize " + tmpFontSize);
+                        break;
+                    }
+                }
+                Font newFont = new Font(tmpFont.FontFamily, tmpFontSize);
+                Console.WriteLine("newFont.Size " + newFont.Size);
+                richTextBoxText.Font = newFont;
+            }
+            else if (webBrowser1.Visible)
+            {
+                //取得目前Zoom比例，沒有用，取出的值不是我要的
+                /*
+                Size szb = new Size(webBrowser1.Document.Body.OffsetRectangle.Width, webBrowser1.Document.Body.OffsetRectangle.Height);
+                Size sz = webBrowser1.Size;
+                int xbili = (int)((float)sz.Width / (float)szb.Width * 100);//水平方向縮小比例
+                int ybili = (int)((float)sz.Height / (float)szb.Height * 100);//垂直方向縮小比例
+                Console.WriteLine("webBrowser1.Document.Body.OffsetRectangle.Width " + webBrowser1.Document.Body.OffsetRectangle.Width);
+                Console.WriteLine("sz.Width " + sz.Width);
+                Console.WriteLine("xbili " + xbili);
+                Console.WriteLine("xbili " + webBrowser1.Document.Body.GetAttribute("style"));
+                //webBrowser1.Document.Body.Style = "zoom:" + xbili.ToString() + "%";
+                //webBrowser1.Invalidate();
+                //————————————————
+                //版权声明：本文为CSDN博主「xtfnpgy」的原创文章，遵循CC 4.0 BY - SA版权协议，转载请附上原文出处链接及本声明。
+                //原文链接：https://blog.csdn.net/xtfnpgy/java/article/details/40266713
+                */
+
+                for (int i = 0; i < m_WebBrowserSize.Length; i++)
+                {
+                    if (m_WebBrowserSize[i] > m_WebBrowserZoom)
+                    {
+                        m_WebBrowserZoom = m_WebBrowserSize[i];
+                        Console.WriteLine("m_WebBrowserSize[i] " + m_WebBrowserSize[i]);
+                        break;
+                    }
+                }
+                webBrowser1.Document.Body.Style = "zoom: " + m_WebBrowserZoom.ToString() + "%";
+            }
+        }
+
+        private void FontSizeReduce(object sender, EventArgs e)
+        {
+            if (richTextBoxText.Visible)
+            {
+                Font tmpFont = richTextBoxText.Font;
+                float tmpFontSize = richTextBoxText.Font.Size;
+                for (int i = m_FontSize.Length - 1; i >= 0; i--)
+                {
+                    if (m_FontSize[i] < tmpFontSize)
+                    {
+                        tmpFontSize = m_FontSize[i];
+                        Console.WriteLine("tmpFontSize " + tmpFontSize);
+                        break;
+                    }
+                }
+                Font newFont = new Font(tmpFont.FontFamily, tmpFontSize);
+                Console.WriteLine("newFont.Size " + newFont.Size);
+                richTextBoxText.Font = newFont;
+            }
+            else if (webBrowser1.Visible)
+            {
+                for (int i = m_WebBrowserSize.Length - 1; i >= 0; i--)
+                {
+                    if (m_WebBrowserSize[i] < m_WebBrowserZoom)
+                    {
+                        m_WebBrowserZoom = m_WebBrowserSize[i];
+                        Console.WriteLine("m_WebBrowserSize[i] " + m_WebBrowserSize[i]);
+                        break;
+                    }
+                }
+                webBrowser1.Document.Body.Style = "zoom: " + m_WebBrowserZoom.ToString() + "%";
+            }
+
+        }
+
+        private void GetRecentReadList()
+        {
+            if (File.Exists(@".\TextSpeedReader.ini"))
+            {
+                int counter = 0;
+                string line;
+                m_RecentReadList.Clear();
+                RecentReadList tmpRecentReadList = new RecentReadList();
+                try
+                {
+                    //using (StreamReader str = new StreamReader(fileName, Encoding.Default)) //添加Encode參數解決中文亂碼問題 
+                    using (StreamReader file = new StreamReader(@".\TextSpeedReader.ini")) //添加Encode參數解決中文亂碼問題 
+                    {
+                        while ((line = file.ReadLine()) != null)
+                        {
+                            tmpRecentReadList.FileFullName = line;
+                            if ((line = file.ReadLine()) != null)
+                            {
+                                try
+                                {
+                                    tmpRecentReadList.LastCharCount = Int32.Parse(line);
+                                    Console.WriteLine(tmpRecentReadList.LastCharCount);
+                                }
+                                catch (FormatException exc)
+                                {
+                                    Console.WriteLine($"Unable to parse '{line}'" + exc);
+                                }
+                            }
+                            m_RecentReadList.Add(tmpRecentReadList);
+                            Console.WriteLine(line);
+                            //將資料顯示在listViewRecentFiles
+                            ListViewItem item = new ListViewItem(m_RecentReadList[counter].FileFullName, 1);
+                            ListViewItem.ListViewSubItem[] subItems = new ListViewItem.ListViewSubItem[]
+                               { new ListViewItem.ListViewSubItem(item, m_RecentReadList[counter].LastCharCount.ToString())};
+                            item.SubItems.AddRange(subItems);
+                            listViewRecentFiles.Items.Add(item);
+
+                            counter++;
+                        }
+                        file.Close();
+                        // Read the stream to a string, and write the string to the console.
+                        //String line = str.ReadToEnd();
+                        Console.WriteLine(@".\TextSpeedReader.ini" + " 啟始檔案讀取完成");
+                    }
+                }
+                catch (IOException e)
+                {
+                    Console.WriteLine(@".\TextSpeedReader.ini" + " 啟始檔案無法讀取");
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+        private void FormTSRClosing(object sender, FormClosingEventArgs e)
+        {
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\TextSpeedReader.ini"))
+            {
+                foreach (var item in m_RecentReadList)
+                {
+                    file.WriteLine(item.FileFullName);
+                    file.WriteLine(item.LastCharCount);
+                }
+                file.Close();
+            }
+        }
+
+        private void ShowFolderButton_Click(object sender, EventArgs e)
+        {
+            splitContainerMain.Panel1Collapsed = !splitContainerMain.Panel1Collapsed;
+        }
+
+        private void GetSystemFonts()
+        {
+            InstalledFontCollection installedFontCollection = new InstalledFontCollection();
+
+            // Get the array of FontFamily objects.
+            m_FontFamilies = installedFontCollection.Families;
+
+            // The loop below creates a large string that is a comma-separated
+            // list of all font family names.
+
+            int count = m_FontFamilies.Length;
+            for (int j = 0; j < count; ++j)
+            {
+                toolStripComboBoxFonts.Items.Add(m_FontFamilies[j].Name);
+                //familyName = m_FontFamilies[j].Name;
+                //familyList = familyList + familyName;
+                //familyList = familyList + ",  ";
+            }
+        }
+
+        private void ChangeFont(object sender, EventArgs e)
+        {
+            int count = m_FontFamilies.Length;
+            for (int j = 0; j < count; ++j)
+            {
+                if (m_FontFamilies[j].Name == (string)toolStripComboBoxFonts.SelectedItem)
+                {
+                    Font newFont = new Font(m_FontFamilies[j], richTextBoxText.Font.Size, richTextBoxText.Font.Style);
+                    richTextBoxText.Font = newFont;
+                }
+            }
+        }
+
+        private void listViewFile_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                if (listViewFile.SelectedItems.Count > 0) //有選定的項目
+                {
+                    string message = "您確定要將 " + listViewFile.SelectedItems[0].Text + "   " + listViewFile.SelectedItems.Count + " 個檔案移到資源回收桶？";
+                    string caption = "移到資源回收桶";
+                    var result = MessageBox.Show(message, caption,
+                                                 MessageBoxButtons.YesNo,
+                                                 MessageBoxIcon.Question);
+                    if (result == DialogResult.Yes)
+                    {
+                        int tmpIndex = 0;
+                        listViewFile.BeginUpdate();
+                        for (int i = listViewFile.SelectedItems.Count - 1; i >= 0; i--) //從最後一個選擇項目往前逐一刪除
+                        {
+                            ListViewItem item = listViewFile.SelectedItems[i];
+                            tmpIndex = item.Index;
+                            string tmpFullFileName = Path.Combine(m_TreeViewSelectedNodeText, listViewFile.SelectedItems[i].Text);
+                            //MessageBox.Show(tmpFullFileName);
+                            if (FileSystem.FileExists(tmpFullFileName))
+                            {
+                                //刪除檔案
+                                FileSystem.DeleteFile(tmpFullFileName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+                                //如果是網頁檔案，要連同網頁資料目錄一起刪除。
+                                //Console.WriteLine(Path.GetExtension(tmpFullFileName));
+                                //Console.WriteLine(Path.GetDirectoryName(tmpFullFileName));
+                                //Console.WriteLine(Path.GetFileNameWithoutExtension(tmpFullFileName) + "_files");
+                                if (Path.GetExtension(tmpFullFileName) == ".htm" 
+                                    || Path.GetExtension(tmpFullFileName) == ".html" 
+                                    && FileSystem.DirectoryExists(Path.Combine(Path.GetDirectoryName(tmpFullFileName), Path.GetFileNameWithoutExtension(tmpFullFileName)) + "_files"))
+                                {
+                                    Console.WriteLine(Path.Combine(Path.GetDirectoryName(tmpFullFileName), Path.GetFileNameWithoutExtension(tmpFullFileName)) + "_files");
+                                    FileSystem.DeleteDirectory(Path.Combine(Path.GetDirectoryName(tmpFullFileName), Path.GetFileNameWithoutExtension(tmpFullFileName)) + "_files", UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+                                }
+                                listViewFile.Items.Remove(item); //刪除項目
+                            }
+                            else
+                            {
+                                MessageBox.Show(tmpFullFileName + " 已不存在！");
+                            }
+                        }
+                        listViewFile.EndUpdate();
+                        //如果還有其他項目，就選取下一個項目
+                        if (listViewFile.Items.Count > tmpIndex)
+                        {
+                            listViewFile.Items[tmpIndex].Selected = true; //選取該項目
+                        }
+                        else if (listViewFile.Items.Count > 0)
+                        {
+                            listViewFile.Items[listViewFile.Items.Count - 1].Selected = true; //選取最後一個項目
+                        }
+                        else
+                        {
+                            richTextBoxText.Text = ""; //清空文字框
+                            //還不會清空webBrowser1內容
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

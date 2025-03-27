@@ -1,0 +1,70 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{3746E701-230E-4975-B6D5-0D82F2D529DF}|TextSpeedReader\\TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\textspeedreader\\formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3746E701-230E-4975-B6D5-0D82F2D529DF}|TextSpeedReader\\TextSpeedReader.csproj|solutionrelative:textspeedreader\\formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3746E701-230E-4975-B6D5-0D82F2D529DF}|TextSpeedReader\\TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\textspeedreader\\listviewcolumnsorter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3746E701-230E-4975-B6D5-0D82F2D529DF}|TextSpeedReader\\TextSpeedReader.csproj|solutionrelative:textspeedreader\\listviewcolumnsorter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3746E701-230E-4975-B6D5-0D82F2D529DF}|TextSpeedReader\\TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\textspeedreader\\formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{3746E701-230E-4975-B6D5-0D82F2D529DF}|TextSpeedReader\\TextSpeedReader.csproj|solutionrelative:textspeedreader\\formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ListViewColumnSorter.cs",
+              "DocumentMoniker": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader\\ListViewColumnSorter.cs",
+              "RelativeDocumentMoniker": "TextSpeedReader\\ListViewColumnSorter.cs",
+              "ToolTip": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader\\ListViewColumnSorter.cs",
+              "RelativeToolTip": "TextSpeedReader\\ListViewColumnSorter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-26T06:47:57.449Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "FormTextSpeedReader.cs [\u8A2D\u8A08]",
+              "DocumentMoniker": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader\\FormTextSpeedReader.cs",
+              "RelativeDocumentMoniker": "TextSpeedReader\\FormTextSpeedReader.cs",
+              "ToolTip": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader\\FormTextSpeedReader.cs [\u8A2D\u8A08]",
+              "RelativeToolTip": "TextSpeedReader\\FormTextSpeedReader.cs [\u8A2D\u8A08]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-26T04:03:58.272Z",
+              "EditorCaption": " [\u8A2D\u8A08]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "FormTextSpeedReader.cs",
+              "DocumentMoniker": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader\\FormTextSpeedReader.cs",
+              "RelativeDocumentMoniker": "TextSpeedReader\\FormTextSpeedReader.cs",
+              "ToolTip": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader\\FormTextSpeedReader.cs",
+              "RelativeToolTip": "TextSpeedReader\\FormTextSpeedReader.cs",
+              "ViewState": "AgIAABcAAAAAAAAAAAAhwCsAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-07T09:12:01.707Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
