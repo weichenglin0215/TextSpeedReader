@@ -49,6 +49,7 @@ namespace TextSpeedReader
             contextMenuStrip_RichTextBox = new ContextMenuStrip(components);
             toolStripMenuItem_RemoveCR = new ToolStripMenuItem();
             toolStripMenuItem_AutoSelectCR = new ToolStripMenuItem();
+            toolStripMenuItem_MergeNoneSpace = new ToolStripMenuItem();
             webBrowser1 = new WebBrowser();
             navigationBar = new ToolStrip();
             ShowFolderButton = new ToolStripButton();
@@ -60,18 +61,20 @@ namespace TextSpeedReader
             buttonConvertToSimplified = new ToolStripButton();
             toolStripSeparator4 = new ToolStripSeparator();
             toolStripButtonFileConvertToSimplified = new ToolStripButton();
+            toolStripSeparator5 = new ToolStripSeparator();
+            toolStripButtonCopyHtmlSaveFile = new ToolStripButton();
             FolderPathButton = new ToolStripButton();
             navBackButton = new ToolStripSplitButton();
             navForwardButton = new ToolStripSplitButton();
             navUpButton = new ToolStripButton();
-            navFoldersButton = new ToolStripButton();
             navAddressLabel = new ToolStripLabel();
-            QuitButton = new ToolStripButton();
+            navFoldersButton = new ToolStripButton();
+            toolStripComboBoxFonts = new ToolStripComboBox();
             FontSizeAddButton = new ToolStripButton();
             FontSizeReduceButton = new ToolStripButton();
-            toolStripComboBoxFonts = new ToolStripComboBox();
-            toolStripButtonCopyHtmlSaveFile = new ToolStripButton();
-            toolStripSeparator5 = new ToolStripSeparator();
+            QuitButton = new ToolStripButton();
+            toolStripSplitButton1 = new ToolStripSplitButton();
+            statusStrip1 = new StatusStrip();
             ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
             splitContainerMain.Panel1.SuspendLayout();
             splitContainerMain.Panel2.SuspendLayout();
@@ -88,7 +91,7 @@ namespace TextSpeedReader
             // splitContainerMain
             // 
             splitContainerMain.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            splitContainerMain.Location = new Point(0, 35);
+            splitContainerMain.Location = new Point(0, 69);
             splitContainerMain.Name = "splitContainerMain";
             // 
             // splitContainerMain.Panel1
@@ -100,7 +103,7 @@ namespace TextSpeedReader
             splitContainerMain.Panel2.Controls.Add(listViewRecentFiles);
             splitContainerMain.Panel2.Controls.Add(richTextBoxText);
             splitContainerMain.Panel2.Controls.Add(webBrowser1);
-            splitContainerMain.Size = new Size(1300, 716);
+            splitContainerMain.Size = new Size(1300, 658);
             splitContainerMain.SplitterDistance = 500;
             splitContainerMain.SplitterWidth = 6;
             splitContainerMain.TabIndex = 4;
@@ -119,8 +122,8 @@ namespace TextSpeedReader
             // splitContainerFolder.Panel2
             // 
             splitContainerFolder.Panel2.Controls.Add(listViewFile);
-            splitContainerFolder.Size = new Size(500, 716);
-            splitContainerFolder.SplitterDistance = 299;
+            splitContainerFolder.Size = new Size(500, 658);
+            splitContainerFolder.SplitterDistance = 273;
             splitContainerFolder.SplitterWidth = 6;
             splitContainerFolder.TabIndex = 0;
             // 
@@ -133,7 +136,7 @@ namespace TextSpeedReader
             treeViewFolder.Location = new Point(0, 0);
             treeViewFolder.Name = "treeViewFolder";
             treeViewFolder.SelectedImageIndex = 0;
-            treeViewFolder.Size = new Size(500, 299);
+            treeViewFolder.Size = new Size(500, 273);
             treeViewFolder.TabIndex = 0;
             treeViewFolder.AfterSelect += treeViewFolder_AfterSelect;
             // 
@@ -153,7 +156,7 @@ namespace TextSpeedReader
             listViewFile.GridLines = true;
             listViewFile.Location = new Point(0, 0);
             listViewFile.Name = "listViewFile";
-            listViewFile.Size = new Size(500, 411);
+            listViewFile.Size = new Size(500, 379);
             listViewFile.SmallImageList = imageList1;
             listViewFile.TabIndex = 0;
             listViewFile.UseCompatibleStateImageBehavior = false;
@@ -222,21 +225,21 @@ namespace TextSpeedReader
             richTextBoxText.ForeColor = SystemColors.Window;
             richTextBoxText.Location = new Point(0, 0);
             richTextBoxText.Name = "richTextBoxText";
-            richTextBoxText.Size = new Size(794, 716);
+            richTextBoxText.Size = new Size(794, 658);
             richTextBoxText.TabIndex = 0;
             richTextBoxText.Text = "";
             // 
             // contextMenuStrip_RichTextBox
             // 
-            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoSelectCR });
+            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_MergeNoneSpace });
             contextMenuStrip_RichTextBox.Name = "contextMenuStrip_RichTextBox";
-            contextMenuStrip_RichTextBox.Size = new Size(281, 52);
+            contextMenuStrip_RichTextBox.Size = new Size(366, 98);
             // 
             // toolStripMenuItem_RemoveCR
             // 
             toolStripMenuItem_RemoveCR.Name = "toolStripMenuItem_RemoveCR";
             toolStripMenuItem_RemoveCR.ShortcutKeys = Keys.Control | Keys.R;
-            toolStripMenuItem_RemoveCR.Size = new Size(280, 24);
+            toolStripMenuItem_RemoveCR.Size = new Size(365, 24);
             toolStripMenuItem_RemoveCR.Text = "移除選取的文字斷行";
             toolStripMenuItem_RemoveCR.ToolTipText = "將所選文字合併成同一行";
             toolStripMenuItem_RemoveCR.Click += toolStripMenuItemRemoveLineBreaks_Click;
@@ -245,9 +248,18 @@ namespace TextSpeedReader
             // 
             toolStripMenuItem_AutoSelectCR.Name = "toolStripMenuItem_AutoSelectCR";
             toolStripMenuItem_AutoSelectCR.ShortcutKeys = Keys.Control | Keys.E;
-            toolStripMenuItem_AutoSelectCR.Size = new Size(280, 24);
+            toolStripMenuItem_AutoSelectCR.Size = new Size(365, 24);
             toolStripMenuItem_AutoSelectCR.Text = "自動選取直到空白行";
             toolStripMenuItem_AutoSelectCR.Click += toolStripMenuItem_AutoSelectCR_Click;
+            // 
+            // toolStripMenuItem_MergeNoneSpace
+            // 
+            toolStripMenuItem_MergeNoneSpace.Enabled = false;
+            toolStripMenuItem_MergeNoneSpace.Name = "toolStripMenuItem_MergeNoneSpace";
+            toolStripMenuItem_MergeNoneSpace.ShortcutKeys = Keys.Control | Keys.M;
+            toolStripMenuItem_MergeNoneSpace.Size = new Size(365, 24);
+            toolStripMenuItem_MergeNoneSpace.Text = "若下一行文字之間無空格則合併";
+            toolStripMenuItem_MergeNoneSpace.Click += toolStripMenuItem_MergeNoneSpace_Click;
             // 
             // webBrowser1
             // 
@@ -255,66 +267,60 @@ namespace TextSpeedReader
             webBrowser1.Location = new Point(0, 0);
             webBrowser1.MinimumSize = new Size(20, 20);
             webBrowser1.Name = "webBrowser1";
-            webBrowser1.Size = new Size(794, 716);
+            webBrowser1.Size = new Size(794, 658);
             webBrowser1.TabIndex = 1;
             // 
             // navigationBar
             // 
-            navigationBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            navigationBar.AutoSize = false;
             navigationBar.CanOverflow = false;
-            navigationBar.Dock = DockStyle.None;
             navigationBar.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-            navigationBar.GripStyle = ToolStripGripStyle.Hidden;
             navigationBar.ImageScalingSize = new Size(24, 24);
-            navigationBar.Items.AddRange(new ToolStripItem[] { ShowFolderButton, toolStripSeparator2, RemoveLeadSpace, toolStripSeparator1, AutoRemoveCRButton, toolStripSeparator3, buttonConvertToSimplified, toolStripSeparator4, toolStripButtonFileConvertToSimplified, toolStripSeparator5, toolStripButtonCopyHtmlSaveFile, FolderPathButton, navBackButton, navForwardButton, navUpButton, navFoldersButton, navAddressLabel, QuitButton, FontSizeAddButton, FontSizeReduceButton, toolStripComboBoxFonts });
-            navigationBar.LayoutStyle = ToolStripLayoutStyle.HorizontalStackWithOverflow;
+            navigationBar.Items.AddRange(new ToolStripItem[] { ShowFolderButton, toolStripSeparator2, RemoveLeadSpace, toolStripSeparator1, AutoRemoveCRButton, toolStripSeparator3, buttonConvertToSimplified, toolStripSeparator4, toolStripButtonFileConvertToSimplified, toolStripSeparator5, toolStripButtonCopyHtmlSaveFile, FolderPathButton, navBackButton, navForwardButton, navUpButton, navAddressLabel, navFoldersButton, toolStripComboBoxFonts, FontSizeAddButton, FontSizeReduceButton, QuitButton, toolStripSplitButton1 });
+            navigationBar.LayoutStyle = ToolStripLayoutStyle.Flow;
             navigationBar.Location = new Point(0, 0);
             navigationBar.Name = "navigationBar";
-            navigationBar.Size = new Size(1300, 32);
-            navigationBar.Stretch = true;
+            navigationBar.Size = new Size(1304, 58);
             navigationBar.TabIndex = 5;
             // 
             // ShowFolderButton
             // 
+            ShowFolderButton.Checked = true;
+            ShowFolderButton.CheckOnClick = true;
+            ShowFolderButton.CheckState = CheckState.Checked;
             ShowFolderButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
             ShowFolderButton.Image = (Image)resources.GetObject("ShowFolderButton.Image");
             ShowFolderButton.ImageTransparentColor = Color.Magenta;
             ShowFolderButton.Name = "ShowFolderButton";
-            ShowFolderButton.Size = new Size(93, 29);
+            ShowFolderButton.Size = new Size(93, 24);
             ShowFolderButton.Text = "顯示資料夾";
             ShowFolderButton.Click += ShowFolderButton_Click;
             // 
             // toolStripSeparator2
             // 
-            toolStripSeparator2.AutoSize = false;
             toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(30, 30);
-            toolStripSeparator2.Visible = false;
+            toolStripSeparator2.Size = new Size(6, 23);
             // 
             // RemoveLeadSpace
             // 
             RemoveLeadSpace.DisplayStyle = ToolStripItemDisplayStyle.Text;
             RemoveLeadSpace.ImageTransparentColor = Color.Magenta;
             RemoveLeadSpace.Name = "RemoveLeadSpace";
-            RemoveLeadSpace.Size = new Size(157, 29);
-            RemoveLeadSpace.Text = "移除行首的空白字元";
+            RemoveLeadSpace.Size = new Size(189, 24);
+            RemoveLeadSpace.Text = "移除行首行尾的空白字元";
             RemoveLeadSpace.ToolTipText = "移除行首的空白字元";
             RemoveLeadSpace.Click += RemoveLeadSpace_Click;
             // 
             // toolStripSeparator1
             // 
-            toolStripSeparator1.AutoSize = false;
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(30, 30);
-            toolStripSeparator1.Visible = false;
+            toolStripSeparator1.Size = new Size(6, 23);
             // 
             // AutoRemoveCRButton
             // 
             AutoRemoveCRButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
             AutoRemoveCRButton.ImageTransparentColor = Color.Magenta;
             AutoRemoveCRButton.Name = "AutoRemoveCRButton";
-            AutoRemoveCRButton.Size = new Size(157, 29);
+            AutoRemoveCRButton.Size = new Size(157, 24);
             AutoRemoveCRButton.Text = "自動移除多餘的斷行";
             AutoRemoveCRButton.ToolTipText = "自動移除沒必要的斷行";
             AutoRemoveCRButton.Click += AutoRemoveCRButton_Click;
@@ -322,7 +328,7 @@ namespace TextSpeedReader
             // toolStripSeparator3
             // 
             toolStripSeparator3.Name = "toolStripSeparator3";
-            toolStripSeparator3.Size = new Size(6, 32);
+            toolStripSeparator3.Size = new Size(6, 23);
             // 
             // buttonConvertToSimplified
             // 
@@ -330,14 +336,14 @@ namespace TextSpeedReader
             buttonConvertToSimplified.Image = (Image)resources.GetObject("buttonConvertToSimplified.Image");
             buttonConvertToSimplified.ImageTransparentColor = Color.Magenta;
             buttonConvertToSimplified.Name = "buttonConvertToSimplified";
-            buttonConvertToSimplified.Size = new Size(265, 29);
+            buttonConvertToSimplified.Size = new Size(265, 24);
             buttonConvertToSimplified.Text = "將目前TXT轉換成簡體並儲存新檔名";
             buttonConvertToSimplified.Click += buttonConvertToSimplified_Click;
             // 
             // toolStripSeparator4
             // 
             toolStripSeparator4.Name = "toolStripSeparator4";
-            toolStripSeparator4.Size = new Size(6, 32);
+            toolStripSeparator4.Size = new Size(6, 23);
             // 
             // toolStripButtonFileConvertToSimplified
             // 
@@ -345,9 +351,24 @@ namespace TextSpeedReader
             toolStripButtonFileConvertToSimplified.Image = (Image)resources.GetObject("toolStripButtonFileConvertToSimplified.Image");
             toolStripButtonFileConvertToSimplified.ImageTransparentColor = Color.Magenta;
             toolStripButtonFileConvertToSimplified.Name = "toolStripButtonFileConvertToSimplified";
-            toolStripButtonFileConvertToSimplified.Size = new Size(285, 29);
-            toolStripButtonFileConvertToSimplified.Text = "將目錄清單中轉換成簡體並儲存新檔名";
+            toolStripButtonFileConvertToSimplified.Size = new Size(393, 24);
+            toolStripButtonFileConvertToSimplified.Text = "將目錄清單中選取的TXT檔案轉換成簡體並儲存新檔名";
             toolStripButtonFileConvertToSimplified.Click += toolStripButtonFileConvertToSimplified_Click;
+            // 
+            // toolStripSeparator5
+            // 
+            toolStripSeparator5.Name = "toolStripSeparator5";
+            toolStripSeparator5.Size = new Size(6, 23);
+            // 
+            // toolStripButtonCopyHtmlSaveFile
+            // 
+            toolStripButtonCopyHtmlSaveFile.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            toolStripButtonCopyHtmlSaveFile.Image = (Image)resources.GetObject("toolStripButtonCopyHtmlSaveFile.Image");
+            toolStripButtonCopyHtmlSaveFile.ImageTransparentColor = Color.Magenta;
+            toolStripButtonCopyHtmlSaveFile.Name = "toolStripButtonCopyHtmlSaveFile";
+            toolStripButtonCopyHtmlSaveFile.Size = new Size(229, 24);
+            toolStripButtonCopyHtmlSaveFile.Text = "複製HTML文字並儲存TXT檔案";
+            toolStripButtonCopyHtmlSaveFile.Click += toolStripButtonCopyHtmlSaveFile_Click;
             // 
             // FolderPathButton
             // 
@@ -355,7 +376,7 @@ namespace TextSpeedReader
             FolderPathButton.Image = (Image)resources.GetObject("FolderPathButton.Image");
             FolderPathButton.ImageTransparentColor = Color.Magenta;
             FolderPathButton.Name = "FolderPathButton";
-            FolderPathButton.Size = new Size(101, 29);
+            FolderPathButton.Size = new Size(101, 28);
             FolderPathButton.Text = "開啟目錄";
             FolderPathButton.ToolTipText = "開啟目錄";
             FolderPathButton.Visible = false;
@@ -369,7 +390,7 @@ namespace TextSpeedReader
             navBackButton.Image = (Image)resources.GetObject("navBackButton.Image");
             navBackButton.ImageTransparentColor = Color.Magenta;
             navBackButton.Name = "navBackButton";
-            navBackButton.Size = new Size(40, 29);
+            navBackButton.Size = new Size(40, 28);
             navBackButton.Text = "Back";
             navBackButton.TextImageRelation = TextImageRelation.ImageAboveText;
             navBackButton.Visible = false;
@@ -382,7 +403,7 @@ namespace TextSpeedReader
             navForwardButton.Image = (Image)resources.GetObject("navForwardButton.Image");
             navForwardButton.ImageTransparentColor = Color.Magenta;
             navForwardButton.Name = "navForwardButton";
-            navForwardButton.Size = new Size(40, 29);
+            navForwardButton.Size = new Size(40, 28);
             navForwardButton.Text = "Forward";
             navForwardButton.TextImageRelation = TextImageRelation.ImageAboveText;
             navForwardButton.Visible = false;
@@ -394,10 +415,20 @@ namespace TextSpeedReader
             navUpButton.Image = (Image)resources.GetObject("navUpButton.Image");
             navUpButton.ImageTransparentColor = Color.Magenta;
             navUpButton.Name = "navUpButton";
-            navUpButton.Size = new Size(28, 29);
+            navUpButton.Size = new Size(28, 28);
             navUpButton.Text = "Up";
             navUpButton.TextImageRelation = TextImageRelation.ImageAboveText;
             navUpButton.Visible = false;
+            // 
+            // navAddressLabel
+            // 
+            navAddressLabel.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            navAddressLabel.MergeIndex = 0;
+            navAddressLabel.Name = "navAddressLabel";
+            navAddressLabel.Overflow = ToolStripItemOverflow.Never;
+            navAddressLabel.Size = new Size(69, 20);
+            navAddressLabel.Text = "Address";
+            navAddressLabel.Visible = false;
             // 
             // navFoldersButton
             // 
@@ -409,32 +440,22 @@ namespace TextSpeedReader
             navFoldersButton.Image = (Image)resources.GetObject("navFoldersButton.Image");
             navFoldersButton.ImageTransparentColor = Color.Magenta;
             navFoldersButton.Name = "navFoldersButton";
-            navFoldersButton.Size = new Size(28, 29);
+            navFoldersButton.Size = new Size(28, 28);
             navFoldersButton.Text = "Folders";
             navFoldersButton.TextImageRelation = TextImageRelation.ImageAboveText;
             navFoldersButton.Visible = false;
             // 
-            // navAddressLabel
+            // toolStripComboBoxFonts
             // 
-            navAddressLabel.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-            navAddressLabel.MergeIndex = 0;
-            navAddressLabel.Name = "navAddressLabel";
-            navAddressLabel.Overflow = ToolStripItemOverflow.Never;
-            navAddressLabel.Size = new Size(69, 29);
-            navAddressLabel.Text = "Address";
-            navAddressLabel.Visible = false;
-            // 
-            // QuitButton
-            // 
-            QuitButton.Alignment = ToolStripItemAlignment.Right;
-            QuitButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            QuitButton.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-            QuitButton.Image = (Image)resources.GetObject("QuitButton.Image");
-            QuitButton.ImageTransparentColor = Color.Magenta;
-            QuitButton.Name = "QuitButton";
-            QuitButton.Size = new Size(28, 29);
-            QuitButton.Text = "Quit";
-            QuitButton.Click += QuitButton_Click;
+            toolStripComboBoxFonts.Alignment = ToolStripItemAlignment.Right;
+            toolStripComboBoxFonts.DropDownHeight = 600;
+            toolStripComboBoxFonts.DropDownWidth = 240;
+            toolStripComboBoxFonts.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            toolStripComboBoxFonts.IntegralHeight = false;
+            toolStripComboBoxFonts.Name = "toolStripComboBoxFonts";
+            toolStripComboBoxFonts.Size = new Size(240, 28);
+            toolStripComboBoxFonts.Text = "字型";
+            toolStripComboBoxFonts.SelectedIndexChanged += ChangeFont;
             // 
             // FontSizeAddButton
             // 
@@ -446,7 +467,7 @@ namespace TextSpeedReader
             FontSizeAddButton.ImageTransparentColor = Color.Magenta;
             FontSizeAddButton.Name = "FontSizeAddButton";
             FontSizeAddButton.RightToLeft = RightToLeft.No;
-            FontSizeAddButton.Size = new Size(28, 29);
+            FontSizeAddButton.Size = new Size(28, 28);
             FontSizeAddButton.Text = "FontSizeAddButton";
             FontSizeAddButton.ToolTipText = "放大字體";
             FontSizeAddButton.Click += FontSizeAdd;
@@ -460,43 +481,47 @@ namespace TextSpeedReader
             FontSizeReduceButton.Image = (Image)resources.GetObject("FontSizeReduceButton.Image");
             FontSizeReduceButton.ImageTransparentColor = Color.Magenta;
             FontSizeReduceButton.Name = "FontSizeReduceButton";
-            FontSizeReduceButton.Size = new Size(28, 29);
+            FontSizeReduceButton.Size = new Size(28, 28);
             FontSizeReduceButton.Text = "FontSizeReduceButton";
             FontSizeReduceButton.ToolTipText = "縮小字型";
             FontSizeReduceButton.Click += FontSizeReduce;
             // 
-            // toolStripComboBoxFonts
+            // QuitButton
             // 
-            toolStripComboBoxFonts.Alignment = ToolStripItemAlignment.Right;
-            toolStripComboBoxFonts.DropDownHeight = 600;
-            toolStripComboBoxFonts.DropDownWidth = 240;
-            toolStripComboBoxFonts.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-            toolStripComboBoxFonts.IntegralHeight = false;
-            toolStripComboBoxFonts.Name = "toolStripComboBoxFonts";
-            toolStripComboBoxFonts.Size = new Size(240, 32);
-            toolStripComboBoxFonts.Text = "字型";
-            toolStripComboBoxFonts.SelectedIndexChanged += ChangeFont;
+            QuitButton.Alignment = ToolStripItemAlignment.Right;
+            QuitButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            QuitButton.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            QuitButton.Image = (Image)resources.GetObject("QuitButton.Image");
+            QuitButton.ImageTransparentColor = Color.Magenta;
+            QuitButton.Name = "QuitButton";
+            QuitButton.Size = new Size(28, 28);
+            QuitButton.Text = "Quit";
+            QuitButton.Click += QuitButton_Click;
             // 
-            // toolStripButtonCopyHtmlSaveFile
+            // toolStripSplitButton1
             // 
-            toolStripButtonCopyHtmlSaveFile.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripButtonCopyHtmlSaveFile.Image = (Image)resources.GetObject("toolStripButtonCopyHtmlSaveFile.Image");
-            toolStripButtonCopyHtmlSaveFile.ImageTransparentColor = Color.Magenta;
-            toolStripButtonCopyHtmlSaveFile.Name = "toolStripButtonCopyHtmlSaveFile";
-            toolStripButtonCopyHtmlSaveFile.Size = new Size(229, 29);
-            toolStripButtonCopyHtmlSaveFile.Text = "複製HTML文字並儲存TXT檔案";
-            toolStripButtonCopyHtmlSaveFile.Click += toolStripButtonCopyHtmlSaveFile_Click;
+            toolStripSplitButton1.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            toolStripSplitButton1.Image = (Image)resources.GetObject("toolStripSplitButton1.Image");
+            toolStripSplitButton1.ImageTransparentColor = Color.Magenta;
+            toolStripSplitButton1.Name = "toolStripSplitButton1";
+            toolStripSplitButton1.Size = new Size(184, 24);
+            toolStripSplitButton1.Text = "toolStripSplitButton1";
+            toolStripSplitButton1.Visible = false;
             // 
-            // toolStripSeparator5
+            // statusStrip1
             // 
-            toolStripSeparator5.Name = "toolStripSeparator5";
-            toolStripSeparator5.Size = new Size(6, 32);
+            statusStrip1.Location = new Point(0, 730);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Size = new Size(1304, 22);
+            statusStrip1.TabIndex = 6;
+            statusStrip1.Text = "statusStrip1";
             // 
             // FormTextSpeedReader
             // 
             AutoScaleDimensions = new SizeF(10F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1304, 752);
+            Controls.Add(statusStrip1);
             Controls.Add(navigationBar);
             Controls.Add(splitContainerMain);
             Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
@@ -518,6 +543,7 @@ namespace TextSpeedReader
             navigationBar.ResumeLayout(false);
             navigationBar.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
 
         }
 
@@ -563,6 +589,9 @@ namespace TextSpeedReader
         private ToolStripMenuItem toolStripMenuItem_ConvertSimple;
         private ToolStripSeparator toolStripSeparator5;
         private ToolStripButton toolStripButtonCopyHtmlSaveFile;
+        private StatusStrip statusStrip1;
+        private ToolStripSplitButton toolStripSplitButton1;
+        private ToolStripMenuItem toolStripMenuItem_MergeNoneSpace;
     }
 }
 

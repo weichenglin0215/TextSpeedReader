@@ -71,11 +71,20 @@ namespace TextSpeedReader
                 CharsetDetector detector = new CharsetDetector();
                 detector.Feed(fs);
                 detector.DataEnd();
-
+                Console.WriteLine("detector.Charset " + detector.Charset);
+                //MessageBox.Show("detector.Charset " + detector.Charset);
                 if (detector.Charset != null)
                 {
                     // detector.Charset 可能回傳 "UTF-8", "Big5", "windows-1252" 等
-                    return Encoding.GetEncoding(detector.Charset);
+                    //如果detector.Charset是windows-1252，則回傳Encoding.GetEncoding("Big5")
+                    if (detector.Charset == "windows-1252")
+                    {
+                        return Encoding.GetEncoding("Big5");
+                    }
+                    else
+                    {
+                        return Encoding.GetEncoding(detector.Charset);
+                    }
                 }
                 else
                 {

@@ -3,20 +3,20 @@
   "WorkspaceRootPath": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|solutionrelative:formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|solutionrelative:formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\jtextfilelib.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|solutionrelative:jtextfilelib.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|solutionrelative:formtextspeedreader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\textspeedreader.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
       "RelativeMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|solutionrelative:textspeedreader.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\jtextfilelib.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|solutionrelative:jtextfilelib.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2E207AFE-9ACF-415F-BBC5-F39AA3B0835F}|TextSpeedReader.csproj|c:\\3d_prj\\vs_2022_prj\\textspeedreader\\filesystemmanager.cs||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -30,11 +30,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "JTextFileLib.cs",
               "DocumentMoniker": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\JTextFileLib.cs",
               "RelativeDocumentMoniker": "JTextFileLib.cs",
@@ -46,7 +46,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "TextSpeedReader",
               "DocumentMoniker": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
               "RelativeDocumentMoniker": "TextSpeedReader.csproj",
@@ -57,25 +57,25 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "FormTextSpeedReader.cs [\u8A2D\u8A08]",
               "DocumentMoniker": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\FormTextSpeedReader.cs",
               "RelativeDocumentMoniker": "FormTextSpeedReader.cs",
-              "ToolTip": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\FormTextSpeedReader.cs [\u8A2D\u8A08]",
-              "RelativeToolTip": "FormTextSpeedReader.cs [\u8A2D\u8A08]",
+              "ToolTip": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\FormTextSpeedReader.cs [\u8A2D\u8A08]*",
+              "RelativeToolTip": "FormTextSpeedReader.cs [\u8A2D\u8A08]*",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-11T01:53:59.181Z",
               "EditorCaption": " [\u8A2D\u8A08]"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "FormTextSpeedReader.cs",
               "DocumentMoniker": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\FormTextSpeedReader.cs",
               "RelativeDocumentMoniker": "FormTextSpeedReader.cs",
-              "ToolTip": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\FormTextSpeedReader.cs",
-              "RelativeToolTip": "FormTextSpeedReader.cs",
-              "ViewState": "AgIAAOUEAAAAAAAAAAAxwOkEAAAAAAAAAAAAAA==",
+              "ToolTip": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\FormTextSpeedReader.cs*",
+              "RelativeToolTip": "FormTextSpeedReader.cs*",
+              "ViewState": "AgIAAOcDAAAAAAAAAAAuwO0DAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-11T01:53:44.561Z",
               "EditorCaption": ""

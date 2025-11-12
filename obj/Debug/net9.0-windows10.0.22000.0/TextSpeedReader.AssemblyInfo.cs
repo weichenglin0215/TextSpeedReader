@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextSpeedReader")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.9.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ef4113282cb8d720b14ec2b9eb96df8a111f02f")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextSpeedReader")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextSpeedReader")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.9.0.0")]

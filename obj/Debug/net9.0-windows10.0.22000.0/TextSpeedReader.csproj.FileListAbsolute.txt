@@ -20,3 +20,4 @@ C:\3D_prj\VS_2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\ref\T
 C:\3D_prj\VS_2022_prj\TextSpeedReader\bin\Debug\net9.0-windows10.0.22000.0\Ude.NetStandard.dll
 C:\3D_prj\VS_2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSpeedReader.csproj.AssemblyReference.cache
 C:\3D_prj\VS_2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSpeedReader.Properties.Resources.resources
+C:\3D_prj\VS_2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSpeedReader.sourcelink.json

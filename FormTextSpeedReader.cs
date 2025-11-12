@@ -618,7 +618,7 @@ namespace TextSpeedReader
                 }
             }
         }
-
+        //移除選取的文字斷行，將所選文字合併成同一行，richTextBoxText的右鍵選單
         private void toolStripMenuItemRemoveLineBreaks_Click(object sender, EventArgs e)
         {
             string selectedText = richTextBoxText.SelectedText;
@@ -643,13 +643,34 @@ namespace TextSpeedReader
                 richTextBoxText.Select(selStart, singleLine.Length);
             }
         }
-
+        //自動選取直到空白行，richTextBoxText的右鍵選單
         private void toolStripMenuItem_AutoSelectCR_Click(object sender, EventArgs e)
+        {
+            AutoSelectCR();
+        }
+        private void AutoSelectCR()
         {
             int start = richTextBoxText.SelectionStart;
             string text = richTextBoxText.Text;
             int length = text.Length;
-            int end = start;
+            //int end = start;
+            int end = richTextBoxText.SelectionStart + richTextBoxText.SelectionLength;
+
+            // 從目前選取範圍的結尾開始尋找兩個連續斷行符號，若一開始就遇到兩個連續斷行符號，則先選取這兩個符號，並將end+2
+            // 檢查目前位置與下一個字元是否都是斷行符號
+            char beginC1 = text[end];
+            char beginC2 = text[end + 1];
+
+            // 判斷 \r\n 或 \n\n 或 \r\r
+            bool beginisLineBreak1 = (beginC1 == '\r' || beginC1 == '\n');
+            bool beginisLineBreak2 = (beginC2 == '\r' || beginC2 == '\n');
+
+            if (beginisLineBreak1 && beginisLineBreak2)
+            {
+                // 包含這兩個斷行符號
+                end += 2;
+            }
+
 
             while (end < length - 1)
             {
@@ -676,12 +697,19 @@ namespace TextSpeedReader
             richTextBoxText.Select(start, end - start);
         }
 
+        //自動移除目前文章中多餘的斷行，按鍵
         private void AutoRemoveCRButton_Click(object sender, EventArgs e)
+        {
+            AutoRemoveCR();
+        }
+
+        //自動移除目前文章中多餘的斷行
+        private void AutoRemoveCR()
         {
             //整合toolStripMenuItem_AutoSelectCR_Click跟toolStripMenuItemRemoveLineBreaks_Click功能，
             //能自動從文章起始處搜尋直到兩個連續斷行或新行符號為止，並將選取範圍內的文字合併成同一行。
             //若該行只有空白或是TAB符號，則不進行合併。
-        
+
             string text = richTextBoxText.Text;
             if (string.IsNullOrEmpty(text))
                 return;
@@ -885,14 +913,19 @@ namespace TextSpeedReader
 
                 // 處理整個文檔
                 ProcessRemoveLeadingSpaces(selectedText, true);
+                selectedText = richTextBoxText.Text; //更新選取的文字
+                ProcessRemoveEndingSpaces(selectedText, true); //處理整個文檔的行尾空白
             }
             else
             {
                 // 處理選定範圍
                 ProcessRemoveLeadingSpaces(selectedText, false);
+                selectedText = richTextBoxText.SelectedText; //更新選取的文字
+                ProcessRemoveEndingSpaces(selectedText, false); //處理選定範圍的行尾空白
             }
         }
 
+        // (1) 移除行首連續的空白/TAB/全形空白；(2) 移除行尾連續的空白/TAB/全形空白
         private void ProcessRemoveLeadingSpaces(string text, bool processWholeDocument)
         {
             if (string.IsNullOrEmpty(text))
@@ -906,29 +939,23 @@ namespace TextSpeedReader
             while (i < textLength)
             {
                 int lineStart = i;
-                int firstNonSpaceTabPos = -1;  // 第一個非空格非TAB字符的位置（相對於行起始）
-                bool lineHasOnlySpacesAndTabs = true;  // 是否整行只有空格和TAB
-                int lastNonSpaceTabPos = -1;  // 最後一個非空格非TAB字符的位置（相對於行起始）
-                bool lineEndedWithBreak = false;  // 行是否以換行符結尾
+                int firstNonSpaceTabPos = -1;
+                bool lineHasOnlySpacesAndTabs = true;
+                int lastNonSpaceTabPos = -1;
+                bool lineEndedWithBreak = false;
 
-                // 讀取當前行，直到遇到換行符或文件結尾
                 while (i < textLength)
                 {
                     char c = text[i];
-
-                    // 檢查是否為換行符
+                    // 包括半形空白, TAB, 全形空白(U+3000)
                     if (c == '\r' || c == '\n')
                     {
-                        // 行以換行符結尾
                         lineEndedWithBreak = true;
-
-                        // 處理當前行（不包含換行符）
                         string line = text.Substring(lineStart, i - lineStart);
-                        string processedLine = ProcessLine(line, firstNonSpaceTabPos, lastNonSpaceTabPos,
-                                                          lineHasOnlySpacesAndTabs, ref hasChanges);
+                        string processedLine = ProcessLineForLead(line, ref hasChanges);
                         result.Append(processedLine);
 
-                        // 處理 \r\n 組合
+                        // 處理 \r\n 換行
                         if (c == '\r' && i + 1 < textLength && text[i + 1] == '\n')
                         {
                             result.Append("\r\n");
@@ -939,74 +966,145 @@ namespace TextSpeedReader
                             result.Append(c);
                             i++;
                         }
-                        break;  // 跳出內層循環，繼續處理下一行
+                        break;
                     }
                     else
                     {
-                        // 檢查是否為空格或TAB
-                        if (c == ' ' || c == '\t')
-                        {
-                            // 空格或TAB，繼續掃描
-                        }
-                        else
-                        {
-                            // 遇到非空格非TAB字符
-                            lineHasOnlySpacesAndTabs = false;
-                            if (firstNonSpaceTabPos == -1)
-                            {
-                                // 記錄相對於行起始的位置
-                                firstNonSpaceTabPos = i - lineStart;
-                            }
-                            // 更新最後一個非空白字符的位置
-                            lastNonSpaceTabPos = i - lineStart;
-                        }
                         i++;
                     }
                 }
-
-                // 如果到達文件結尾且行沒有以換行符結尾（最後一行沒有換行符）
                 if (i >= textLength && !lineEndedWithBreak && lineStart < textLength)
                 {
-                    // 處理最後一行（沒有換行符）
                     string line = text.Substring(lineStart, textLength - lineStart);
-                    string processedLine = ProcessLine(line, firstNonSpaceTabPos, lastNonSpaceTabPos,
-                                                      lineHasOnlySpacesAndTabs, ref hasChanges);
+                    string processedLine = ProcessLineForLead(line, ref hasChanges);
                     result.Append(processedLine);
-                    break;  // 處理完最後一行，結束循環
+                    break;
                 }
             }
-
-            // 如果有變更，更新文字內容
             if (hasChanges)
             {
                 if (processWholeDocument)
                 {
-                    // 處理整個文檔
                     int originalSelectionStart = richTextBoxText.SelectionStart;
                     richTextBoxText.Text = result.ToString();
-
-                    // 恢復游標位置
                     if (originalSelectionStart < richTextBoxText.Text.Length)
-                    {
                         richTextBoxText.SelectionStart = originalSelectionStart;
-                    }
                     else
-                    {
                         richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                    }
                     richTextBoxText.ScrollToCaret();
                 }
                 else
                 {
-                    // 處理選定範圍
                     int selStart = richTextBoxText.SelectionStart;
                     richTextBoxText.SelectedText = result.ToString();
-
-                    // 重新選定處理後的文本
                     int newLength = result.Length;
                     richTextBoxText.Select(selStart, newLength);
                 }
             }
+        }
+
+        private string ProcessLineForLead(string line, ref bool hasChanges)
+        {
+            if (string.IsNullOrEmpty(line))
+                return line;
+            var trimmedLine = RemoveLeadingFullWhitespace(line);
+            if (!object.ReferenceEquals(line, trimmedLine))
+                hasChanges = true;
+            return trimmedLine;
+        }
+        private string RemoveLeadingFullWhitespace(string line)
+        {
+            int i = 0;
+            while (i < line.Length && (line[i] == ' ' || line[i] == '\t' || line[i] == '\u3000'))
+            {
+                i++;
+            }
+            return line.Substring(i);
+        }
+
+        private void ProcessRemoveEndingSpaces(string text, bool processWholeDocument)
+        {
+            if (string.IsNullOrEmpty(text))
+                return;
+            StringBuilder result = new StringBuilder();
+            bool hasChanges = false;
+            int textLength = text.Length;
+            int i = 0;
+
+            while (i < textLength)
+            {
+                int lineStart = i;
+                bool lineEndedWithBreak = false;
+                while (i < textLength)
+                {
+                    char c = text[i];
+                    if (c == '\r' || c == '\n')
+                    {
+                        lineEndedWithBreak = true;
+                        string line = text.Substring(lineStart, i - lineStart);
+                        string processedLine = RemoveTrailingSpacesFull(line, ref hasChanges);
+                        result.Append(processedLine);
+                        if (c == '\r' && i + 1 < textLength && text[i + 1] == '\n')
+                        {
+                            result.Append("\r\n");
+                            i += 2;
+                        }
+                        else
+                        {
+                            result.Append(c);
+                            i++;
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+                if (i >= textLength && !lineEndedWithBreak && lineStart < textLength)
+                {
+                    string line = text.Substring(lineStart, textLength - lineStart);
+                    string processedLine = RemoveTrailingSpacesFull(line, ref hasChanges);
+                    result.Append(processedLine);
+                    break;
+                }
+            }
+            if (hasChanges)
+            {
+                if (processWholeDocument)
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.Text = result.ToString();
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    richTextBoxText.ScrollToCaret();
+                }
+                else
+                {
+                    int selStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectedText = result.ToString();
+                    int newLength = result.Length;
+                    richTextBoxText.Select(selStart, newLength);
+                }
+            }
+        }
+        private string RemoveTrailingSpacesFull(string line, ref bool hasChanges)
+        {
+            if (string.IsNullOrEmpty(line))
+                return line;
+            int lastIndex = line.Length - 1;
+            while (lastIndex >= 0 && (line[lastIndex] == ' ' || line[lastIndex] == '\t' || line[lastIndex] == '\u3000'))
+            {
+                lastIndex--;
+            }
+            if (lastIndex < line.Length - 1)
+            {
+                hasChanges = true;
+                return line.Substring(0, lastIndex + 1);
+            }
+            return line;
         }
 
         // 處理單行的邏輯
@@ -1082,8 +1180,12 @@ namespace TextSpeedReader
             return line;
         }
 
-        // 將繁體中文轉換成簡體中文並儲存
+        // 將目前TXT繁體中文轉換成簡體中文並儲存
         private void buttonConvertToSimplified_Click(object sender, EventArgs e)
+        {
+            ConvertCurrentTxtToSimplifiedAndSave();
+        }
+        private void ConvertCurrentTxtToSimplifiedAndSave()
         {
             // 檢查是否有當前打開的檔案
             if (m_RecentReadListIndex < 0)
@@ -1174,6 +1276,11 @@ namespace TextSpeedReader
         // 將 listViewFile 中被選取的 TXT 檔案批次轉換為簡體並另存為 _簡體.txt
         private void toolStripButtonFileConvertToSimplified_Click(object sender, EventArgs e)
         {
+            BatchConvertTxtFilesToSimplifiedAndSave();
+        }
+        // 將 listViewFile 中被選取的 TXT 檔案批次轉換為簡體並另存為 _簡體.txt
+        private void BatchConvertTxtFilesToSimplifiedAndSave()
+        {
             if (listViewFile.SelectedItems.Count == 0)
             {
                 MessageBox.Show("請先在檔案清單中選取要轉換的 .TXT 檔案。", "提示");
@@ -1243,6 +1350,11 @@ namespace TextSpeedReader
 
         private void toolStripButtonCopyHtmlSaveFile_Click(object sender, EventArgs e)
         {
+            CopyHtmlSaveFile();
+        }
+
+        private void CopyHtmlSaveFile()
+        {
             if (!webBrowser1.Visible)
             {
                 MessageBox.Show("請先開啟一個 HTML 檔案並在頁面中選取文字。", "提示");
@@ -1269,12 +1381,14 @@ namespace TextSpeedReader
             System.Threading.Thread.Sleep(60);
 
             string selectedText = "";
-            try {
+            try
+            {
                 if (Clipboard.ContainsText(TextDataFormat.UnicodeText))
                     selectedText = Clipboard.GetText(TextDataFormat.UnicodeText);
                 else if (Clipboard.ContainsText())
                     selectedText = Clipboard.GetText();
-            } catch { selectedText = ""; }
+            }
+            catch { selectedText = ""; }
 
             if (string.IsNullOrWhiteSpace(selectedText))
             {
@@ -1314,6 +1428,11 @@ namespace TextSpeedReader
             {
                 MessageBox.Show("儲存失敗：\n" + ex.Message, "錯誤");
             }
+        }
+
+        private void toolStripMenuItem_MergeNoneSpace_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
