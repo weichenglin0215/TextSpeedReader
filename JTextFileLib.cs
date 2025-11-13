@@ -10,7 +10,7 @@ namespace TextSpeedReader
 {
     public class JTextFileLib
     {
-        public static JTextFileLib instance = null;
+        public static JTextFileLib? instance = null;
         public static JTextFileLib Instance()
         {
             if (instance == null)
@@ -101,7 +101,9 @@ namespace TextSpeedReader
                 if (fileStream.Length >= 3)
                 {
                     byte[] bom = new byte[4];
-                    fileStream.Read(bom, 0, 4);
+                    int bytesRead = fileStream.Read(bom, 0, 4);
+                    if (bytesRead < 3)
+                        return Encoding.GetEncoding("Big5");
 
                     // UTF-8 BOM: EF BB BF
                     if (bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF)

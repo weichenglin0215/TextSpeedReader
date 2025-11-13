@@ -31,7 +31,12 @@ namespace TextSpeedReader
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            ToolStripMenuItem toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormTextSpeedReader));
+            toolStripDropDownButtonArrange = new ToolStripDropDownButton();
+            toolStripMenuItem_RemoveLeadingAndTrailingSpaces = new ToolStripMenuItem();
+            toolStripMenuItem_AutoRemoveCRButton = new ToolStripMenuItem();
+            toolStripMenuItem_RemoveMoreThan120Char = new ToolStripMenuItem();
             splitContainerMain = new SplitContainer();
             splitContainerFolder = new SplitContainer();
             treeViewFolder = new TreeView();
@@ -42,6 +47,7 @@ namespace TextSpeedReader
             columnHeader3 = new ColumnHeader();
             contextMenuStrip_ListViewFile = new ContextMenuStrip(components);
             toolStripMenuItem_ConvertSimple = new ToolStripMenuItem();
+            toolStripMenuItem_ConvertTraditional = new ToolStripMenuItem();
             listViewRecentFiles = new ListView();
             columnHeaderFileName = new ColumnHeader();
             columnHeaderCharCount = new ColumnHeader();
@@ -49,19 +55,34 @@ namespace TextSpeedReader
             contextMenuStrip_RichTextBox = new ContextMenuStrip(components);
             toolStripMenuItem_RemoveCR = new ToolStripMenuItem();
             toolStripMenuItem_AutoSelectCR = new ToolStripMenuItem();
+            toolStripMenuItem_AutoSelectWithPunctuation = new ToolStripMenuItem();
             toolStripMenuItem_MergeNoneSpace = new ToolStripMenuItem();
+            toolStripMenuItem_EditTextCovertSimplified = new ToolStripMenuItem();
+            toolStripMenuItem_EditTextCovertTraditional = new ToolStripMenuItem();
             webBrowser1 = new WebBrowser();
             navigationBar = new ToolStrip();
             ShowFolderButton = new ToolStripButton();
             toolStripSeparator2 = new ToolStripSeparator();
-            RemoveLeadSpace = new ToolStripButton();
+            toolStripSeparator6 = new ToolStripSeparator();
+            toolStripDropDownButtonSave = new ToolStripDropDownButton();
+            toolStripMenuItem_ConvertToSimplified = new ToolStripMenuItem();
+            toolStripMenuItem_FileConvertToSimplified = new ToolStripMenuItem();
+            toolStripMenuItem_FileConvertToTraditional = new ToolStripMenuItem();
+            toolStripMenuItem_CopyHtmlSaveFile = new ToolStripMenuItem();
             toolStripSeparator1 = new ToolStripSeparator();
-            AutoRemoveCRButton = new ToolStripButton();
+            toolStripComboBoxFonts = new ToolStripComboBox();
+            toolStripSeparator7 = new ToolStripSeparator();
+            FontSizeAddButton = new ToolStripButton();
             toolStripSeparator3 = new ToolStripSeparator();
-            buttonConvertToSimplified = new ToolStripButton();
+            FontSizeReduceButton = new ToolStripButton();
             toolStripSeparator4 = new ToolStripSeparator();
-            toolStripButtonFileConvertToSimplified = new ToolStripButton();
+            QuitButton = new ToolStripButton();
             toolStripSeparator5 = new ToolStripSeparator();
+            RemoveLeadSpace = new ToolStripButton();
+            AutoRemoveCRButton = new ToolStripButton();
+            AutoRemoveCRWithoutDotAndExclamationMarkButton = new ToolStripButton();
+            buttonConvertToSimplified = new ToolStripButton();
+            toolStripButtonFileConvertToSimplified = new ToolStripButton();
             toolStripButtonCopyHtmlSaveFile = new ToolStripButton();
             FolderPathButton = new ToolStripButton();
             navBackButton = new ToolStripSplitButton();
@@ -69,12 +90,8 @@ namespace TextSpeedReader
             navUpButton = new ToolStripButton();
             navAddressLabel = new ToolStripLabel();
             navFoldersButton = new ToolStripButton();
-            toolStripComboBoxFonts = new ToolStripComboBox();
-            FontSizeAddButton = new ToolStripButton();
-            FontSizeReduceButton = new ToolStripButton();
-            QuitButton = new ToolStripButton();
-            toolStripSplitButton1 = new ToolStripSplitButton();
             statusStrip1 = new StatusStrip();
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark = new ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
             splitContainerMain.Panel1.SuspendLayout();
             splitContainerMain.Panel2.SuspendLayout();
@@ -88,10 +105,48 @@ namespace TextSpeedReader
             navigationBar.SuspendLayout();
             SuspendLayout();
             // 
+            // toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark
+            // 
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Name = "toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark";
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Size = new Size(425, 24);
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Text = "自動移除多餘的斷行，跳過行尾句點或驚嘆號";
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Click += toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark_Click;
+            // 
+            // toolStripDropDownButtonArrange
+            // 
+            toolStripDropDownButtonArrange.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            toolStripDropDownButtonArrange.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_RemoveLeadingAndTrailingSpaces, toolStripMenuItem_AutoRemoveCRButton, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripMenuItem_RemoveMoreThan120Char });
+            toolStripDropDownButtonArrange.Image = (Image)resources.GetObject("toolStripDropDownButtonArrange.Image");
+            toolStripDropDownButtonArrange.ImageTransparentColor = Color.Magenta;
+            toolStripDropDownButtonArrange.Name = "toolStripDropDownButtonArrange";
+            toolStripDropDownButtonArrange.Size = new Size(118, 24);
+            toolStripDropDownButtonArrange.Text = "整理編排段落";
+            // 
+            // toolStripMenuItem_RemoveLeadingAndTrailingSpaces
+            // 
+            toolStripMenuItem_RemoveLeadingAndTrailingSpaces.Name = "toolStripMenuItem_RemoveLeadingAndTrailingSpaces";
+            toolStripMenuItem_RemoveLeadingAndTrailingSpaces.Size = new Size(425, 24);
+            toolStripMenuItem_RemoveLeadingAndTrailingSpaces.Text = "移除行首行尾的空白字元";
+            toolStripMenuItem_RemoveLeadingAndTrailingSpaces.Click += toolStripMenuItem_RemoveLeadingAndTrailingSpaces_Click;
+            // 
+            // toolStripMenuItem_AutoRemoveCRButton
+            // 
+            toolStripMenuItem_AutoRemoveCRButton.Name = "toolStripMenuItem_AutoRemoveCRButton";
+            toolStripMenuItem_AutoRemoveCRButton.Size = new Size(425, 24);
+            toolStripMenuItem_AutoRemoveCRButton.Text = "自動移除多餘的斷行";
+            toolStripMenuItem_AutoRemoveCRButton.Click += toolStripMenuItem_AutoRemoveCRButton_Click;
+            // 
+            // toolStripMenuItem_RemoveMoreThan120Char
+            // 
+            toolStripMenuItem_RemoveMoreThan120Char.Name = "toolStripMenuItem_RemoveMoreThan120Char";
+            toolStripMenuItem_RemoveMoreThan120Char.Size = new Size(425, 24);
+            toolStripMenuItem_RemoveMoreThan120Char.Text = "超過120個字尾是句點就自動分行，避免單行過長";
+            toolStripMenuItem_RemoveMoreThan120Char.Click += toolStripMenuItem_RemoveMoreThan120Char_Click;
+            // 
             // splitContainerMain
             // 
             splitContainerMain.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            splitContainerMain.Location = new Point(0, 69);
+            splitContainerMain.Location = new Point(0, 32);
             splitContainerMain.Name = "splitContainerMain";
             // 
             // splitContainerMain.Panel1
@@ -103,7 +158,7 @@ namespace TextSpeedReader
             splitContainerMain.Panel2.Controls.Add(listViewRecentFiles);
             splitContainerMain.Panel2.Controls.Add(richTextBoxText);
             splitContainerMain.Panel2.Controls.Add(webBrowser1);
-            splitContainerMain.Size = new Size(1300, 658);
+            splitContainerMain.Size = new Size(1300, 698);
             splitContainerMain.SplitterDistance = 500;
             splitContainerMain.SplitterWidth = 6;
             splitContainerMain.TabIndex = 4;
@@ -122,8 +177,8 @@ namespace TextSpeedReader
             // splitContainerFolder.Panel2
             // 
             splitContainerFolder.Panel2.Controls.Add(listViewFile);
-            splitContainerFolder.Size = new Size(500, 658);
-            splitContainerFolder.SplitterDistance = 273;
+            splitContainerFolder.Size = new Size(500, 698);
+            splitContainerFolder.SplitterDistance = 289;
             splitContainerFolder.SplitterWidth = 6;
             splitContainerFolder.TabIndex = 0;
             // 
@@ -136,7 +191,7 @@ namespace TextSpeedReader
             treeViewFolder.Location = new Point(0, 0);
             treeViewFolder.Name = "treeViewFolder";
             treeViewFolder.SelectedImageIndex = 0;
-            treeViewFolder.Size = new Size(500, 273);
+            treeViewFolder.Size = new Size(500, 289);
             treeViewFolder.TabIndex = 0;
             treeViewFolder.AfterSelect += treeViewFolder_AfterSelect;
             // 
@@ -156,7 +211,7 @@ namespace TextSpeedReader
             listViewFile.GridLines = true;
             listViewFile.Location = new Point(0, 0);
             listViewFile.Name = "listViewFile";
-            listViewFile.Size = new Size(500, 379);
+            listViewFile.Size = new Size(500, 403);
             listViewFile.SmallImageList = imageList1;
             listViewFile.TabIndex = 0;
             listViewFile.UseCompatibleStateImageBehavior = false;
@@ -183,16 +238,23 @@ namespace TextSpeedReader
             // 
             // contextMenuStrip_ListViewFile
             // 
-            contextMenuStrip_ListViewFile.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_ConvertSimple });
+            contextMenuStrip_ListViewFile.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_ConvertSimple, toolStripMenuItem_ConvertTraditional });
             contextMenuStrip_ListViewFile.Name = "contextMenuStrip_ListViewFile";
-            contextMenuStrip_ListViewFile.Size = new Size(335, 28);
+            contextMenuStrip_ListViewFile.Size = new Size(349, 52);
             // 
             // toolStripMenuItem_ConvertSimple
             // 
             toolStripMenuItem_ConvertSimple.Name = "toolStripMenuItem_ConvertSimple";
-            toolStripMenuItem_ConvertSimple.Size = new Size(334, 24);
-            toolStripMenuItem_ConvertSimple.Text = "將選取檔案轉換成簡體並儲存新檔名";
+            toolStripMenuItem_ConvertSimple.Size = new Size(348, 24);
+            toolStripMenuItem_ConvertSimple.Text = "將選取檔案轉換成-簡體-並儲存新檔名";
             toolStripMenuItem_ConvertSimple.Click += toolStripButtonFileConvertToSimplified_Click;
+            // 
+            // toolStripMenuItem_ConvertTraditional
+            // 
+            toolStripMenuItem_ConvertTraditional.Name = "toolStripMenuItem_ConvertTraditional";
+            toolStripMenuItem_ConvertTraditional.Size = new Size(348, 24);
+            toolStripMenuItem_ConvertTraditional.Text = "將選取檔案轉換成-繁體-並儲存新檔名";
+            toolStripMenuItem_ConvertTraditional.Click += toolStripMenuItem_ConvertTraditional_Click;
             // 
             // listViewRecentFiles
             // 
@@ -222,24 +284,25 @@ namespace TextSpeedReader
             richTextBoxText.BorderStyle = BorderStyle.None;
             richTextBoxText.ContextMenuStrip = contextMenuStrip_RichTextBox;
             richTextBoxText.Dock = DockStyle.Fill;
+            richTextBoxText.Font = new Font("標楷體", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 136);
             richTextBoxText.ForeColor = SystemColors.Window;
             richTextBoxText.Location = new Point(0, 0);
             richTextBoxText.Name = "richTextBoxText";
-            richTextBoxText.Size = new Size(794, 658);
+            richTextBoxText.Size = new Size(794, 698);
             richTextBoxText.TabIndex = 0;
-            richTextBoxText.Text = "";
+            richTextBoxText.Text = "請先選取左上方目錄視窗，\n再點選左下方文字檔案 .txt 或 網頁檔案 .html\n\n左下角檔案區，按Del可刪除檔案，按右鍵可轉換繁簡體並儲存檔案。\n\n右下角文字區可以編輯，右鍵有排版、分段落、轉換繁簡功能。\n\n2025-11-13 Ver. 1.9.1.0";
             // 
             // contextMenuStrip_RichTextBox
             // 
-            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_MergeNoneSpace });
+            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripMenuItem_MergeNoneSpace, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional });
             contextMenuStrip_RichTextBox.Name = "contextMenuStrip_RichTextBox";
-            contextMenuStrip_RichTextBox.Size = new Size(366, 98);
+            contextMenuStrip_RichTextBox.Size = new Size(395, 148);
             // 
             // toolStripMenuItem_RemoveCR
             // 
             toolStripMenuItem_RemoveCR.Name = "toolStripMenuItem_RemoveCR";
             toolStripMenuItem_RemoveCR.ShortcutKeys = Keys.Control | Keys.R;
-            toolStripMenuItem_RemoveCR.Size = new Size(365, 24);
+            toolStripMenuItem_RemoveCR.Size = new Size(394, 24);
             toolStripMenuItem_RemoveCR.Text = "移除選取的文字斷行";
             toolStripMenuItem_RemoveCR.ToolTipText = "將所選文字合併成同一行";
             toolStripMenuItem_RemoveCR.Click += toolStripMenuItemRemoveLineBreaks_Click;
@@ -248,18 +311,40 @@ namespace TextSpeedReader
             // 
             toolStripMenuItem_AutoSelectCR.Name = "toolStripMenuItem_AutoSelectCR";
             toolStripMenuItem_AutoSelectCR.ShortcutKeys = Keys.Control | Keys.E;
-            toolStripMenuItem_AutoSelectCR.Size = new Size(365, 24);
+            toolStripMenuItem_AutoSelectCR.Size = new Size(394, 24);
             toolStripMenuItem_AutoSelectCR.Text = "自動選取直到空白行";
             toolStripMenuItem_AutoSelectCR.Click += toolStripMenuItem_AutoSelectCR_Click;
+            // 
+            // toolStripMenuItem_AutoSelectWithPunctuation
+            // 
+            toolStripMenuItem_AutoSelectWithPunctuation.Name = "toolStripMenuItem_AutoSelectWithPunctuation";
+            toolStripMenuItem_AutoSelectWithPunctuation.ShortcutKeys = Keys.Control | Keys.D;
+            toolStripMenuItem_AutoSelectWithPunctuation.Size = new Size(394, 24);
+            toolStripMenuItem_AutoSelectWithPunctuation.Text = "自動選取直到空白行或句點或驚嘆號";
+            toolStripMenuItem_AutoSelectWithPunctuation.Click += toolStripMenuItem_AutoSelectWithPunctuation_Click;
             // 
             // toolStripMenuItem_MergeNoneSpace
             // 
             toolStripMenuItem_MergeNoneSpace.Enabled = false;
             toolStripMenuItem_MergeNoneSpace.Name = "toolStripMenuItem_MergeNoneSpace";
             toolStripMenuItem_MergeNoneSpace.ShortcutKeys = Keys.Control | Keys.M;
-            toolStripMenuItem_MergeNoneSpace.Size = new Size(365, 24);
+            toolStripMenuItem_MergeNoneSpace.Size = new Size(394, 24);
             toolStripMenuItem_MergeNoneSpace.Text = "若下一行文字之間無空格則合併";
             toolStripMenuItem_MergeNoneSpace.Click += toolStripMenuItem_MergeNoneSpace_Click;
+            // 
+            // toolStripMenuItem_EditTextCovertSimplified
+            // 
+            toolStripMenuItem_EditTextCovertSimplified.Name = "toolStripMenuItem_EditTextCovertSimplified";
+            toolStripMenuItem_EditTextCovertSimplified.Size = new Size(394, 24);
+            toolStripMenuItem_EditTextCovertSimplified.Text = "轉換成簡體字";
+            toolStripMenuItem_EditTextCovertSimplified.Click += toolStripMenuItem_EditTextCovertSimplified_Click;
+            // 
+            // toolStripMenuItem_EditTextCovertTraditional
+            // 
+            toolStripMenuItem_EditTextCovertTraditional.Name = "toolStripMenuItem_EditTextCovertTraditional";
+            toolStripMenuItem_EditTextCovertTraditional.Size = new Size(394, 24);
+            toolStripMenuItem_EditTextCovertTraditional.Text = "轉換成繁體字";
+            toolStripMenuItem_EditTextCovertTraditional.Click += toolStripMenuItem_EditTextCovertTraditional_Click;
             // 
             // webBrowser1
             // 
@@ -267,19 +352,21 @@ namespace TextSpeedReader
             webBrowser1.Location = new Point(0, 0);
             webBrowser1.MinimumSize = new Size(20, 20);
             webBrowser1.Name = "webBrowser1";
-            webBrowser1.Size = new Size(794, 658);
+            webBrowser1.Size = new Size(794, 698);
             webBrowser1.TabIndex = 1;
             // 
             // navigationBar
             // 
+            navigationBar.AutoSize = false;
             navigationBar.CanOverflow = false;
             navigationBar.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
             navigationBar.ImageScalingSize = new Size(24, 24);
-            navigationBar.Items.AddRange(new ToolStripItem[] { ShowFolderButton, toolStripSeparator2, RemoveLeadSpace, toolStripSeparator1, AutoRemoveCRButton, toolStripSeparator3, buttonConvertToSimplified, toolStripSeparator4, toolStripButtonFileConvertToSimplified, toolStripSeparator5, toolStripButtonCopyHtmlSaveFile, FolderPathButton, navBackButton, navForwardButton, navUpButton, navAddressLabel, navFoldersButton, toolStripComboBoxFonts, FontSizeAddButton, FontSizeReduceButton, QuitButton, toolStripSplitButton1 });
+            navigationBar.Items.AddRange(new ToolStripItem[] { ShowFolderButton, toolStripSeparator2, toolStripDropDownButtonArrange, toolStripSeparator6, toolStripDropDownButtonSave, toolStripSeparator1, toolStripComboBoxFonts, toolStripSeparator7, FontSizeAddButton, toolStripSeparator3, FontSizeReduceButton, toolStripSeparator4, QuitButton, toolStripSeparator5, RemoveLeadSpace, AutoRemoveCRButton, AutoRemoveCRWithoutDotAndExclamationMarkButton, buttonConvertToSimplified, toolStripButtonFileConvertToSimplified, toolStripButtonCopyHtmlSaveFile, FolderPathButton, navBackButton, navForwardButton, navUpButton, navAddressLabel, navFoldersButton });
             navigationBar.LayoutStyle = ToolStripLayoutStyle.Flow;
             navigationBar.Location = new Point(0, 0);
             navigationBar.Name = "navigationBar";
-            navigationBar.Size = new Size(1304, 58);
+            navigationBar.Size = new Size(1304, 32);
+            navigationBar.Stretch = true;
             navigationBar.TabIndex = 5;
             // 
             // ShowFolderButton
@@ -300,6 +387,127 @@ namespace TextSpeedReader
             toolStripSeparator2.Name = "toolStripSeparator2";
             toolStripSeparator2.Size = new Size(6, 23);
             // 
+            // toolStripSeparator6
+            // 
+            toolStripSeparator6.Name = "toolStripSeparator6";
+            toolStripSeparator6.Size = new Size(6, 23);
+            // 
+            // toolStripDropDownButtonSave
+            // 
+            toolStripDropDownButtonSave.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            toolStripDropDownButtonSave.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_ConvertToSimplified, toolStripMenuItem_FileConvertToSimplified, toolStripMenuItem_FileConvertToTraditional, toolStripMenuItem_CopyHtmlSaveFile });
+            toolStripDropDownButtonSave.Image = (Image)resources.GetObject("toolStripDropDownButtonSave.Image");
+            toolStripDropDownButtonSave.ImageTransparentColor = Color.Magenta;
+            toolStripDropDownButtonSave.Name = "toolStripDropDownButtonSave";
+            toolStripDropDownButtonSave.Size = new Size(86, 24);
+            toolStripDropDownButtonSave.Text = "檔案儲存";
+            // 
+            // toolStripMenuItem_ConvertToSimplified
+            // 
+            toolStripMenuItem_ConvertToSimplified.Name = "toolStripMenuItem_ConvertToSimplified";
+            toolStripMenuItem_ConvertToSimplified.Size = new Size(472, 24);
+            toolStripMenuItem_ConvertToSimplified.Text = "將目前TXT轉換成簡體並儲存新檔名";
+            toolStripMenuItem_ConvertToSimplified.Click += toolStripMenuItem_ConvertToSimplified_Click;
+            // 
+            // toolStripMenuItem_FileConvertToSimplified
+            // 
+            toolStripMenuItem_FileConvertToSimplified.Name = "toolStripMenuItem_FileConvertToSimplified";
+            toolStripMenuItem_FileConvertToSimplified.Size = new Size(472, 24);
+            toolStripMenuItem_FileConvertToSimplified.Text = "將目錄清單中選取的TXT檔案轉換成-簡體-並儲存新檔名";
+            toolStripMenuItem_FileConvertToSimplified.Click += toolStripMenuItem_FileConvertToSimplified_Click;
+            // 
+            // toolStripMenuItem_FileConvertToTraditional
+            // 
+            toolStripMenuItem_FileConvertToTraditional.Name = "toolStripMenuItem_FileConvertToTraditional";
+            toolStripMenuItem_FileConvertToTraditional.Size = new Size(472, 24);
+            toolStripMenuItem_FileConvertToTraditional.Text = "將目錄清單中選取的TXT檔案轉換成-繁體-並儲存新檔名";
+            toolStripMenuItem_FileConvertToTraditional.Click += toolStripMenuItem_FileConvertToTraditional_Click;
+            // 
+            // toolStripMenuItem_CopyHtmlSaveFile
+            // 
+            toolStripMenuItem_CopyHtmlSaveFile.Name = "toolStripMenuItem_CopyHtmlSaveFile";
+            toolStripMenuItem_CopyHtmlSaveFile.Size = new Size(472, 24);
+            toolStripMenuItem_CopyHtmlSaveFile.Text = "複製HTML文字並儲存TXT檔案";
+            toolStripMenuItem_CopyHtmlSaveFile.Click += toolStripMenuItem_CopyHtmlSaveFile_Click;
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(6, 23);
+            // 
+            // toolStripComboBoxFonts
+            // 
+            toolStripComboBoxFonts.Alignment = ToolStripItemAlignment.Right;
+            toolStripComboBoxFonts.DropDownHeight = 600;
+            toolStripComboBoxFonts.DropDownWidth = 240;
+            toolStripComboBoxFonts.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            toolStripComboBoxFonts.IntegralHeight = false;
+            toolStripComboBoxFonts.Name = "toolStripComboBoxFonts";
+            toolStripComboBoxFonts.Size = new Size(240, 28);
+            toolStripComboBoxFonts.Text = "字型";
+            toolStripComboBoxFonts.SelectedIndexChanged += ChangeFont;
+            // 
+            // toolStripSeparator7
+            // 
+            toolStripSeparator7.Name = "toolStripSeparator7";
+            toolStripSeparator7.Size = new Size(6, 23);
+            // 
+            // FontSizeAddButton
+            // 
+            FontSizeAddButton.Alignment = ToolStripItemAlignment.Right;
+            FontSizeAddButton.BackColor = SystemColors.Control;
+            FontSizeAddButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            FontSizeAddButton.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            FontSizeAddButton.Image = (Image)resources.GetObject("FontSizeAddButton.Image");
+            FontSizeAddButton.ImageTransparentColor = Color.Magenta;
+            FontSizeAddButton.Name = "FontSizeAddButton";
+            FontSizeAddButton.RightToLeft = RightToLeft.No;
+            FontSizeAddButton.Size = new Size(28, 28);
+            FontSizeAddButton.Text = "FontSizeAddButton";
+            FontSizeAddButton.ToolTipText = "放大字體";
+            FontSizeAddButton.Click += FontSizeAdd;
+            // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new Size(6, 23);
+            // 
+            // FontSizeReduceButton
+            // 
+            FontSizeReduceButton.Alignment = ToolStripItemAlignment.Right;
+            FontSizeReduceButton.BackColor = SystemColors.Control;
+            FontSizeReduceButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            FontSizeReduceButton.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            FontSizeReduceButton.Image = (Image)resources.GetObject("FontSizeReduceButton.Image");
+            FontSizeReduceButton.ImageTransparentColor = Color.Magenta;
+            FontSizeReduceButton.Name = "FontSizeReduceButton";
+            FontSizeReduceButton.Size = new Size(28, 28);
+            FontSizeReduceButton.Text = "FontSizeReduceButton";
+            FontSizeReduceButton.ToolTipText = "縮小字型";
+            FontSizeReduceButton.Click += FontSizeReduce;
+            // 
+            // toolStripSeparator4
+            // 
+            toolStripSeparator4.Name = "toolStripSeparator4";
+            toolStripSeparator4.Size = new Size(6, 23);
+            // 
+            // QuitButton
+            // 
+            QuitButton.Alignment = ToolStripItemAlignment.Right;
+            QuitButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            QuitButton.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            QuitButton.Image = (Image)resources.GetObject("QuitButton.Image");
+            QuitButton.ImageTransparentColor = Color.Magenta;
+            QuitButton.Name = "QuitButton";
+            QuitButton.Size = new Size(28, 28);
+            QuitButton.Text = "Quit";
+            QuitButton.Click += QuitButton_Click;
+            // 
+            // toolStripSeparator5
+            // 
+            toolStripSeparator5.Name = "toolStripSeparator5";
+            toolStripSeparator5.Size = new Size(6, 23);
+            // 
             // RemoveLeadSpace
             // 
             RemoveLeadSpace.DisplayStyle = ToolStripItemDisplayStyle.Text;
@@ -308,12 +516,8 @@ namespace TextSpeedReader
             RemoveLeadSpace.Size = new Size(189, 24);
             RemoveLeadSpace.Text = "移除行首行尾的空白字元";
             RemoveLeadSpace.ToolTipText = "移除行首的空白字元";
+            RemoveLeadSpace.Visible = false;
             RemoveLeadSpace.Click += RemoveLeadSpace_Click;
-            // 
-            // toolStripSeparator1
-            // 
-            toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(6, 23);
             // 
             // AutoRemoveCRButton
             // 
@@ -323,12 +527,19 @@ namespace TextSpeedReader
             AutoRemoveCRButton.Size = new Size(157, 24);
             AutoRemoveCRButton.Text = "自動移除多餘的斷行";
             AutoRemoveCRButton.ToolTipText = "自動移除沒必要的斷行";
+            AutoRemoveCRButton.Visible = false;
             AutoRemoveCRButton.Click += AutoRemoveCRButton_Click;
             // 
-            // toolStripSeparator3
+            // AutoRemoveCRWithoutDotAndExclamationMarkButton
             // 
-            toolStripSeparator3.Name = "toolStripSeparator3";
-            toolStripSeparator3.Size = new Size(6, 23);
+            AutoRemoveCRWithoutDotAndExclamationMarkButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            AutoRemoveCRWithoutDotAndExclamationMarkButton.Image = (Image)resources.GetObject("AutoRemoveCRWithoutDotAndExclamationMarkButton.Image");
+            AutoRemoveCRWithoutDotAndExclamationMarkButton.ImageTransparentColor = Color.Magenta;
+            AutoRemoveCRWithoutDotAndExclamationMarkButton.Name = "AutoRemoveCRWithoutDotAndExclamationMarkButton";
+            AutoRemoveCRWithoutDotAndExclamationMarkButton.Size = new Size(333, 24);
+            AutoRemoveCRWithoutDotAndExclamationMarkButton.Text = "自動移除多餘的斷行，跳過行尾句點或驚嘆號";
+            AutoRemoveCRWithoutDotAndExclamationMarkButton.Visible = false;
+            AutoRemoveCRWithoutDotAndExclamationMarkButton.Click += AutoRemoveCRWithoutDotAndExclamationMarkButton_Click;
             // 
             // buttonConvertToSimplified
             // 
@@ -338,12 +549,8 @@ namespace TextSpeedReader
             buttonConvertToSimplified.Name = "buttonConvertToSimplified";
             buttonConvertToSimplified.Size = new Size(265, 24);
             buttonConvertToSimplified.Text = "將目前TXT轉換成簡體並儲存新檔名";
+            buttonConvertToSimplified.Visible = false;
             buttonConvertToSimplified.Click += buttonConvertToSimplified_Click;
-            // 
-            // toolStripSeparator4
-            // 
-            toolStripSeparator4.Name = "toolStripSeparator4";
-            toolStripSeparator4.Size = new Size(6, 23);
             // 
             // toolStripButtonFileConvertToSimplified
             // 
@@ -353,12 +560,8 @@ namespace TextSpeedReader
             toolStripButtonFileConvertToSimplified.Name = "toolStripButtonFileConvertToSimplified";
             toolStripButtonFileConvertToSimplified.Size = new Size(393, 24);
             toolStripButtonFileConvertToSimplified.Text = "將目錄清單中選取的TXT檔案轉換成簡體並儲存新檔名";
+            toolStripButtonFileConvertToSimplified.Visible = false;
             toolStripButtonFileConvertToSimplified.Click += toolStripButtonFileConvertToSimplified_Click;
-            // 
-            // toolStripSeparator5
-            // 
-            toolStripSeparator5.Name = "toolStripSeparator5";
-            toolStripSeparator5.Size = new Size(6, 23);
             // 
             // toolStripButtonCopyHtmlSaveFile
             // 
@@ -368,6 +571,7 @@ namespace TextSpeedReader
             toolStripButtonCopyHtmlSaveFile.Name = "toolStripButtonCopyHtmlSaveFile";
             toolStripButtonCopyHtmlSaveFile.Size = new Size(229, 24);
             toolStripButtonCopyHtmlSaveFile.Text = "複製HTML文字並儲存TXT檔案";
+            toolStripButtonCopyHtmlSaveFile.Visible = false;
             toolStripButtonCopyHtmlSaveFile.Click += toolStripButtonCopyHtmlSaveFile_Click;
             // 
             // FolderPathButton
@@ -445,69 +649,6 @@ namespace TextSpeedReader
             navFoldersButton.TextImageRelation = TextImageRelation.ImageAboveText;
             navFoldersButton.Visible = false;
             // 
-            // toolStripComboBoxFonts
-            // 
-            toolStripComboBoxFonts.Alignment = ToolStripItemAlignment.Right;
-            toolStripComboBoxFonts.DropDownHeight = 600;
-            toolStripComboBoxFonts.DropDownWidth = 240;
-            toolStripComboBoxFonts.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-            toolStripComboBoxFonts.IntegralHeight = false;
-            toolStripComboBoxFonts.Name = "toolStripComboBoxFonts";
-            toolStripComboBoxFonts.Size = new Size(240, 28);
-            toolStripComboBoxFonts.Text = "字型";
-            toolStripComboBoxFonts.SelectedIndexChanged += ChangeFont;
-            // 
-            // FontSizeAddButton
-            // 
-            FontSizeAddButton.Alignment = ToolStripItemAlignment.Right;
-            FontSizeAddButton.BackColor = SystemColors.Control;
-            FontSizeAddButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            FontSizeAddButton.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-            FontSizeAddButton.Image = (Image)resources.GetObject("FontSizeAddButton.Image");
-            FontSizeAddButton.ImageTransparentColor = Color.Magenta;
-            FontSizeAddButton.Name = "FontSizeAddButton";
-            FontSizeAddButton.RightToLeft = RightToLeft.No;
-            FontSizeAddButton.Size = new Size(28, 28);
-            FontSizeAddButton.Text = "FontSizeAddButton";
-            FontSizeAddButton.ToolTipText = "放大字體";
-            FontSizeAddButton.Click += FontSizeAdd;
-            // 
-            // FontSizeReduceButton
-            // 
-            FontSizeReduceButton.Alignment = ToolStripItemAlignment.Right;
-            FontSizeReduceButton.BackColor = SystemColors.Control;
-            FontSizeReduceButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            FontSizeReduceButton.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-            FontSizeReduceButton.Image = (Image)resources.GetObject("FontSizeReduceButton.Image");
-            FontSizeReduceButton.ImageTransparentColor = Color.Magenta;
-            FontSizeReduceButton.Name = "FontSizeReduceButton";
-            FontSizeReduceButton.Size = new Size(28, 28);
-            FontSizeReduceButton.Text = "FontSizeReduceButton";
-            FontSizeReduceButton.ToolTipText = "縮小字型";
-            FontSizeReduceButton.Click += FontSizeReduce;
-            // 
-            // QuitButton
-            // 
-            QuitButton.Alignment = ToolStripItemAlignment.Right;
-            QuitButton.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            QuitButton.Font = new Font("微軟正黑體", 12F, FontStyle.Regular, GraphicsUnit.Point, 136);
-            QuitButton.Image = (Image)resources.GetObject("QuitButton.Image");
-            QuitButton.ImageTransparentColor = Color.Magenta;
-            QuitButton.Name = "QuitButton";
-            QuitButton.Size = new Size(28, 28);
-            QuitButton.Text = "Quit";
-            QuitButton.Click += QuitButton_Click;
-            // 
-            // toolStripSplitButton1
-            // 
-            toolStripSplitButton1.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripSplitButton1.Image = (Image)resources.GetObject("toolStripSplitButton1.Image");
-            toolStripSplitButton1.ImageTransparentColor = Color.Magenta;
-            toolStripSplitButton1.Name = "toolStripSplitButton1";
-            toolStripSplitButton1.Size = new Size(184, 24);
-            toolStripSplitButton1.Text = "toolStripSplitButton1";
-            toolStripSplitButton1.Visible = false;
-            // 
             // statusStrip1
             // 
             statusStrip1.Location = new Point(0, 730);
@@ -528,7 +669,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader";
+            Text = "TextSpeedReader Ver. 1.9.1.0 ";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -590,8 +731,23 @@ namespace TextSpeedReader
         private ToolStripSeparator toolStripSeparator5;
         private ToolStripButton toolStripButtonCopyHtmlSaveFile;
         private StatusStrip statusStrip1;
-        private ToolStripSplitButton toolStripSplitButton1;
+        private ToolStripDropDownButton toolStripDropDownButtonArrange;
         private ToolStripMenuItem toolStripMenuItem_MergeNoneSpace;
+        private ToolStripMenuItem toolStripMenuItem_AutoSelectWithPunctuation;
+        private ToolStripSeparator toolStripSeparator6;
+        private ToolStripButton AutoRemoveCRWithoutDotAndExclamationMarkButton;
+        private ToolStripMenuItem toolStripMenuItem_RemoveLeadingAndTrailingSpaces;
+        private ToolStripMenuItem toolStripMenuItem_AutoRemoveCRButton;
+        private ToolStripDropDownButton toolStripDropDownButtonSave;
+        private ToolStripMenuItem toolStripMenuItem_ConvertToSimplified;
+        private ToolStripMenuItem toolStripMenuItem_FileConvertToSimplified;
+        private ToolStripMenuItem toolStripMenuItem_CopyHtmlSaveFile;
+        private ToolStripSeparator toolStripSeparator7;
+        private ToolStripMenuItem toolStripMenuItem_RemoveMoreThan120Char;
+        private ToolStripMenuItem toolStripMenuItem_FileConvertToTraditional;
+        private ToolStripMenuItem toolStripMenuItem_EditTextCovertSimplified;
+        private ToolStripMenuItem toolStripMenuItem_EditTextCovertTraditional;
+        private ToolStripMenuItem toolStripMenuItem_ConvertTraditional;
     }
 }
 
