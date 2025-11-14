@@ -53,6 +53,14 @@ namespace TextSpeedReader
         // 當前閱讀檔案在清單中的索引
         public int m_RecentReadListIndex = -1;
 
+        // 查找/替换对话框
+        private FormFindReplace? m_FindReplaceDialog = null;
+
+        // 標記是否為右鍵點擊（用於防止右鍵時打開檔案）
+        private bool m_IsRightClick = false;
+        // 記錄最後一次右鍵點擊的時間戳
+        private DateTime m_LastRightClickTime = DateTime.MinValue;
+
         #endregion
 
         #region 建構函式
@@ -75,6 +83,10 @@ namespace TextSpeedReader
             //item.Click += toolStripMenuItemRemoveLineBreaks_Click;
             //menu.Items.Add(item);
             //richTextBoxText.ContextMenuStrip = menu;
+
+            // 建立 richTextBoxText 的文字變更和選擇變更事件
+            richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+            richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
         }
 
         #endregion
@@ -128,10 +140,26 @@ namespace TextSpeedReader
                 SaveCurrentFile();
                 e.SuppressKeyPress = true; // 防止發出系統聲音
             }
+            else if (e.Control && e.KeyCode == Keys.F)
+            {
+                ShowFindDialog();
+                e.SuppressKeyPress = true;
+            }
+            else if (e.Control && e.KeyCode == Keys.H)
+            {
+                ShowReplaceDialog();
+                e.SuppressKeyPress = true;
+            }
         }
 
         // 儲存目前檔案
         private void SaveCurrentFile()
+        {
+            SaveCurrentFile(true);
+        }
+
+        // 儲存目前檔案（可選擇是否顯示訊息）
+        private void SaveCurrentFile(bool showMessage)
         {
             if (m_RecentReadListIndex >= 0)
             {
@@ -145,11 +173,114 @@ namespace TextSpeedReader
                     {
                         treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode));
                     }
-                    MessageBox.Show("儲存成功！", "提示");
+                    if (showMessage)
+                    {
+                        MessageBox.Show("儲存成功！", "提示");
+                    }
                 }
                 else
-                    MessageBox.Show("儲存失敗！", "錯誤");
+                {
+                    if (showMessage)
+                    {
+                        MessageBox.Show("儲存失敗！", "錯誤");
+                    }
+                }
             }
+        }
+
+        // 另存新檔
+        private void SaveCurrentFileAs()
+        {
+            if (m_RecentReadListIndex >= 0)
+            {
+                string currentFilePath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
+                string? directory = Path.GetDirectoryName(currentFilePath);
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(currentFilePath);
+                string extension = Path.GetExtension(currentFilePath);
+
+                // 如果沒有目錄，使用應用程式目錄
+                if (string.IsNullOrEmpty(directory))
+                {
+                    directory = Application.StartupPath;
+                }
+
+                // 使用 SaveFileDialog 讓使用者輸入檔名
+                using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+                {
+                    saveFileDialog.Filter = "文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                    saveFileDialog.FileName = fileNameWithoutExtension + extension;
+                    saveFileDialog.InitialDirectory = directory;
+                    saveFileDialog.Title = "另存新檔";
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        try
+                        {
+                            // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
+                            File.WriteAllText(saveFileDialog.FileName, richTextBoxText.Text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+
+                            MessageBox.Show($"已成功儲存至：\n{saveFileDialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                            // 重新載入目前資料夾檔案列表
+                            if (treeViewFolder.SelectedNode != null)
+                            {
+                                treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"儲存失敗：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 顯示查找對話框
+        private void ShowFindDialog()
+        {
+            // 只有在文字編輯模式下才顯示查找對話框
+            if (!richTextBoxText.Visible)
+            {
+                MessageBox.Show("請先開啟一個文字檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (m_FindReplaceDialog == null || m_FindReplaceDialog.IsDisposed)
+            {
+                m_FindReplaceDialog = new FormFindReplace(richTextBoxText, true);
+                m_FindReplaceDialog.Owner = this;
+            }
+            m_FindReplaceDialog.Show();
+            m_FindReplaceDialog.Activate();
+            m_FindReplaceDialog.textBoxFind.Focus();
+            m_FindReplaceDialog.textBoxFind.SelectAll();
+        }
+
+        // 顯示替換對話框
+        private void ShowReplaceDialog()
+        {
+            // 只有在文字編輯模式下才顯示替換對話框
+            if (!richTextBoxText.Visible)
+            {
+                MessageBox.Show("請先開啟一個文字檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 如果对话框已存在，先关闭它
+            if (m_FindReplaceDialog != null && !m_FindReplaceDialog.IsDisposed)
+            {
+                m_FindReplaceDialog.Close();
+                m_FindReplaceDialog.Dispose();
+            }
+
+            // 创建新的替换对话框
+            m_FindReplaceDialog = new FormFindReplace(richTextBoxText, false);
+            m_FindReplaceDialog.Owner = this;
+            m_FindReplaceDialog.Show();
+            m_FindReplaceDialog.Activate();
+            m_FindReplaceDialog.textBoxFind.Focus();
+            m_FindReplaceDialog.textBoxFind.SelectAll();
         }
 
         #endregion
@@ -285,11 +416,52 @@ namespace TextSpeedReader
             listViewFile.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
             this.listViewFile.ListViewItemSorter = m_LvwColumnSorter;
             listViewFile.EndUpdate();
+
+            // 更新狀態欄顯示檔案數量
+            int fileCount = listViewFile.Items.Count;
+            toolStripStatusLabelNews.Text = $"檔案數量: {fileCount:N0}";
+        }
+
+        // 處理檔案列表滑鼠按下事件（用於區分左右鍵）
+        private void ListViewFile_MouseDown(object sender, MouseEventArgs e)
+        {
+            // 記錄是否為右鍵點擊
+            if (e.Button == MouseButtons.Right)
+            {
+                m_IsRightClick = true;
+                m_LastRightClickTime = DateTime.Now;
+            }
+            else
+            {
+                m_IsRightClick = false;
+            }
+        }
+
+        // 處理檔案列表滑鼠點擊事件（用於區分左右鍵）
+        private void ListViewFile_MouseClick(object sender, MouseEventArgs e)
+        {
+            // 記錄是否為右鍵點擊
+            if (e.Button == MouseButtons.Right)
+            {
+                m_IsRightClick = true;
+                m_LastRightClickTime = DateTime.Now;
+            }
+            else
+            {
+                m_IsRightClick = false;
+            }
         }
 
         // 處理檔案列表選擇變更事件
         private void ListViewFile_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // 檢查是否為右鍵點擊（檢查標記和時間戳，如果在最近500毫秒內有右鍵點擊，則不打開檔案）
+            if (m_IsRightClick || (DateTime.Now - m_LastRightClickTime).TotalMilliseconds < 500)
+            {
+                m_IsRightClick = false; // 重置標記
+                return;
+            }
+
             // 檢查是否為文字檔案
             Console.WriteLine("this.listViewFile.SelectedItems.Count " + this.listViewFile.SelectedItems.Count);
             //Console.WriteLine("this.listViewFile.SelectedItems[0].Text " + this.listViewFile.SelectedItems[0].Text);
@@ -297,6 +469,93 @@ namespace TextSpeedReader
             {
                 string tmpString = "";
                 string tmpFullFileName = m_TreeViewSelectedNodeText + @"\" + this.listViewFile.SelectedItems[0].Text;
+
+                // 檢查選中的檔案是否是當前正在編輯的檔案
+                if (m_RecentReadListIndex >= 0 && m_RecentReadList[m_RecentReadListIndex].FileFullName == tmpFullFileName)
+                {
+                    // 讀取檔案內容以比較是否有修改
+                    string fileContent = "";
+                    if (JTextFileLib.Instance().ReadTxtFile(tmpFullFileName, ref fileContent, false))
+                    {
+                        // 比較當前編輯內容與檔案內容是否一致
+                        if (richTextBoxText.Text != fileContent)
+                        {
+                            // 有未保存的修改，詢問使用者是否放棄編輯內容
+                            DialogResult result = MessageBox.Show(
+                                $"檔案「{Path.GetFileName(tmpFullFileName)}」有未保存的修改，是否放棄編輯內容並重新載入檔案？",
+                                "確認重新載入",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question);
+
+                            if (result != DialogResult.Yes)
+                            {
+                                // 使用者選擇不重新載入，取消選擇
+                                if (listViewFile.SelectedItems.Count > 0)
+                                {
+                                    listViewFile.SelectedItems[0].Selected = false;
+                                }
+                                return; // 取消操作
+                            }
+                            // 使用者確認重新載入，繼續執行後續的載入邏輯
+                        }
+                        else
+                        {
+                            // 內容沒有修改，直接返回，不需要重新載入
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    // 選中的是其他檔案，檢查當前檔案是否有未保存的修改
+                    if (m_RecentReadListIndex >= 0 && richTextBoxText.Visible)
+                    {
+                        string currentFilePath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
+                        string currentFileContent = "";
+
+                        // 讀取當前檔案內容以比較是否有修改
+                        if (JTextFileLib.Instance().ReadTxtFile(currentFilePath, ref currentFileContent, false))
+                        {
+                            // 比較當前編輯內容與檔案內容是否一致
+                            if (richTextBoxText.Text != currentFileContent)
+                            {
+                                // 有未保存的修改，顯示確認對話框
+                                using (FormSaveConfirm saveConfirmDialog = new FormSaveConfirm(Path.GetFileName(currentFilePath)))
+                                {
+                                    saveConfirmDialog.Owner = this;
+                                    if (saveConfirmDialog.ShowDialog() == DialogResult.OK)
+                                    {
+                                        switch (saveConfirmDialog.SelectedOption)
+                                        {
+                                            case FormSaveConfirm.SaveOption.No:
+                                                // 不保存，直接載入新檔案
+                                                break;
+
+                                            case FormSaveConfirm.SaveOption.SaveAs:
+                                                // 另存新檔
+                                                SaveCurrentFileAs();
+                                                break;
+
+                                            case FormSaveConfirm.SaveOption.Save:
+                                                // 儲存檔案（覆蓋目前檔案），不顯示訊息（因為即將切換檔案）
+                                                SaveCurrentFile(false);
+                                                break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // 使用者取消對話框，取消選擇
+                                        if (listViewFile.SelectedItems.Count > 0)
+                                        {
+                                            listViewFile.SelectedItems[0].Selected = false;
+                                        }
+                                        return; // 取消操作
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // 讀取文字檔案內容
                 if (JTextFileLib.Instance().ReadTxtFile(tmpFullFileName, ref tmpString, false))
@@ -350,7 +609,11 @@ namespace TextSpeedReader
                     webBrowser1.Visible = false;
                     this.richTextBoxText.Text = tmpString;
                     richTextBoxText.SelectionStart = m_RecentReadList[m_RecentReadListIndex].LastCharCount;
+                    richTextBoxText.SelectionLength = 0; // 確保選取字數為0
                     richTextBoxText.ScrollToCaret();
+
+                    // 更新狀態欄顯示檔案資訊
+                    UpdateStatusLabel();
                 }
             }
 
@@ -365,6 +628,11 @@ namespace TextSpeedReader
                     // 載入HTML檔案
                     m_CurrentHtmlFilePath = Path.Combine(m_TreeViewSelectedNodeText, this.listViewFile.SelectedItems[0].Text);
                     webBrowser1.Navigate("file:///" + m_CurrentHtmlFilePath);
+
+                    // 更新狀態欄：顯示HTML檔案名稱，清空固定狀態欄
+                    string htmlFileName = Path.GetFileName(m_CurrentHtmlFilePath);
+                    toolStripStatusLabelFileName.Text = htmlFileName;
+                    toolStripStatusLabelFixed.Text = "";
                 }
                 catch (System.UriFormatException exc)
                 {
@@ -406,70 +674,8 @@ namespace TextSpeedReader
         {
             if (e.KeyCode == Keys.Delete)
             {
-                if (listViewFile.SelectedItems.Count > 0) // 有選定的項目
-                {
-                    // 顯示確認對話框
-                    string message = "您確定要將 " + listViewFile.SelectedItems[0].Text + "   " +
-                                   listViewFile.SelectedItems.Count + " 個檔案移到資源回收桶？";
-                    string caption = "移到資源回收桶";
-                    var result = MessageBox.Show(message, caption,
-                                                 MessageBoxButtons.YesNo,
-                                                 MessageBoxIcon.Question);
-                    if (result == DialogResult.Yes)
-                    {
-                        int tmpIndex = 0;
-                        listViewFile.BeginUpdate();
-                        // 從最後一個選擇項目往前逐一刪除
-                        for (int i = listViewFile.SelectedItems.Count - 1; i >= 0; i--)
-                        {
-                            ListViewItem item = listViewFile.SelectedItems[i];
-                            tmpIndex = item.Index;
-                            string tmpFullFileName = Path.Combine(m_TreeViewSelectedNodeText, listViewFile.SelectedItems[i].Text);
-
-                            if (Microsoft.VisualBasic.FileIO.FileSystem.FileExists(tmpFullFileName))
-                            {
-                                // 將檔案移至資源回收桶
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(tmpFullFileName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
-
-                                // 如果是網頁檔案，同時刪除相關的資源目錄
-                                if (Path.GetExtension(tmpFullFileName) == ".htm"
-                                    || Path.GetExtension(tmpFullFileName) == ".html")
-                                {
-                                    string? dir = Path.GetDirectoryName(tmpFullFileName);
-                                    if (dir != null && Microsoft.VisualBasic.FileIO.FileSystem.DirectoryExists(Path.Combine(dir,
-                                        Path.GetFileNameWithoutExtension(tmpFullFileName)) + "_files"))
-                                    {
-                                        Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(
-                                            Path.Combine(dir,
-                                            Path.GetFileNameWithoutExtension(tmpFullFileName)) + "_files",
-                                            UIOption.OnlyErrorDialogs,
-                                            RecycleOption.SendToRecycleBin);
-                                    }
-                                }
-                                listViewFile.Items.Remove(item); // 從列表中移除項目
-                            }
-                            else
-                            {
-                                MessageBox.Show(tmpFullFileName + " 已不存在！");
-                            }
-                        }
-                        listViewFile.EndUpdate();
-
-                        // 選取下一個項目
-                        if (listViewFile.Items.Count > tmpIndex)
-                        {
-                            listViewFile.Items[tmpIndex].Selected = true;
-                        }
-                        else if (listViewFile.Items.Count > 0)
-                        {
-                            listViewFile.Items[listViewFile.Items.Count - 1].Selected = true;
-                        }
-                        else
-                        {
-                            richTextBoxText.Text = ""; // 清空文字框
-                        }
-                    }
-                }
+                DeleteFiles();
+                e.SuppressKeyPress = true;
             }
         }
 
@@ -1497,7 +1703,8 @@ namespace TextSpeedReader
                 // 生成新檔案路徑：原檔名_簡體.txt
                 string? directory = Path.GetDirectoryName(originalFilePath);
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFilePath);
-                string newFilePath = Path.Combine(directory ?? "", fileNameWithoutExtension + "_簡體.txt");
+                //後面添加的簡體1只是為了在ComfyUI的LoadPromptsFromDir避開錯誤。將來可能需要修改。
+                string newFilePath = Path.Combine(directory ?? "", fileNameWithoutExtension + "_簡體1.txt");
 
                 // 檢查新檔案是否已存在
                 if (File.Exists(newFilePath))
@@ -1604,7 +1811,8 @@ namespace TextSpeedReader
                     // 產生新檔名
                     string? dir = Path.GetDirectoryName(fullPath);
                     string nameNoExt = Path.GetFileNameWithoutExtension(fullPath);
-                    string newPath = Path.Combine(dir ?? "", nameNoExt + "_簡體.txt");
+                    //後面添加的簡體1只是為了在ComfyUI的LoadPromptsFromDir避開錯誤。將來可能需要修改。
+                    string newPath = Path.Combine(dir ?? "", nameNoExt + "_簡體1.txt");
 
                     // 寫入 UTF-8 (BOM) 以避免 ? 字元
                     File.WriteAllText(newPath, simplifiedText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
@@ -1946,6 +2154,46 @@ namespace TextSpeedReader
             //MessageBox.Show("RemoveMoreThan120Char()執行完畢", "提示");
         }
 
+        // 檢查指定位置是否在"「"和"」"之間
+        private bool IsInsideQuotationMarks(string line, int startPos, int pos)
+        {
+            // 從開始位置到標點符號位置之間查找引號
+            int quoteStart = -1;
+            for (int i = startPos; i < pos; i++)
+            {
+                if (line[i] == '「')
+                {
+                    quoteStart = i;
+                }
+                else if (line[i] == '」' && quoteStart >= 0)
+                {
+                    // 找到配對的結束引號，重置開始位置
+                    quoteStart = -1;
+                }
+            }
+
+            // 如果找到未配對的"「"，檢查標點符號是否在其後
+            if (quoteStart >= 0)
+            {
+                // 檢查標點符號之後是否有"」"
+                for (int i = pos + 1; i < line.Length; i++)
+                {
+                    if (line[i] == '」')
+                    {
+                        // 標點符號在"「"和"」"之間
+                        return true;
+                    }
+                    else if (line[i] == '「')
+                    {
+                        // 遇到新的開始引號，說明之前的引號已經結束
+                        break;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         // 移除超過120字元的行
         private void RemoveMoreThan120Char()
         {
@@ -2029,8 +2277,16 @@ namespace TextSpeedReader
                     {
                         int remainingLength = line.Length - processedPos;
 
-                        // 如果剩餘部分小於等於最大長度，這是最後一段，直接添加
-                        if (remainingLength <= maxLineLength)
+                        // 如果剩餘部分小於最大長度，這是最後一段，直接添加（不需要斷行）
+                        if (remainingLength < maxLineLength)
+                        {
+                            result.Append(line.Substring(processedPos));
+                            break;
+                        }
+
+                        // 如果剩餘部分正好等於最大長度，也需要檢查是否需要斷行
+                        // 只有在這是最後一段且沒有更多內容時才直接添加
+                        if (remainingLength == maxLineLength && processedPos + maxLineLength >= line.Length)
                         {
                             result.Append(line.Substring(processedPos));
                             break;
@@ -2039,14 +2295,42 @@ namespace TextSpeedReader
                         // 從當前位置開始的第100個字符位置開始，尋找下一個標點符號
                         int searchStart = processedPos + maxLineLength;
                         int punctuationPos = -1;
+                        const int maxSearchLength = 300; // 最多搜尋300個字
 
-                        // 在剩餘文本中尋找標點符號（從第100個字符位置開始）
-                        for (int i = searchStart; i < line.Length; i++)
+                        // 在剩餘文本中尋找標點符號（從第100個字符位置開始，最多搜尋300個字）
+                        int searchEnd = Math.Min(searchStart + maxSearchLength, line.Length);
+                        bool foundPunctuationIn300Chars = false;
+                        for (int i = searchStart; i < searchEnd; i++)
                         {
                             if (Array.IndexOf(punctuationMarks, line[i]) >= 0)
                             {
-                                punctuationPos = i;
-                                break;
+                                // 規則4：檢查標點符號是否在"「"和"」"之間，如果是則跳過
+                                if (!IsInsideQuotationMarks(line, processedPos, i))
+                                {
+                                    punctuationPos = i;
+                                    foundPunctuationIn300Chars = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // 規則1：如果超過300個字都沒有找到句點、問號和驚嘆號，在第120個字之後找逗點
+                        if (!foundPunctuationIn300Chars && searchEnd - searchStart >= maxSearchLength)
+                        {
+                            // 從第120個字之後（processedPos + 120）尋找逗點
+                            int commaSearchStart = processedPos + 120;
+                            int commaSearchEnd = Math.Min(commaSearchStart + maxSearchLength, line.Length);
+                            for (int i = commaSearchStart; i < commaSearchEnd; i++)
+                            {
+                                if (line[i] == ',' || line[i] == '，')
+                                {
+                                    // 規則4：檢查逗點是否在"「"和"」"之間，如果是則跳過
+                                    if (!IsInsideQuotationMarks(line, processedPos, i))
+                                    {
+                                        punctuationPos = i;
+                                        break;
+                                    }
+                                }
                             }
                         }
 
@@ -2061,8 +2345,26 @@ namespace TextSpeedReader
                             remainingAfterSplit = line.Length - (processedPos + maxLineLength);
                         }
 
+                        // 如果剩餘部分少於400字，且沒找到標點符號，不執行分割，直接添加剩餘內容
+                        // 這樣可以避免在非符號處斷行
+                        if (punctuationPos < 0 && remainingLength < (maxLineLength + maxSearchLength))
+                        {
+                            // 剩餘部分少於400字（100 + 300），且沒找到標點符號
+                            // 不執行分割，直接添加剩餘內容，避免在非符號處斷行
+                            result.Append(line.Substring(processedPos));
+                            break;
+                        }
+
                         // 如果分割後剩餘部分少於100個字符，不執行分割，直接添加剩餘內容
                         if (remainingAfterSplit < maxLineLength && remainingAfterSplit > 0)
+                        {
+                            result.Append(line.Substring(processedPos));
+                            break;
+                        }
+
+                        // 如果分割後剩餘部分正好等於100個字符，不執行分割，直接添加剩餘內容
+                        // 這樣可以避免在非符號處斷行
+                        if (remainingAfterSplit == maxLineLength)
                         {
                             result.Append(line.Substring(processedPos));
                             break;
@@ -2071,8 +2373,21 @@ namespace TextSpeedReader
                         // 如果找到標點符號，在標點符號後截斷
                         if (punctuationPos >= 0)
                         {
-                            // 檢查標點符號後面是否有空白字符，如果有則跳過，避免產生空白行
                             int actualCutPos = punctuationPos + 1;
+
+                            // 規則2：如果找到的句點是連續兩個以上的句點或驚嘆號或問號，從最後一個符號之後去添加斷行符號
+                            while (actualCutPos < line.Length && Array.IndexOf(punctuationMarks, line[actualCutPos]) >= 0)
+                            {
+                                actualCutPos++;
+                            }
+
+                            // 規則3：如果是句點或驚嘆號或問號之後有"」"，從"」"之後去添加斷行符號
+                            if (actualCutPos < line.Length && line[actualCutPos] == '」')
+                            {
+                                actualCutPos++;
+                            }
+
+                            // 檢查標點符號後面是否有空白字符，如果有則跳過，避免產生空白行
                             while (actualCutPos < line.Length && char.IsWhiteSpace(line[actualCutPos]))
                             {
                                 actualCutPos++;
@@ -2086,17 +2401,50 @@ namespace TextSpeedReader
                                 break;
                             }
 
-                            // 添加從當前位置到標點符號（包含標點符號）的內容，但不包含後面的空白字符
-                            result.Append(line.Substring(processedPos, punctuationPos - processedPos + 1));
+                            // 計算跳過連續標點符號和空白字符後的剩餘部分長度
+                            int remainingAfterActualCut = line.Length - actualCutPos;
+
+                            // 如果剩餘部分正好是100個字符或更少，不執行分割，直接添加剩餘內容
+                            // 這樣可以避免在非符號處斷行
+                            if (remainingAfterActualCut <= maxLineLength)
+                            {
+                                result.Append(line.Substring(processedPos));
+                                break;
+                            }
+
+                            // 添加從當前位置到標點符號（包含標點符號）的內容
+                            string segment = line.Substring(processedPos, punctuationPos - processedPos + 1);
+
+                            // 規則1：如果原本是逗點，改成句號
+                            if (segment.Length > 0)
+                            {
+                                char lastChar = segment[segment.Length - 1];
+                                if (lastChar == ',' || lastChar == '，')
+                                {
+                                    // 將最後一個逗點改成句號
+                                    segment = segment.Substring(0, segment.Length - 1) + '。';
+                                }
+                            }
+
+                            result.Append(segment);
                             result.Append(currentLineBreak); // 插入換行符
                             processedPos = actualCutPos; // 從跳過空白字符後的位置繼續處理
                         }
                         else
                         {
-                            // 如果沒找到標點符號，在最大長度處強制截斷
-                            // 檢查截斷位置後面是否有空白字符，如果有則跳過
+                            // 如果沒找到標點符號，檢查是否應該強制截斷
                             int cutPos = processedPos + maxLineLength;
+
+                            // 在最大長度處強制截斷
+                            // 檢查截斷位置後面是否有空白字符，如果有則跳過
                             int actualCutPos = cutPos;
+
+                            // 規則4：如果截斷位置在"「"和"」"之間，繼續向後查找直到引號外
+                            while (actualCutPos < line.Length && IsInsideQuotationMarks(line, processedPos, actualCutPos))
+                            {
+                                actualCutPos++;
+                            }
+
                             while (actualCutPos < line.Length && char.IsWhiteSpace(line[actualCutPos]))
                             {
                                 actualCutPos++;
@@ -2109,7 +2457,19 @@ namespace TextSpeedReader
                                 break;
                             }
 
-                            result.Append(line.Substring(processedPos, cutPos - processedPos));
+                            // 計算跳過引號和空白字符後的剩餘部分長度
+                            int remainingAfterCut = line.Length - actualCutPos;
+
+                            // 如果剩餘部分正好是100個字符或更少，不執行分割，直接添加剩餘內容
+                            // 這樣可以避免在非符號處斷行
+                            if (remainingAfterCut <= maxLineLength)
+                            {
+                                result.Append(line.Substring(processedPos));
+                                break;
+                            }
+
+                            // 使用 actualCutPos 來計算截斷長度，確保截斷位置正確
+                            result.Append(line.Substring(processedPos, actualCutPos - processedPos));
                             result.Append(currentLineBreak); // 插入換行符
                             processedPos = actualCutPos; // 從跳過空白字符後的位置繼續處理
                         }
@@ -2165,9 +2525,656 @@ namespace TextSpeedReader
 
         #endregion
 
+        #region 狀態欄更新
+
+        // 更新狀態欄顯示檔案資訊
+        private void UpdateStatusLabel()
+        {
+            if (!richTextBoxText.Visible)
+            {
+                // 如果不是文字檔案模式，清空狀態欄（HTML檔案會單獨處理）
+                // toolStripStatusLabelFixed.Text = "";
+                return;
+            }
+
+            // 獲取當前檔案名稱（無路徑）
+            string fileName = "";
+            if (m_RecentReadListIndex >= 0 && m_RecentReadListIndex < m_RecentReadList.Count)
+            {
+                string fullPath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
+                fileName = Path.GetFileName(fullPath);
+            }
+
+            // 更新檔案名稱到 toolStripStatusLabelFileName
+            toolStripStatusLabelFileName.Text = fileName;
+
+            // 獲取總字數和選取的字數
+            int totalChars = richTextBoxText.Text.Length;
+            int selectedChars = richTextBoxText.SelectionLength;
+
+            // 更新總字數和選取字數到 toolStripStatusLabelFixed
+            toolStripStatusLabelFixed.Text = $"總字數: {totalChars:N0} | 選取字數: {selectedChars:N0}";
+        }
+
+        // 處理 richTextBoxText 文字變更事件
+        private void RichTextBoxText_TextChanged(object? sender, EventArgs e)
+        {
+            UpdateStatusLabel();
+        }
+
+        // 處理 richTextBoxText 選擇變更事件
+        private void RichTextBoxText_SelectionChanged(object? sender, EventArgs e)
+        {
+            UpdateStatusLabel();
+        }
+
+        #endregion
+
         private void toolStripMenuItem_ConvertTraditional_Click(object sender, EventArgs e)
         {
             BatchConvertTxtFilesToTraditionalAndSave();
+        }
+
+        private void toolStripMenuItem_KeepTwoCRBetweenLines_Click(object sender, EventArgs e)
+        {
+            KeepTwoCRBetweenLines();
+        }
+
+        private void KeepTwoCRBetweenLines()
+        {
+            // 取得原始/選取內容和位置
+            string text;
+            bool processWholeDocument;
+            int selectionStart = richTextBoxText.SelectionStart;
+            int selectionLength = richTextBoxText.SelectionLength;
+            if (selectionLength > 0)
+            {
+                text = richTextBoxText.SelectedText;
+                processWholeDocument = false;
+            }
+            else
+            {
+                text = richTextBoxText.Text;
+                processWholeDocument = true;
+            }
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            // 識別換行符類型（優先使用 \r\n，然後是 \n，最後是 \r）
+            string lineBreak = "\r\n";
+            if (!text.Contains("\r\n"))
+            {
+                if (text.Contains("\n"))
+                    lineBreak = "\n";
+                else if (text.Contains("\r"))
+                    lineBreak = "\r";
+            }
+
+            // 將所有換行符統一為標準格式以便處理
+            string normalizedText = text.Replace("\r\n", "\n").Replace("\r", "\n");
+            string[] lines = normalizedText.Split('\n');
+
+            StringBuilder result = new StringBuilder();
+
+            // 收集所有非空行的索引
+            List<int> nonEmptyLineIndices = new List<int>();
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(lines[i]))
+                {
+                    nonEmptyLineIndices.Add(i);
+                }
+            }
+
+            if (nonEmptyLineIndices.Count == 0)
+            {
+                // 如果沒有非空行，返回空字符串
+                result.Append("");
+            }
+            else
+            {
+                // 處理每一對相鄰的非空行
+                for (int idx = 0; idx < nonEmptyLineIndices.Count; idx++)
+                {
+                    int lineIndex = nonEmptyLineIndices[idx];
+
+                    // 添加非空行內容
+                    result.Append(lines[lineIndex]);
+
+                    // 如果不是最後一個非空行，檢查與下一個非空行之間的空行數
+                    if (idx < nonEmptyLineIndices.Count - 1)
+                    {
+                        int nextLineIndex = nonEmptyLineIndices[idx + 1];
+                        int emptyLinesBetween = nextLineIndex - lineIndex - 1;
+
+                        if (emptyLinesBetween == 0)
+                        {
+                            // 兩行之間沒有空白行，添加一個空白行
+                            result.Append(lineBreak);
+                            result.Append(lineBreak);
+                        }
+                        else if (emptyLinesBetween == 1)
+                        {
+                            // 兩行之間已經有一個空白行，保留它
+                            result.Append(lineBreak);
+                            result.Append(lineBreak);
+                        }
+                        else
+                        {
+                            // 兩行之間有多個空白行，只保留一個
+                            result.Append(lineBreak);
+                            result.Append(lineBreak);
+                        }
+                    }
+                }
+            }
+
+            // 套用結果
+            if (processWholeDocument)
+            {
+                int originalSelectionStart = richTextBoxText.SelectionStart;
+                richTextBoxText.Text = result.ToString();
+                if (originalSelectionStart < richTextBoxText.Text.Length)
+                    richTextBoxText.SelectionStart = originalSelectionStart;
+                else
+                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                richTextBoxText.ScrollToCaret();
+            }
+            else
+            {
+                // 記錄選擇區舊長度
+                int selStart = richTextBoxText.SelectionStart;
+                richTextBoxText.SelectedText = result.ToString();
+                int newLength = result.Length;
+                richTextBoxText.Select(selStart, newLength);
+            }
+        }
+
+        private void toolStripMenuItem_WithoutCRBetweenLines_Click(object sender, EventArgs e)
+        {
+            WithoutCRBetweenLines();
+        }
+
+        private void WithoutCRBetweenLines()
+        {
+            // 取得原始/選取內容和位置
+            string text;
+            bool processWholeDocument;
+            int selectionStart = richTextBoxText.SelectionStart;
+            int selectionLength = richTextBoxText.SelectionLength;
+            if (selectionLength > 0)
+            {
+                text = richTextBoxText.SelectedText;
+                processWholeDocument = false;
+            }
+            else
+            {
+                text = richTextBoxText.Text;
+                processWholeDocument = true;
+            }
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            // 識別換行符類型（優先使用 \r\n，然後是 \n，最後是 \r）
+            string lineBreak = "\r\n";
+            if (!text.Contains("\r\n"))
+            {
+                if (text.Contains("\n"))
+                    lineBreak = "\n";
+                else if (text.Contains("\r"))
+                    lineBreak = "\r";
+            }
+
+            // 將所有換行符統一為標準格式以便處理
+            string normalizedText = text.Replace("\r\n", "\n").Replace("\r", "\n");
+            string[] lines = normalizedText.Split('\n');
+
+            StringBuilder result = new StringBuilder();
+
+            // 收集所有非空行的索引
+            List<int> nonEmptyLineIndices = new List<int>();
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(lines[i]))
+                {
+                    nonEmptyLineIndices.Add(i);
+                }
+            }
+
+            if (nonEmptyLineIndices.Count == 0)
+            {
+                // 如果沒有非空行，返回空字符串
+                result.Append("");
+            }
+            else
+            {
+                // 處理每一對相鄰的非空行
+                for (int idx = 0; idx < nonEmptyLineIndices.Count; idx++)
+                {
+                    int lineIndex = nonEmptyLineIndices[idx];
+
+                    // 添加非空行內容
+                    result.Append(lines[lineIndex]);
+
+                    // 如果不是最後一個非空行，只添加一個換行符（沒有空白行）
+                    if (idx < nonEmptyLineIndices.Count - 1)
+                    {
+                        result.Append(lineBreak);
+                    }
+                }
+            }
+
+            // 套用結果
+            if (processWholeDocument)
+            {
+                int originalSelectionStart = richTextBoxText.SelectionStart;
+                richTextBoxText.Text = result.ToString();
+                if (originalSelectionStart < richTextBoxText.Text.Length)
+                    richTextBoxText.SelectionStart = originalSelectionStart;
+                else
+                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                richTextBoxText.ScrollToCaret();
+            }
+            else
+            {
+                // 記錄選擇區舊長度
+                int selStart = richTextBoxText.SelectionStart;
+                richTextBoxText.SelectedText = result.ToString();
+                int newLength = result.Length;
+                richTextBoxText.Select(selStart, newLength);
+            }
+        }
+
+        private void toolStripMenuItem_DelFiles_Click(object sender, EventArgs e)
+        {
+            DeleteFiles();
+        }
+        private void DeleteFiles()
+        {
+            if (listViewFile.SelectedItems.Count > 0) // 有選定的項目
+            {
+                // 顯示確認對話框
+                string message = "您確定要將 " + listViewFile.SelectedItems[0].Text + "   " +
+                               listViewFile.SelectedItems.Count + " 個檔案移到資源回收桶？";
+                string caption = "移到資源回收桶";
+                var result = MessageBox.Show(message, caption,
+                                             MessageBoxButtons.YesNo,
+                                             MessageBoxIcon.Question);
+                if (result == DialogResult.Yes)
+                {
+                    int tmpIndex = 0;
+                    listViewFile.BeginUpdate();
+                    // 從最後一個選擇項目往前逐一刪除
+                    for (int i = listViewFile.SelectedItems.Count - 1; i >= 0; i--)
+                    {
+                        ListViewItem item = listViewFile.SelectedItems[i];
+                        tmpIndex = item.Index;
+                        string tmpFullFileName = Path.Combine(m_TreeViewSelectedNodeText, listViewFile.SelectedItems[i].Text);
+
+                        if (Microsoft.VisualBasic.FileIO.FileSystem.FileExists(tmpFullFileName))
+                        {
+                            // 將檔案移至資源回收桶
+                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(tmpFullFileName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+
+                            // 如果是網頁檔案，同時刪除相關的資源目錄
+                            if (Path.GetExtension(tmpFullFileName) == ".htm"
+                                || Path.GetExtension(tmpFullFileName) == ".html")
+                            {
+                                string? dir = Path.GetDirectoryName(tmpFullFileName);
+                                if (dir != null && Microsoft.VisualBasic.FileIO.FileSystem.DirectoryExists(Path.Combine(dir,
+                                    Path.GetFileNameWithoutExtension(tmpFullFileName)) + "_files"))
+                                {
+                                    Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(
+                                        Path.Combine(dir,
+                                        Path.GetFileNameWithoutExtension(tmpFullFileName)) + "_files",
+                                        UIOption.OnlyErrorDialogs,
+                                        RecycleOption.SendToRecycleBin);
+                                }
+                            }
+                            listViewFile.Items.Remove(item); // 從列表中移除項目
+                        }
+                        else
+                        {
+                            MessageBox.Show(tmpFullFileName + " 已不存在！");
+                        }
+                    }
+                    listViewFile.EndUpdate();
+
+                    // 選取下一個項目
+                    if (listViewFile.Items.Count > tmpIndex)
+                    {
+                        listViewFile.Items[tmpIndex].Selected = true;
+                    }
+                    else if (listViewFile.Items.Count > 0)
+                    {
+                        listViewFile.Items[listViewFile.Items.Count - 1].Selected = true;
+                    }
+                    else
+                    {
+                        richTextBoxText.Text = ""; // 清空文字框
+                    }
+                }
+            }
+        }
+
+        private void toolStripMenuItem_SelectedTextSaveAsNew_Click(object sender, EventArgs e)
+        {
+            SelectedTextSaveAsNew();
+        }
+
+        private void SelectedTextSaveAsNew()
+        {
+            // 檢查是否有選中的文字
+            if (richTextBoxText.SelectionLength == 0)
+            {
+                MessageBox.Show("請先選取要儲存的文字。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 檢查是否有當前打開的檔案
+            if (m_RecentReadListIndex < 0)
+            {
+                MessageBox.Show("請先開啟一個文字檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 獲取選中的文字
+            string selectedText = richTextBoxText.SelectedText;
+            if (string.IsNullOrEmpty(selectedText))
+            {
+                MessageBox.Show("選取的文字為空。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 獲取當前檔案路徑
+            string currentFilePath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
+            string? directory = Path.GetDirectoryName(currentFilePath);
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(currentFilePath);
+            string extension = Path.GetExtension(currentFilePath);
+
+            // 如果沒有目錄，使用應用程式目錄
+            if (string.IsNullOrEmpty(directory))
+            {
+                directory = Application.StartupPath;
+            }
+
+            // 尋找下一個可用的序號
+            int nextSequence = 1;
+            string suggestedFileName = "";
+            while (true)
+            {
+                string sequenceStr = nextSequence.ToString("D3"); // 格式化為三位數，如 001, 002, 003
+                string testFileName = $"{fileNameWithoutExtension}-{sequenceStr}{extension}";
+                string testFilePath = Path.Combine(directory, testFileName);
+
+                if (!File.Exists(testFilePath))
+                {
+                    suggestedFileName = testFileName;
+                    break;
+                }
+                nextSequence++;
+
+                // 防止無限循環（最多檢查到 999）
+                if (nextSequence > 999)
+                {
+                    MessageBox.Show("序號已達到上限（999），請手動指定檔名。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    suggestedFileName = $"{fileNameWithoutExtension}-999{extension}";
+                    break;
+                }
+            }
+
+            // 使用 SaveFileDialog 讓使用者確認或修改檔名和位置
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                saveFileDialog.FileName = suggestedFileName;
+                saveFileDialog.InitialDirectory = directory;
+                saveFileDialog.Title = "儲存選取的文字";
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
+                        File.WriteAllText(saveFileDialog.FileName, selectedText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+
+                        MessageBox.Show($"已成功儲存至：\n{saveFileDialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        // 重新載入目前資料夾檔案列表
+                        if (treeViewFolder.SelectedNode != null)
+                        {
+                            treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"儲存失敗：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void toolStripMenuItem_WholeTextSaveAsNew_Click(object sender, EventArgs e)
+        {
+            WholeTextSaveAsNew();
+        }
+
+        private void WholeTextSaveAsNew()
+        {
+            // 檢查是否有當前打開的檔案
+            if (m_RecentReadListIndex < 0)
+            {
+                MessageBox.Show("請先開啟一個文字檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 獲取整篇文字
+            string fullText = richTextBoxText.Text;
+            if (string.IsNullOrEmpty(fullText))
+            {
+                MessageBox.Show("檔案內容為空。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 獲取當前檔案路徑
+            string currentFilePath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
+            string? directory = Path.GetDirectoryName(currentFilePath);
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(currentFilePath);
+            string extension = Path.GetExtension(currentFilePath);
+
+            // 如果沒有目錄，使用應用程式目錄
+            if (string.IsNullOrEmpty(directory))
+            {
+                directory = Application.StartupPath;
+            }
+
+            const int chunkSize = 3000; // 每個檔案3000個字
+            const int maxRemainingSize = 4000; // 最後剩餘4000字以內就存成一個檔案
+
+            int textLength = fullText.Length;
+            int currentPosition = 0;
+            int fileSequence = 1;
+            int successCount = 0;
+            int skipCount = 0;
+
+            // 識別換行符類型（優先使用 \r\n，然後是 \n，最後是 \r）
+            string lineBreak = "\r\n";
+            if (!fullText.Contains("\r\n"))
+            {
+                if (fullText.Contains("\n"))
+                    lineBreak = "\n";
+                else if (fullText.Contains("\r"))
+                    lineBreak = "\r";
+            }
+
+            while (currentPosition < textLength)
+            {
+                int remainingLength = textLength - currentPosition;
+
+                // 如果剩餘長度在4000字以內，全部存成一個檔案
+                if (remainingLength <= maxRemainingSize)
+                {
+                    // 生成檔案名
+                    string sequenceStr = fileSequence.ToString("D3");
+                    string newFileName = $"{fileNameWithoutExtension}-{sequenceStr}{extension}";
+                    string newFilePath = Path.Combine(directory, newFileName);
+
+                    // 檢查檔案是否存在
+                    if (File.Exists(newFilePath))
+                    {
+                        DialogResult result = MessageBox.Show(
+                            $"檔案「{newFileName}」已存在，是否要覆蓋？",
+                            "確認覆蓋",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+
+                        if (result != DialogResult.Yes)
+                        {
+                            skipCount++;
+                            break; // 使用者選擇不覆蓋，停止處理
+                        }
+                    }
+
+                    // 準備檔案內容：第一行是檔名（無副檔名），第二行是空行，然後是文字內容
+                    StringBuilder fileContent = new StringBuilder();
+                    fileContent.Append(fileNameWithoutExtension + "-" + sequenceStr);
+                    fileContent.Append(lineBreak);
+                    fileContent.Append(lineBreak);
+                    fileContent.Append(fullText.Substring(currentPosition));
+
+                    try
+                    {
+                        // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
+                        File.WriteAllText(newFilePath, fileContent.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"儲存檔案「{newFileName}」時發生錯誤：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break; // 發生錯誤，停止處理
+                    }
+
+                    break; // 處理完最後一部分，結束
+                }
+                else
+                {
+                    // 需要分割，先取3000個字，然後找到完整的一行
+                    int targetPosition = currentPosition + chunkSize;
+
+                    // 如果目標位置已經超過文字長度，直接取到末尾
+                    if (targetPosition >= textLength)
+                    {
+                        targetPosition = textLength;
+                    }
+                    else
+                    {
+                        // 從目標位置開始，向後查找換行符，確保包含完整的一行
+                        int lineEndPosition = targetPosition;
+
+                        // 查找換行符（\r\n, \n, 或 \r）
+                        while (lineEndPosition < textLength)
+                        {
+                            if (fullText[lineEndPosition] == '\r')
+                            {
+                                // 檢查是否是 \r\n
+                                if (lineEndPosition + 1 < textLength && fullText[lineEndPosition + 1] == '\n')
+                                {
+                                    lineEndPosition += 2; // 包含 \r\n
+                                }
+                                else
+                                {
+                                    lineEndPosition += 1; // 只包含 \r
+                                }
+                                break; // 找到換行符，結束查找
+                            }
+                            else if (fullText[lineEndPosition] == '\n')
+                            {
+                                lineEndPosition += 1; // 包含 \n
+                                break; // 找到換行符，結束查找
+                            }
+                            lineEndPosition++;
+                        }
+
+                        // 如果沒找到換行符（到達文件末尾），就取到末尾
+                        if (lineEndPosition >= textLength)
+                        {
+                            targetPosition = textLength;
+                        }
+                        else
+                        {
+                            targetPosition = lineEndPosition;
+                        }
+                    }
+
+                    // 計算實際要取的長度
+                    int chunkLength = targetPosition - currentPosition;
+                    string chunkText = fullText.Substring(currentPosition, chunkLength);
+
+                    // 生成檔案名
+                    string sequenceStr = fileSequence.ToString("D3");
+                    string newFileName = $"{fileNameWithoutExtension}-{sequenceStr}{extension}";
+                    string newFilePath = Path.Combine(directory, newFileName);
+
+                    // 檢查檔案是否存在
+                    if (File.Exists(newFilePath))
+                    {
+                        DialogResult result = MessageBox.Show(
+                            $"檔案「{newFileName}」已存在，是否要覆蓋？",
+                            "確認覆蓋",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+
+                        if (result != DialogResult.Yes)
+                        {
+                            skipCount++;
+                            fileSequence++;
+                            currentPosition = targetPosition;
+                            continue; // 使用者選擇不覆蓋，跳過這個檔案
+                        }
+                    }
+
+                    // 準備檔案內容：第一行是檔名（無副檔名），第二行是空行，然後是文字內容
+                    StringBuilder fileContent = new StringBuilder();
+                    fileContent.Append(fileNameWithoutExtension + "-" + sequenceStr);
+                    fileContent.Append(lineBreak);
+                    fileContent.Append(lineBreak);
+                    fileContent.Append(chunkText);
+
+                    try
+                    {
+                        // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
+                        File.WriteAllText(newFilePath, fileContent.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"儲存檔案「{newFileName}」時發生錯誤：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break; // 發生錯誤，停止處理
+                    }
+
+                    currentPosition = targetPosition;
+                    fileSequence++;
+                }
+            }
+
+            // 顯示處理結果
+            string message = $"處理完成：成功儲存 {successCount} 個檔案";
+            if (skipCount > 0)
+            {
+                message += $"，略過 {skipCount} 個檔案";
+            }
+            MessageBox.Show(message, "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            // 重新載入目前資料夾檔案列表
+            if (treeViewFolder.SelectedNode != null)
+            {
+                treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode));
+            }
+        }
+
+        private void toolStripMenuItem_RemoveMoreThan120CharB_Click(object sender, EventArgs e)
+        {
+            RemoveMoreThan120Char();
         }
     }
 }
