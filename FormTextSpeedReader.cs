@@ -87,6 +87,9 @@ namespace TextSpeedReader
             // 建立 richTextBoxText 的文字變更和選擇變更事件
             richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
             richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+
+            // 建立 WebBrowser 文檔載入完成事件
+            webBrowser1.DocumentCompleted += WebBrowser1_DocumentCompleted;
         }
 
         #endregion
@@ -417,9 +420,8 @@ namespace TextSpeedReader
             this.listViewFile.ListViewItemSorter = m_LvwColumnSorter;
             listViewFile.EndUpdate();
 
-            // 更新狀態欄顯示檔案數量
-            int fileCount = listViewFile.Items.Count;
-            toolStripStatusLabelNews.Text = $"檔案數量: {fileCount:N0}";
+            // 更新狀態欄顯示檔案數量和選取數量
+            UpdateFileSelectionStatus();
         }
 
         // 處理檔案列表滑鼠按下事件（用於區分左右鍵）
@@ -455,6 +457,9 @@ namespace TextSpeedReader
         // 處理檔案列表選擇變更事件
         private void ListViewFile_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // 更新狀態欄顯示檔案數量和選取數量
+            UpdateFileSelectionStatus();
+
             // 檢查是否為右鍵點擊（檢查標記和時間戳，如果在最近500毫秒內有右鍵點擊，則不打開檔案）
             if (m_IsRightClick || (DateTime.Now - m_LastRightClickTime).TotalMilliseconds < 500)
             {
@@ -709,6 +714,72 @@ namespace TextSpeedReader
         private void webBrowser1_Navigated(object sender, WebBrowserNavigatedEventArgs e)
         {
             //toolStripTextBox1.Text = webBrowser1.Url.ToString();
+        }
+
+        // 處理 WebBrowser 文檔載入完成事件
+        private void WebBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+            ApplyWebBrowserDefaultStyle();
+        }
+
+        // 應用 WebBrowser 預設樣式（背景顏色、字型、字體尺寸）
+        private void ApplyWebBrowserDefaultStyle()
+        {
+            if (webBrowser1.Document == null)
+                return;
+
+            try
+            {
+                // 獲取當前 richTextBoxText 的字體設定作為參考
+                Font currentFont = richTextBoxText.Font;
+                string fontFamily = currentFont.FontFamily.Name;
+                float fontSize = currentFont.SizeInPoints;
+
+                // 設定背景顏色（例如：白色 #FFFFFF，或淺灰色 #F5F5F5）
+                // 可以根據需要修改顏色值
+                //string backgroundColor = "#FFFFFF"; // 白色背景
+                string backgroundColor = "#000000"; // 黑色背景
+
+                // 設定字型家族（處理字體名稱中的特殊字符）
+                string escapedFontFamily = fontFamily.Replace("'", "\\'");
+
+                // 設定文字顏色
+                string textColor = "#FFFFFF"; // 白色文字
+
+                // 方法1：直接設置 body 樣式（簡單但可能被 HTML 內聯樣式覆蓋）
+                if (webBrowser1.Document.Body != null)
+                {
+                    string style = $"font-family: '{escapedFontFamily}', sans-serif; font-size: {fontSize}pt; background-color: {backgroundColor}; color: {textColor};";
+                    webBrowser1.Document.Body.Style = style;
+                }
+
+                // 方法2：注入 CSS 樣式到 head（更可靠，優先級更高）
+                HtmlElement? headElement = webBrowser1.Document.GetElementsByTagName("head")[0];
+                if (headElement != null)
+                {
+                    HtmlElement? styleElement = webBrowser1.Document.CreateElement("style");
+                    if (styleElement != null)
+                    {
+                        // 使用 !important 確保樣式優先級
+                        string css = $@"
+                            body {{
+                                font-family: '{escapedFontFamily}', sans-serif !important;
+                                font-size: {fontSize}pt !important;
+                                background-color: {backgroundColor} !important;
+                                color: {textColor} !important;
+                            }}
+                        ";
+                        styleElement.SetAttribute("type", "text/css");
+                        styleElement.InnerHtml = css;
+                        headElement.AppendChild(styleElement);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 如果設置樣式失敗，不影響其他功能
+                Console.WriteLine($"設置 WebBrowser 樣式時發生錯誤: {ex.Message}");
+            }
         }
 
         #endregion
@@ -2527,6 +2598,22 @@ namespace TextSpeedReader
 
         #region 狀態欄更新
 
+        // 更新狀態欄顯示檔案數量和選取數量
+        private void UpdateFileSelectionStatus()
+        {
+            int totalCount = listViewFile.Items.Count;
+            int selectedCount = listViewFile.SelectedItems.Count;
+
+            if (selectedCount > 0)
+            {
+                toolStripStatusLabelNews.Text = $"檔案數量: {totalCount:N0} | 已選取: {selectedCount:N0}";
+            }
+            else
+            {
+                toolStripStatusLabelNews.Text = $"檔案數量: {totalCount:N0}";
+            }
+        }
+
         // 更新狀態欄顯示檔案資訊
         private void UpdateStatusLabel()
         {
@@ -3175,6 +3262,235 @@ namespace TextSpeedReader
         private void toolStripMenuItem_RemoveMoreThan120CharB_Click(object sender, EventArgs e)
         {
             RemoveMoreThan120Char();
+        }
+
+        private void toolStripMenuItem_RenameFile_Click(object sender, EventArgs e)
+        {
+            RenameFile();
+        }
+
+        private void RenameFile()
+        {
+            if (listViewFile.SelectedItems.Count <= 0)
+            {
+                MessageBox.Show("請先選取要更名的檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            bool isMulti = listViewFile.SelectedItems.Count > 1;
+
+            // 無論單檔或多檔，預設值都包含副檔名
+            string defaultInputName = listViewFile.SelectedItems[0].Text;
+
+            FormRenameInput renameDialog = new FormRenameInput(
+                isMulti
+                    ? "請輸入新檔名（可含副檔名）。\r\n多檔將使用：新檔名-001, -002, ..."
+                    : "請輸入新檔名（可含副檔名）。",
+                "更名檔案",
+                defaultInputName,
+                isMulti);
+
+            if (renameDialog.ShowDialog(this) != DialogResult.OK)
+            {
+                return; // 取消
+            }
+
+            string input = renameDialog.InputText;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return; // 取消
+            }
+
+            input = input.Trim();
+            string inputExt = Path.GetExtension(input);
+            string inputBaseName = Path.GetFileNameWithoutExtension(input);
+
+            // 記錄更名後的檔案名稱列表，用於重新選取
+            List<string> renamedFiles = new List<string>();
+
+            int index = 1;
+            foreach (ListViewItem lvItem in listViewFile.SelectedItems)
+            {
+                string srcName = lvItem.Text;
+                string srcPath = Path.Combine(m_TreeViewSelectedNodeText, srcName);
+                string srcExt = Path.GetExtension(srcName);
+
+                string newName;
+                if (isMulti)
+                {
+                    // 多選時：新檔名-001 + 副檔名（若輸入含副檔名則用輸入的，否則沿用各自原副檔名）
+                    string numberSuffix = "-" + index.ToString("D3");
+                    string extToUse = !string.IsNullOrEmpty(inputExt) ? inputExt : srcExt;
+                    newName = inputBaseName + numberSuffix + extToUse;
+                }
+                else
+                {
+                    // 單檔直接使用輸入的新檔名
+                    newName = input;
+                }
+
+                string destPath = Path.Combine(m_TreeViewSelectedNodeText, newName);
+                string destExt = Path.GetExtension(newName);
+
+                // 副檔名變更確認
+                if (!string.Equals(destExt, srcExt, StringComparison.OrdinalIgnoreCase))
+                {
+                    DialogResult extChange = MessageBox.Show(
+                        $"檔案「{srcName}」的副檔名將由「{srcExt}」變更為「{destExt}」，是否繼續？",
+                        "確認變更副檔名",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+                    if (extChange != DialogResult.Yes)
+                    {
+                        if (isMulti)
+                        {
+                            index++;
+                            continue;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                // 同名檔案覆蓋確認
+                if (File.Exists(destPath))
+                {
+                    DialogResult overwrite = MessageBox.Show(
+                        $"目的檔已存在：\r\n{newName}\r\n是否覆蓋？",
+                        "確認覆蓋",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning);
+                    if (overwrite != DialogResult.Yes)
+                    {
+                        if (isMulti)
+                        {
+                            index++;
+                            continue;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                try
+                {
+                    // .NET 6+ 支援指定 overwrite 參數
+                    File.Move(srcPath, destPath, true);
+                    // 記錄成功更名的檔案名稱
+                    renamedFiles.Add(newName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"更名失敗：{srcName}\r\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (!isMulti)
+                    {
+                        return;
+                    }
+                }
+
+                index++;
+            }
+
+            // 重新載入目前資料夾檔案列表
+            if (treeViewFolder.SelectedNode != null)
+            {
+                treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode));
+
+                // 重新選取更名後的檔案
+                if (renamedFiles.Count > 0)
+                {
+                    listViewFile.BeginUpdate();
+                    // 先清除所有選取
+                    listViewFile.SelectedItems.Clear();
+                    // 根據檔名選取對應的項目
+                    foreach (string fileName in renamedFiles)
+                    {
+                        foreach (ListViewItem item in listViewFile.Items)
+                        {
+                            if (item.Text.Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                item.Selected = true;
+                                item.EnsureVisible();
+                                break;
+                            }
+                        }
+                    }
+                    listViewFile.EndUpdate();
+                }
+            }
+        }
+
+        private void toolStripMenuItem_SearchFiles_Click(object sender, EventArgs e)
+        {
+            SearchFiles();
+        }
+
+        private void SearchFiles()
+        {
+            // 顯示輸入對話框
+            string searchText = Microsoft.VisualBasic.Interaction.InputBox(
+                "請輸入要搜尋的檔名關鍵字（部分符合即可）：",
+                "尋找檔案",
+                "");
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return; // 取消或空輸入
+            }
+
+            searchText = searchText.Trim();
+
+            // 在 listViewFile 中搜尋並選取符合條件的檔案
+            listViewFile.BeginUpdate();
+            
+            // 先清除所有選取
+            listViewFile.SelectedItems.Clear();
+
+            // 搜尋並選取符合條件的項目（不區分大小寫）
+            int matchCount = 0;
+            ListViewItem? firstMatch = null;
+            foreach (ListViewItem item in listViewFile.Items)
+            {
+                if (item.Text.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    item.Selected = true;
+                    matchCount++;
+                    if (firstMatch == null)
+                    {
+                        firstMatch = item;
+                    }
+                }
+            }
+
+            listViewFile.EndUpdate();
+
+            // 如果有找到符合的檔案，滾動到第一個符合的項目
+            if (firstMatch != null)
+            {
+                firstMatch.EnsureVisible();
+            }
+
+            // 顯示搜尋結果訊息
+            if (matchCount > 0)
+            {
+                MessageBox.Show(
+                    $"找到 {matchCount:N0} 個符合「{searchText}」的檔案。",
+                    "搜尋完成",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"未找到符合「{searchText}」的檔案。",
+                    "搜尋結果",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
         }
     }
 }

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader.csproj": {}
+    "E:\\3D_prj\\VS2022_prj\\TextSpeedReader\\TextSpeedReader.csproj": {}
   },
   "projects": {
-    "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader.csproj": {
+    "E:\\3D_prj\\VS2022_prj\\TextSpeedReader\\TextSpeedReader.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
+        "projectUniqueName": "E:\\3D_prj\\VS2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
         "projectName": "TextSpeedReader",
-        "projectPath": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
-        "packagesPath": "C:\\Users\\joey\\.nuget\\packages\\",
-        "outputPath": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\obj\\",
+        "projectPath": "E:\\3D_prj\\VS2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
+        "packagesPath": "C:\\Users\\weich\\.nuget\\packages\\",
+        "outputPath": "E:\\3D_prj\\VS2022_prj\\TextSpeedReader\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\joey\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\weich\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -44,7 +44,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net9.0-windows10.0.22000": {
@@ -72,10 +72,6 @@
           "warn": true,
           "downloadDependencies": [
             {
-              "name": "Microsoft.Net.Sdk.Compilers.Toolset",
-              "version": "[9.0.306, 9.0.306]"
-            },
-            {
               "name": "Microsoft.Windows.SDK.NET.Ref",
               "version": "[10.0.22000.57, 10.0.22000.57]"
             }
@@ -91,7 +87,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

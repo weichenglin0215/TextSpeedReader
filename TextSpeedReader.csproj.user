@@ -4,6 +4,9 @@
     <Compile Update="FormFindReplace.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="FormRenameInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="FormSaveConfirm.cs">
       <SubType>Form</SubType>
     </Compile>

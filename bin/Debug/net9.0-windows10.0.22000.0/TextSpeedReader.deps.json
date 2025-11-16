@@ -28,7 +28,22 @@
           }
         }
       },
-      "System.Text.Encoding.CodePages/9.0.10": {},
+      "System.Text.Encoding.CodePages/9.0.10": {
+        "runtime": {
+          "lib/net9.0/System.Text.Encoding.CodePages.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.1025.47515"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net9.0/System.Text.Encoding.CodePages.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.1025.47515"
+          }
+        }
+      },
       "Ude.NetStandard/1.2.0": {
         "runtime": {
           "lib/netstandard2.0/Ude.NetStandard.dll": {
