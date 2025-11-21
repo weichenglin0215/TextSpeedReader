@@ -50,3 +50,6 @@ E:\3D_prj\VS2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSp
 E:\3D_prj\VS2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\ref\TextSpeedReader.dll
 E:\3D_prj\VS2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSpeedReader.FormRenameInput.resources
 E:\3D_prj\VS2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSpeedReader.FormSaveConfirm.resources
+C:\3D_prj\VS_2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSpeedReader.FormRenameInput.resources
+C:\3D_prj\VS_2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSpeedReader.FormSaveConfirm.resources
+C:\3D_prj\VS_2022_prj\TextSpeedReader\obj\Debug\net9.0-windows10.0.22000.0\TextSpeedReader.FormOptions.resources

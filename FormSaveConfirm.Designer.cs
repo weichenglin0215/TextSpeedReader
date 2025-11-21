@@ -102,3 +102,4 @@ namespace TextSpeedReader
     }
 }
 
+

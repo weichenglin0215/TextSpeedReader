@@ -1,12 +1,22 @@
 {
   "version": 2,
-  "dgSpecHash": "D+2PUsK0KcQ=",
+  "dgSpecHash": "dVTT6h+OVuk=",
   "success": true,
-  "projectFilePath": "E:\\3D_prj\\VS2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
+  "projectFilePath": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\weich\\.nuget\\packages\\system.text.encoding.codepages\\9.0.10\\system.text.encoding.codepages.9.0.10.nupkg.sha512",
-    "C:\\Users\\weich\\.nuget\\packages\\ude.netstandard\\1.2.0\\ude.netstandard.1.2.0.nupkg.sha512",
-    "C:\\Users\\weich\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.22000.57\\microsoft.windows.sdk.net.ref.10.0.22000.57.nupkg.sha512"
+    "C:\\Users\\joey\\.nuget\\packages\\system.text.encoding.codepages\\9.0.10\\system.text.encoding.codepages.9.0.10.nupkg.sha512",
+    "C:\\Users\\joey\\.nuget\\packages\\ude.netstandard\\1.2.0\\ude.netstandard.1.2.0.nupkg.sha512",
+    "C:\\Users\\joey\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.22000.57\\microsoft.windows.sdk.net.ref.10.0.22000.57.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1510",
+      "level": "Warning",
+      "message": "將不會剪除 packageReference System.Text.Encoding.CodePages。請考慮從您的相依性移除此套件，因為它可能是不必要的。",
+      "projectPath": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\3D_prj\\VS_2022_prj\\TextSpeedReader\\TextSpeedReader.csproj",
+      "targetGraphs": []
+    }
+  ]
 }
