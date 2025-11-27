@@ -50,6 +50,9 @@ namespace TextSpeedReader
         // 目前顯示於 WebBrowser 的本機 HTML 完整路徑
         private string m_CurrentHtmlFilePath = "";
 
+        // 臨時HTML檔案路徑（用於編碼轉換）
+        private string m_TempHtmlFilePath = "";
+
         // 最近閱讀檔案清單
         public List<FileSystemManager.RecentReadList> m_RecentReadList = new List<FileSystemManager.RecentReadList>();
 
@@ -77,10 +80,10 @@ namespace TextSpeedReader
         public FormTextSpeedReader()
         {
             InitializeComponent();
-            
+
             // 載入應用程式設定
             appSettings.LoadSettings();
-            
+
             PopulateTreeViewAll(1);        // 初始化檔案樹狀圖（僅第一層以減少資源消耗）
             fileManager.LoadRecentReadList();           // 讀取最近閱讀清單
             GetSystemFonts();              // 獲取系統字體
@@ -102,6 +105,9 @@ namespace TextSpeedReader
 
             // 建立 WebBrowser 文檔載入完成事件
             webBrowser1.DocumentCompleted += WebBrowser1_DocumentCompleted;
+
+            // 添加編碼轉換選單項目
+            AddEncodingConvertMenuItem();
 
             // 初始化菜單狀態
             UpdateMenuStatus();
@@ -605,8 +611,10 @@ namespace TextSpeedReader
             //Console.WriteLine("this.listViewFile.SelectedItems[0].Text " + this.listViewFile.SelectedItems[0].Text);
             if (this.listViewFile.SelectedItems.Count > 0 && Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower() == ".txt")
             {
-                string tmpString = "";
                 string tmpFullFileName = m_TreeViewSelectedNodeText + @"\" + this.listViewFile.SelectedItems[0].Text;
+
+                // 使用編碼檢測讀取檔案內容
+                string tmpString = ReadFileWithEncodingDetection(tmpFullFileName);
 
                 // 檢查選中的檔案是否是當前正在編輯的檔案
                 // 需要檢查 m_RecentReadListIndex 是否有效，以及對應的檔案是否仍然存在
@@ -769,7 +777,9 @@ namespace TextSpeedReader
                     webBrowser1.Visible = true;
                     // 載入HTML檔案
                     m_CurrentHtmlFilePath = Path.Combine(m_TreeViewSelectedNodeText, this.listViewFile.SelectedItems[0].Text);
-                    webBrowser1.Navigate("file:///" + m_CurrentHtmlFilePath);
+
+                    // 讀取並處理HTML檔案內容，確保正確編碼顯示
+                    LoadHtmlFileWithEncoding(m_CurrentHtmlFilePath);
 
                     // 更新狀態欄：顯示HTML檔案名稱，清空固定狀態欄
                     string htmlFileName = Path.GetFileName(m_CurrentHtmlFilePath);
@@ -860,6 +870,33 @@ namespace TextSpeedReader
         private void WebBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
             ApplyWebBrowserDefaultStyle();
+
+            // 清理臨時HTML檔案
+            if (!string.IsNullOrEmpty(m_TempHtmlFilePath) && File.Exists(m_TempHtmlFilePath))
+            {
+                try
+                {
+                    // 延遲刪除，確保WebBrowser完全載入
+                    System.Threading.Timer timer = null;
+                    timer = new System.Threading.Timer((state) =>
+                    {
+                        try
+                        {
+                            if (File.Exists(m_TempHtmlFilePath))
+                            {
+                                File.Delete(m_TempHtmlFilePath);
+                            }
+                            m_TempHtmlFilePath = "";
+                        }
+                        catch { }
+                        finally
+                        {
+                            timer?.Dispose();
+                        }
+                    }, null, 1000, System.Threading.Timeout.Infinite);
+                }
+                catch { }
+            }
         }
 
         // 應用 WebBrowser 預設樣式（背景顏色、字型、字體尺寸）
@@ -2145,13 +2182,27 @@ namespace TextSpeedReader
         // 編輯文字轉換為簡體
         private void EditTextCovertSimplified()
         {
-            // 獲取目前文字內容
-            string traditionalText = richTextBoxText.SelectedText;
-            if (string.IsNullOrEmpty(traditionalText))
+            // 檢查是否有選取的文字，如果沒有則處理整個文檔
+            bool processWholeDocument = (richTextBoxText.SelectionLength == 0);
+            string textToConvert;
+
+            if (processWholeDocument)
+            {
+                // 處理整個文檔
+                textToConvert = richTextBoxText.Text;
+            }
+            else
+            {
+                // 處理選取的文字
+                textToConvert = richTextBoxText.SelectedText;
+            }
+
+            if (string.IsNullOrEmpty(textToConvert))
             {
                 MessageBox.Show("文字內容為空！", "提示");
                 return;
             }
+
             try
             {
                 // 保存選擇區域的位置
@@ -2161,18 +2212,31 @@ namespace TextSpeedReader
                 // 使用Microsoft.VisualBasic.Strings.StrConv進行繁簡轉換
                 // VbStrConv.SimplifiedChinese: 繁體轉簡體
                 const int SimplifiedChineseLcid = 0x0804; // zh-CN
-                string? simplifiedText = Strings.StrConv(traditionalText, VbStrConv.SimplifiedChinese, SimplifiedChineseLcid);
+                string? simplifiedText = Strings.StrConv(textToConvert, VbStrConv.SimplifiedChinese, SimplifiedChineseLcid);
                 if (string.IsNullOrEmpty(simplifiedText))
                 {
                     MessageBox.Show("轉換結果為空，請檢查原始文字。", "錯誤");
                     return;
                 }
 
-                // 將轉換後的簡體文字顯示在文字框中
-                richTextBoxText.SelectedText = simplifiedText;
+                if (processWholeDocument)
+                {
+                    // 處理整個文檔
+                    richTextBoxText.Text = simplifiedText;
+                    // 恢復光標位置
+                    richTextBoxText.SelectionStart = selStart;
+                    richTextBoxText.SelectionLength = 0;
+                }
+                else
+                {
+                    // 處理選取的文字
+                    richTextBoxText.SelectedText = simplifiedText;
+                    // 重新選取轉換後的文字
+                    richTextBoxText.Select(selStart, simplifiedText.Length);
+                }
 
-                // 重新選取轉換後的文字，保持原來的選擇區域
-                richTextBoxText.Select(selStart, simplifiedText.Length);
+                // 標記檔案已被修改
+                m_IsCurrentFileModified = true;
             }
             catch (Exception ex)
             {
@@ -2189,13 +2253,27 @@ namespace TextSpeedReader
         // 編輯文字轉換為繁體
         private void EditTextCovertTraditional()
         {
-            // 獲取目前文字內容
-            string simplifiedText = richTextBoxText.SelectedText;
-            if (string.IsNullOrEmpty(simplifiedText))
+            // 檢查是否有選取的文字，如果沒有則處理整個文檔
+            bool processWholeDocument = (richTextBoxText.SelectionLength == 0);
+            string textToConvert;
+
+            if (processWholeDocument)
+            {
+                // 處理整個文檔
+                textToConvert = richTextBoxText.Text;
+            }
+            else
+            {
+                // 處理選取的文字
+                textToConvert = richTextBoxText.SelectedText;
+            }
+
+            if (string.IsNullOrEmpty(textToConvert))
             {
                 MessageBox.Show("文字內容為空！", "提示");
                 return;
             }
+
             try
             {
                 // 保存選擇區域的位置
@@ -2209,7 +2287,7 @@ namespace TextSpeedReader
 
                 // 使用 zh-CN LCID 進行簡體到繁體的轉換
                 // 這是關鍵：當源文字是簡體中文時，應該使用簡體中文的 LCID
-                string? traditionalText = Strings.StrConv(simplifiedText, VbStrConv.TraditionalChinese, SimplifiedChineseLcid);
+                string? traditionalText = Strings.StrConv(textToConvert, VbStrConv.TraditionalChinese, SimplifiedChineseLcid);
 
                 // 檢查轉換結果
                 if (string.IsNullOrEmpty(traditionalText))
@@ -2218,11 +2296,24 @@ namespace TextSpeedReader
                     return;
                 }
 
-                // 將轉換後的繁體文字顯示在文字框中
-                richTextBoxText.SelectedText = traditionalText;
+                if (processWholeDocument)
+                {
+                    // 處理整個文檔
+                    richTextBoxText.Text = traditionalText;
+                    // 恢復光標位置
+                    richTextBoxText.SelectionStart = selStart;
+                    richTextBoxText.SelectionLength = 0;
+                }
+                else
+                {
+                    // 處理選取的文字
+                    richTextBoxText.SelectedText = traditionalText;
+                    // 重新選取轉換後的文字
+                    richTextBoxText.Select(selStart, traditionalText.Length);
+                }
 
-                // 重新選取轉換後的文字，保持原來的選擇區域
-                richTextBoxText.Select(selStart, traditionalText.Length);
+                // 標記檔案已被修改
+                m_IsCurrentFileModified = true;
             }
             catch (Exception ex)
             {
@@ -2282,6 +2373,23 @@ namespace TextSpeedReader
             {
                 MessageBox.Show("未偵測到選取文字。請先在瀏覽器中選取（反白）文字後再按此按鈕。", "提示");
                 return;
+            }
+
+            // 將選取的文字轉換為繁體中文
+            try
+            {
+                const int SimplifiedChineseLcid = 0x0804; // zh-CN
+                string? traditionalText = Strings.StrConv(selectedText, VbStrConv.TraditionalChinese, SimplifiedChineseLcid);
+
+                if (!string.IsNullOrEmpty(traditionalText))
+                {
+                    selectedText = traditionalText;
+                }
+            }
+            catch (Exception ex)
+            {
+                // 轉換失敗時使用原始文字，不顯示錯誤訊息
+                Console.WriteLine($"文字轉換為繁體時發生錯誤：{ex.Message}");
             }
 
             string targetPath = "";
@@ -2517,6 +2625,152 @@ namespace TextSpeedReader
         }
 
         // 將 listViewFile 中被選取的 TXT 檔案批次轉換為簡體並另存為 _簡體.txt（右鍵選單）
+        /// <summary>
+        /// 編碼轉換對話框
+        /// </summary>
+        private void toolStripMenuItem_EncodingConvert_Click(object sender, EventArgs e)
+        {
+            if (listViewFile.SelectedItems.Count == 0)
+            {
+                MessageBox.Show("請先選擇要轉換編碼的檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (Form encodingDialog = new Form())
+            {
+                encodingDialog.Text = "編碼轉換";
+                encodingDialog.Size = new Size(300, 200);
+                encodingDialog.StartPosition = FormStartPosition.CenterParent;
+                encodingDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                encodingDialog.MaximizeBox = false;
+                encodingDialog.MinimizeBox = false;
+
+                Label label = new Label();
+                label.Text = "選擇來源編碼：";
+                label.Location = new Point(20, 20);
+                label.AutoSize = true;
+
+                ComboBox comboBox = new ComboBox();
+                comboBox.Location = new Point(20, 45);
+                comboBox.Size = new Size(240, 25);
+                comboBox.Items.AddRange(new string[] {
+                    "自動檢測",
+                    "UTF-8",
+                    "GB2312 (簡體中文)",
+                    "Big5 (繁體中文)",
+                    "ASCII"
+                });
+                comboBox.SelectedIndex = 0;
+
+                CheckBox convertToTraditionalCheckBox = new CheckBox();
+                convertToTraditionalCheckBox.Text = "同時轉換為繁體中文";
+                convertToTraditionalCheckBox.Location = new Point(20, 80);
+                convertToTraditionalCheckBox.AutoSize = true;
+                convertToTraditionalCheckBox.Checked = true;
+
+                Button okButton = new Button();
+                okButton.Text = "確定";
+                okButton.Location = new Point(80, 120);
+                okButton.Size = new Size(75, 30);
+                okButton.DialogResult = DialogResult.OK;
+
+                Button cancelButton = new Button();
+                cancelButton.Text = "取消";
+                cancelButton.Location = new Point(165, 120);
+                cancelButton.Size = new Size(75, 30);
+                cancelButton.DialogResult = DialogResult.Cancel;
+
+                encodingDialog.Controls.AddRange(new Control[] { label, comboBox, convertToTraditionalCheckBox, okButton, cancelButton });
+
+                if (encodingDialog.ShowDialog() == DialogResult.OK)
+                {
+                    ConvertFileEncoding(comboBox.SelectedItem.ToString(), convertToTraditionalCheckBox.Checked);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 執行檔案編碼轉換
+        /// </summary>
+        private void ConvertFileEncoding(string sourceEncoding, bool convertToTraditional)
+        {
+            try
+            {
+                foreach (ListViewItem selectedItem in listViewFile.SelectedItems)
+                {
+                    string fileName = selectedItem.Text;
+                    string filePath = Path.Combine(m_TreeViewSelectedNodeText, fileName);
+
+                    if (!File.Exists(filePath))
+                        continue;
+
+                    Encoding encoding;
+                    switch (sourceEncoding)
+                    {
+                        case "UTF-8":
+                            encoding = Encoding.UTF8;
+                            break;
+                        case "GB2312 (簡體中文)":
+                            encoding = Encoding.GetEncoding("GB2312");
+                            break;
+                        case "Big5 (繁體中文)":
+                            encoding = Encoding.GetEncoding("Big5");
+                            break;
+                        case "ASCII":
+                            encoding = Encoding.ASCII;
+                            break;
+                        default: // 自動檢測
+                            encoding = DetectFileEncoding(filePath);
+                            break;
+                    }
+
+                    // 讀取檔案內容
+                    string content = File.ReadAllText(filePath, encoding);
+
+                    // 如果需要，轉換為繁體中文
+                    if (convertToTraditional && ContainsChineseCharacters(content))
+                    {
+                        content = ConvertSimplifiedToTraditional(content);
+                    }
+
+                    // 詢問是否要覆蓋原檔案或建立新檔案
+                    DialogResult result = MessageBox.Show(
+                        $"是否要覆蓋原檔案「{fileName}」？\n選擇「否」將建立新檔案。",
+                        "儲存選項",
+                        MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Question);
+
+                    if (result == DialogResult.Cancel)
+                        continue;
+
+                    string savePath;
+                    if (result == DialogResult.Yes)
+                    {
+                        savePath = filePath;
+                    }
+                    else
+                    {
+                        // 建立新檔案，檔名加上 "_converted"
+                        string extension = Path.GetExtension(fileName);
+                        string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+                        savePath = Path.Combine(m_TreeViewSelectedNodeText, $"{fileNameWithoutExt}_converted{extension}");
+                    }
+
+                    // 儲存檔案為 UTF-8
+                    File.WriteAllText(savePath, content, new UTF8Encoding(true));
+
+                    MessageBox.Show($"檔案已儲存至：{Path.GetFileName(savePath)}", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+                // 重新整理檔案列表
+                ListViewFile_SelectedIndexChanged(null, null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"編碼轉換失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void toolStripMenuItem_FileConvertToSimplified_Click(object sender, EventArgs e)
         {
             BatchConvertTxtFilesToSimplifiedAndSave();
@@ -4073,6 +4327,175 @@ namespace TextSpeedReader
         {
             ShowOptionsDialog();
         }
+        /// <summary>
+        /// 檢測檔案編碼
+        /// </summary>
+        private Encoding DetectFileEncoding(string filePath)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    // 讀取檔案開頭的位元組來檢測編碼
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = fs.Read(buffer, 0, buffer.Length);
+
+                    // 檢查 BOM
+                    if (bytesRead >= 3 && buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF)
+                        return Encoding.UTF8;
+                    if (bytesRead >= 2 && buffer[0] == 0xFE && buffer[1] == 0xFF)
+                        return Encoding.BigEndianUnicode;
+                    if (bytesRead >= 2 && buffer[0] == 0xFF && buffer[1] == 0xFE)
+                        return Encoding.Unicode;
+
+                    // 先嘗試用UTF-8解碼，檢查是否為有效的UTF-8編碼
+                    try
+                    {
+                        string utf8Test = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        // 如果UTF-8解碼成功且包含中文字符，優先判斷為UTF-8
+                        if (ContainsChineseCharacters(utf8Test))
+                        {
+                            // 進一步驗證UTF-8的有效性
+                            byte[] utf8Bytes = Encoding.UTF8.GetBytes(utf8Test);
+                            if (utf8Bytes.Length >= bytesRead * 0.8) // 如果重編碼後的位元組數量合理
+                            {
+                                return Encoding.UTF8;
+                            }
+                        }
+                    }
+                    catch { }
+
+                    // 如果不是UTF-8，嘗試檢測是否為 GB2312/GBK
+                    // 統計高位位元組的數量
+                    int highByteCount = 0;
+                    for (int i = 0; i < bytesRead; i++)
+                    {
+                        if (buffer[i] > 127)
+                            highByteCount++;
+                    }
+
+                    // 如果高位位元組超過一定比例，可能是中文編碼
+                    if (highByteCount > bytesRead * 0.1)
+                    {
+                        // 嘗試用 GB2312 解碼，看是否能得到合理的中文字符
+                        try
+                        {
+                            string testText = Encoding.GetEncoding("GB2312").GetString(buffer, 0, Math.Min(100, bytesRead));
+                            // 如果包含中文字符，且UTF-8解碼不成功，可能是 GB2312
+                            if (ContainsChineseCharacters(testText))
+                                return Encoding.GetEncoding("GB2312");
+                        }
+                        catch { }
+                    }
+
+                    // 預設返回 UTF-8
+                    return Encoding.UTF8;
+                }
+            }
+            catch
+            {
+                return Encoding.UTF8;
+            }
+        }
+
+        /// <summary>
+        /// 檢查字串是否包含中文字符
+        /// </summary>
+        private bool ContainsChineseCharacters(string text)
+        {
+            foreach (char c in text)
+            {
+                if (c >= 0x4E00 && c <= 0x9FFF) // 中文字符範圍
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 將簡體中文轉換為繁體中文
+        /// </summary>
+        private string ConvertSimplifiedToTraditional(string simplifiedText)
+        {
+            try
+            {
+                // 使用 Microsoft.VisualBasic.Strings.StrConv 進行簡繁轉換
+                return Microsoft.VisualBasic.Strings.StrConv(simplifiedText,
+                    Microsoft.VisualBasic.VbStrConv.TraditionalChinese, 0);
+            }
+            catch
+            {
+                // 如果轉換失敗，返回原文
+                return simplifiedText;
+            }
+        }
+
+        /// <summary>
+        /// 讀取檔案內容並自動處理編碼
+        /// </summary>
+        private string ReadFileWithEncodingDetection(string filePath)
+        {
+            try
+            {
+                // 檢測檔案編碼
+                Encoding detectedEncoding = DetectFileEncoding(filePath);
+
+                // 讀取檔案內容
+                string content = File.ReadAllText(filePath, detectedEncoding);
+
+                // 只對真正的簡體中文編碼檔案詢問轉換，UTF-8檔案不詢問
+                if (detectedEncoding.CodePage == Encoding.GetEncoding("GB2312").CodePage ||
+                    detectedEncoding.CodePage == Encoding.GetEncoding("GBK").CodePage)
+                {
+                    if (ContainsChineseCharacters(content))
+                    {
+                        DialogResult result = MessageBox.Show(
+                            "檢測到此檔案可能是簡體中文編碼。是否將內容轉換為繁體中文？",
+                            "編碼檢測",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            content = ConvertSimplifiedToTraditional(content);
+                        }
+                    }
+                }
+                // UTF-8檔案（包括已經轉換過的繁體中文檔案）直接返回，不詢問轉換
+
+                return content;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"讀取檔案時發生錯誤: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// 動態添加編碼轉換選單項目
+        /// </summary>
+        private void AddEncodingConvertMenuItem()
+        {
+            try
+            {
+                // 在檔案儲存下拉按鈕中添加編碼轉換選項
+                if (toolStripDropDownButtonSave != null)
+                {
+                    // 創建編碼轉換選單項目
+                    ToolStripMenuItem encodingConvertItem = new ToolStripMenuItem("編碼轉換(&E)");
+                    encodingConvertItem.Click += toolStripMenuItem_EncodingConvert_Click;
+
+                    // 添加分隔符和編碼轉換項目
+                    toolStripDropDownButtonSave.DropDownItems.Add(new ToolStripSeparator());
+                    toolStripDropDownButtonSave.DropDownItems.Add(encodingConvertItem);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"添加編碼轉換選單失敗: {ex.Message}");
+            }
+        }
+
         private void ShowOptionsDialog()
         {
             using (FormOptions optionsDialog = new FormOptions(appSettings))
@@ -4083,6 +4506,346 @@ namespace TextSpeedReader
                     // 設定已保存（在 FormOptions 中已處理）
                     // 可以在這裡添加需要立即生效的設定處理
                 }
+            }
+        }
+
+        private void toolStripMenuItem_CopyHtmlSaveFileSimplified_Click(object sender, EventArgs e)
+        {
+            CopyHtmlSaveFileSimplified();
+        }
+
+        /// <summary>
+        /// 載入HTML檔案並確保正確編碼顯示
+        /// </summary>
+        private void LoadHtmlFileWithEncoding(string htmlFilePath)
+        {
+            string tempFilePath = null;
+            try
+            {
+                // 先讀取檔案開頭檢查是否有charset宣告
+                string firstBytes = "";
+                using (FileStream fs = new FileStream(htmlFilePath, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead = fs.Read(buffer, 0, buffer.Length);
+                    firstBytes = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                }
+
+                // 檢查是否已經有charset宣告
+                bool hasCharset = firstBytes.IndexOf("charset=", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                // 如果已經有charset宣告，直接載入原始檔案
+                if (hasCharset)
+                {
+                    webBrowser1.Navigate("file:///" + htmlFilePath);
+                    return;
+                }
+
+                // 如果沒有charset宣告，需要檢測編碼並處理
+                // 嘗試多種編碼方式，找到能正確解碼的編碼
+                Encoding detectedEncoding = null;
+                string htmlContent = null;
+                bool isGB2312OrGBK = false;
+
+                // 先嘗試GB2312編碼（簡體中文常見編碼）
+                try
+                {
+                    string testContent = File.ReadAllText(htmlFilePath, Encoding.GetEncoding("GB2312"));
+                    // 如果包含中文字符，就認為是GB2312編碼
+                    // 不依賴IsLikelySimplifiedChinese，因為它可能不夠準確
+                    if (ContainsChineseCharacters(testContent))
+                    {
+                        detectedEncoding = Encoding.GetEncoding("GB2312");
+                        htmlContent = testContent;
+                        isGB2312OrGBK = true;
+                    }
+                }
+                catch { }
+
+                // 如果GB2312不適用，嘗試GBK
+                if (detectedEncoding == null)
+                {
+                    try
+                    {
+                        string testContent = File.ReadAllText(htmlFilePath, Encoding.GetEncoding("GBK"));
+                        if (ContainsChineseCharacters(testContent))
+                        {
+                            detectedEncoding = Encoding.GetEncoding("GBK");
+                            htmlContent = testContent;
+                            isGB2312OrGBK = true;
+                        }
+                    }
+                    catch { }
+                }
+
+                // 如果還是不適用，使用自動檢測
+                if (detectedEncoding == null)
+                {
+                    detectedEncoding = DetectFileEncoding(htmlFilePath);
+                    htmlContent = File.ReadAllText(htmlFilePath, detectedEncoding);
+                    isGB2312OrGBK = detectedEncoding.CodePage == Encoding.GetEncoding("GB2312").CodePage ||
+                                   detectedEncoding.CodePage == Encoding.GetEncoding("GBK").CodePage;
+                }
+
+                // 添加UTF-8 charset宣告
+                string charsetDeclaration = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
+
+                // 查找<head>標籤的位置
+                int headIndex = htmlContent.IndexOf("<head>", StringComparison.OrdinalIgnoreCase);
+                if (headIndex >= 0)
+                {
+                    // 在<head>標籤後插入charset宣告
+                    int insertPosition = headIndex + "<head>".Length;
+                    htmlContent = htmlContent.Insert(insertPosition, "\n    " + charsetDeclaration);
+                }
+                else
+                {
+                    // 如果沒有<head>標籤，在文檔開頭添加完整的head區塊
+                    string headBlock = "<!DOCTYPE html>\n<html>\n<head>\n    " + charsetDeclaration + "\n</head>\n<body>\n";
+                    htmlContent = headBlock + htmlContent;
+
+                    // 在文檔結尾添加</body></html>
+                    if (!htmlContent.Contains("</body>", StringComparison.OrdinalIgnoreCase))
+                    {
+                        htmlContent += "\n</body>\n</html>";
+                    }
+                }
+
+                // 如果是UTF-8編碼，直接使用DocumentText載入（不需要臨時檔案）
+                if (!isGB2312OrGBK)
+                {
+                    webBrowser1.DocumentText = htmlContent;
+                    return;
+                }
+
+                // 如果是GB2312/GBK編碼，需要轉換為UTF-8並使用臨時檔案
+                // 清理之前的臨時檔案
+                if (!string.IsNullOrEmpty(m_TempHtmlFilePath) && File.Exists(m_TempHtmlFilePath))
+                {
+                    try
+                    {
+                        File.Delete(m_TempHtmlFilePath);
+                    }
+                    catch { }
+                }
+
+                // 創建臨時檔案，以UTF-8編碼寫入
+                tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".html");
+                m_TempHtmlFilePath = tempFilePath;
+                
+                // 使用UTF-8編碼（無BOM）寫入檔案
+                // 這樣可以確保WebBrowser正確識別UTF-8編碼
+                UTF8Encoding utf8NoBom = new UTF8Encoding(false);
+                File.WriteAllText(tempFilePath, htmlContent, utf8NoBom);
+
+                // 使用Navigate載入臨時檔案
+                webBrowser1.Navigate("file:///" + tempFilePath.Replace('\\', '/'));
+            }
+            catch (Exception ex)
+            {
+                // 清理臨時檔案
+                try
+                {
+                    if (tempFilePath != null && File.Exists(tempFilePath))
+                    {
+                        File.Delete(tempFilePath);
+                    }
+                }
+                catch { }
+
+                // 如果處理失敗，嘗試直接載入原始檔案
+                try
+                {
+                    webBrowser1.Navigate("file:///" + htmlFilePath);
+                }
+                catch
+                {
+                    // 最後的錯誤處理
+                    string errorHtml = $"<html><head><meta charset=\"utf-8\"></head><body><p>無法載入HTML檔案：{ex.Message}</p></body></html>";
+                    try
+                    {
+                        webBrowser1.DocumentText = errorHtml;
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 判斷文字是否可能是簡體中文
+        /// </summary>
+        private bool IsLikelySimplifiedChinese(string text)
+        {
+            // 簡化的判斷邏輯：檢查是否包含常見的簡體中文特有字符
+            // 這裡可以根據需要擴展更複雜的判斷邏輯
+            string[] simplifiedIndicators = new string[] { "的", "了", "是", "不", "在", "有", "和", "这", "那", "我", "你", "他" };
+
+            foreach (string indicator in simplifiedIndicators)
+            {
+                if (text.Contains(indicator))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void CopyHtmlSaveFileSimplified()
+        {
+            if (!webBrowser1.Visible)
+            {
+                MessageBox.Show("請先開啟一個 HTML 檔案並在頁面中選取文字。", "提示");
+                return;
+            }
+
+            try
+            {
+                // 清空剪貼簿，避免殘留舊資料
+                Clipboard.Clear();
+            }
+            catch { }
+
+            try
+            {
+                if (webBrowser1.Document != null)
+                {
+                    webBrowser1.Document.ExecCommand("Copy", false, "");
+                }
+            }
+            catch { }
+
+            Application.DoEvents();
+            System.Threading.Thread.Sleep(60);
+
+            string selectedText = "";
+            try
+            {
+                if (Clipboard.ContainsText(TextDataFormat.UnicodeText))
+                    selectedText = Clipboard.GetText(TextDataFormat.UnicodeText);
+                else if (Clipboard.ContainsText())
+                    selectedText = Clipboard.GetText();
+            }
+            catch { selectedText = ""; }
+
+            if (string.IsNullOrWhiteSpace(selectedText))
+            {
+                MessageBox.Show("未偵測到選取文字。請先在瀏覽器中選取（反白）文字後再按此按鈕。", "提示");
+                return;
+            }
+
+            // 將選取的文字轉換為簡體中文
+            try
+            {
+                const int SimplifiedChineseLcid = 0x0804; // zh-CN
+                string? simplifiedText = Strings.StrConv(selectedText, VbStrConv.SimplifiedChinese, SimplifiedChineseLcid);
+
+                if (!string.IsNullOrEmpty(simplifiedText))
+                {
+                    selectedText = simplifiedText;
+                }
+                else
+                {
+                    MessageBox.Show("文字轉換為簡體失敗，使用原始文字。", "警告");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("文字轉換為簡體時發生錯誤：\n" + ex.Message + "\n\n使用原始文字繼續儲存。", "警告");
+            }
+
+            string targetPath = "";
+            if (!string.IsNullOrEmpty(m_CurrentHtmlFilePath) && File.Exists(m_CurrentHtmlFilePath))
+            {
+                string? dir = Path.GetDirectoryName(m_CurrentHtmlFilePath);
+                string nameNoExt = Path.GetFileNameWithoutExtension(m_CurrentHtmlFilePath);
+                targetPath = Path.Combine(dir ?? "", nameNoExt + "_簡體.txt");
+            }
+            else
+            {
+                using (SaveFileDialog sfd = new SaveFileDialog())
+                {
+                    sfd.Filter = "簡體文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                    sfd.FileName = "選取文字_簡體.txt";
+                    if (sfd.ShowDialog() != DialogResult.OK)
+                        return;
+                    targetPath = sfd.FileName;
+                }
+            }
+
+            // 檢查檔案是否已存在
+            if (File.Exists(targetPath))
+            {
+                // 顯示檔案覆蓋確認對話框
+                using (FormFileOverwriteConfirm overwriteDialog = new FormFileOverwriteConfirm(Path.GetFileName(targetPath)))
+                {
+                    overwriteDialog.Owner = this;
+                    if (overwriteDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        switch (overwriteDialog.SelectedOption)
+                        {
+                            case FormFileOverwriteConfirm.OverwriteOption.Cancel:
+                                // 取消儲存
+                                return;
+
+                            case FormFileOverwriteConfirm.OverwriteOption.Overwrite:
+                                // 覆蓋原有檔案，繼續執行儲存
+                                break;
+
+                            case FormFileOverwriteConfirm.OverwriteOption.SaveAs:
+                                // 另存新檔，顯示另存新檔對話框
+                                using (SaveFileDialog sfd = new SaveFileDialog())
+                                {
+                                    sfd.Filter = "簡體文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                                    sfd.FileName = Path.GetFileName(targetPath);
+                                    string? dir = Path.GetDirectoryName(targetPath);
+                                    if (!string.IsNullOrEmpty(dir))
+                                    {
+                                        sfd.InitialDirectory = dir;
+                                    }
+                                    if (sfd.ShowDialog() != DialogResult.OK)
+                                        return;
+                                    targetPath = sfd.FileName;
+                                }
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // 使用者取消對話框，取消儲存
+                        return;
+                    }
+                }
+            }
+
+            try
+            {
+                // 以GB2312編碼儲存簡體中文檔案
+                Encoding gb2312 = Encoding.GetEncoding("GB2312");
+                File.WriteAllText(targetPath, selectedText, gb2312);
+                MessageBox.Show("已儲存為簡體中文檔案：\n" + targetPath, "完成");
+
+                // 保存當前選中的檔案名稱（如果有的話）
+                string? selectedFileName = null;
+                if (listViewFile.SelectedItems.Count > 0)
+                {
+                    selectedFileName = listViewFile.SelectedItems[0].Text;
+                }
+
+                if (treeViewFolder.SelectedNode != null)
+                {
+                    treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode));
+
+                    // 恢復選中狀態並滾動到中間位置
+                    if (!string.IsNullOrEmpty(selectedFileName))
+                    {
+                        ScrollToSelectedFileCenter(selectedFileName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("儲存失敗：\n" + ex.Message, "錯誤");
             }
         }
     }

@@ -13,11 +13,11 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("TextSpeedReader")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.9.4.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+817ecea612299789d145062f4df484e998d8f817")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.9.4.1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+94d0e559a0b868cb5c36a638ab77509942ca68dd")]
 [assembly: System.Reflection.AssemblyProductAttribute("TextSpeedReader")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TextSpeedReader")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.9.4.0")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.9.4.1")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows10.0.22000.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows10.0.22000.0")]
 

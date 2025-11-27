@@ -91,6 +91,7 @@ namespace TextSpeedReader
             toolStripMenuItem_FileConvertToTraditional = new ToolStripMenuItem();
             toolStripSeparator17 = new ToolStripSeparator();
             toolStripMenuItem_CopyHtmlSaveFile = new ToolStripMenuItem();
+            toolStripMenuItem_CopyHtmlSaveFileSimplified = new ToolStripMenuItem();
             toolStripSeparator1 = new ToolStripSeparator();
             toolStripButton_Option = new ToolStripButton();
             toolStripSeparator18 = new ToolStripSeparator();
@@ -542,7 +543,7 @@ namespace TextSpeedReader
             // toolStripDropDownButtonSave
             // 
             toolStripDropDownButtonSave.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripDropDownButtonSave.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile, toolStripMenuItem_SaveTxtAsNewFile, toolStripSeparator16, toolStripMenuItem_ConvertToSimplified, toolStripMenuItem_FileConvertToSimplified, toolStripMenuItem_FileConvertToTraditional, toolStripSeparator17, toolStripMenuItem_CopyHtmlSaveFile });
+            toolStripDropDownButtonSave.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile, toolStripMenuItem_SaveTxtAsNewFile, toolStripSeparator16, toolStripMenuItem_ConvertToSimplified, toolStripMenuItem_FileConvertToSimplified, toolStripMenuItem_FileConvertToTraditional, toolStripSeparator17, toolStripMenuItem_CopyHtmlSaveFile, toolStripMenuItem_CopyHtmlSaveFileSimplified });
             toolStripDropDownButtonSave.Image = (Image)resources.GetObject("toolStripDropDownButtonSave.Image");
             toolStripDropDownButtonSave.ImageTransparentColor = Color.Magenta;
             toolStripDropDownButtonSave.Name = "toolStripDropDownButtonSave";
@@ -598,8 +599,15 @@ namespace TextSpeedReader
             // 
             toolStripMenuItem_CopyHtmlSaveFile.Name = "toolStripMenuItem_CopyHtmlSaveFile";
             toolStripMenuItem_CopyHtmlSaveFile.Size = new Size(472, 24);
-            toolStripMenuItem_CopyHtmlSaveFile.Text = "複製HTML文字並儲存TXT檔案";
+            toolStripMenuItem_CopyHtmlSaveFile.Text = "複製HTML文字並儲存TXT檔案(繁體)";
             toolStripMenuItem_CopyHtmlSaveFile.Click += toolStripMenuItem_CopyHtmlSaveFile_Click;
+            // 
+            // toolStripMenuItem_CopyHtmlSaveFileSimplified
+            // 
+            toolStripMenuItem_CopyHtmlSaveFileSimplified.Name = "toolStripMenuItem_CopyHtmlSaveFileSimplified";
+            toolStripMenuItem_CopyHtmlSaveFileSimplified.Size = new Size(472, 24);
+            toolStripMenuItem_CopyHtmlSaveFileSimplified.Text = "複製HTML文字並儲存TXT檔案(簡體)";
+            toolStripMenuItem_CopyHtmlSaveFileSimplified.Click += toolStripMenuItem_CopyHtmlSaveFileSimplified_Click;
             // 
             // toolStripSeparator1
             // 
@@ -883,7 +891,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 1.9.4.0  (選項、行尾句點)";
+            Text = "TextSpeedReader Ver. 1.9.4.2  (單一執行檔)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -991,6 +999,7 @@ namespace TextSpeedReader
         private ToolStripMenuItem toolStripMenuItem_EndingAddDot;
         private ToolStripButton toolStripButton_Option;
         private ToolStripSeparator toolStripSeparator18;
+        private ToolStripMenuItem toolStripMenuItem_CopyHtmlSaveFileSimplified;
     }
 }
 
