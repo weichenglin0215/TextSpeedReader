@@ -90,6 +90,27 @@ namespace TextSpeedReader
             PopulateTreeViewAll(1);        // 初始化檔案樹狀圖（僅第一層以減少資源消耗）
             fileManager.LoadRecentReadList();           // 讀取最近閱讀清單
             GetSystemFonts();              // 獲取系統字體
+
+            // 還原上次的字型與大小
+            if (appSettings.KeepFontSize)
+            {
+                try
+                {
+                    Font newFont = new Font(appSettings.LastFontFamily, appSettings.LastFontSize);
+                    richTextBoxText.Font = newFont;
+                    
+                    // 更新 toolStripComboBoxFonts
+                    if (toolStripComboBoxFonts.Items.Contains(appSettings.LastFontFamily))
+                    {
+                        toolStripComboBoxFonts.SelectedItem = appSettings.LastFontFamily;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"還原字型失敗: {ex.Message}");
+                }
+            }
+
             SetFormSize();                 // 設定視窗大小
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             webBrowser1.Visible = false;
@@ -469,61 +490,17 @@ namespace TextSpeedReader
             if (!string.IsNullOrEmpty(m_TreeViewSelectedNodeText))
             {
                 appSettings.LastDirectory = m_TreeViewSelectedNodeText;
-                appSettings.SaveSettings();
             }
-        }
 
-        /*
-        // 讀取最近閱讀清單
-        private void GetRecentReadList()
-        {
-            if (File.Exists(@".\TextSpeedReader.ini"))
+            // 保存字型與大小設定
+            if (appSettings.KeepFontSize)
             {
-                int counter = 0;
-                string line;
-                m_RecentReadList.Clear();
-                RecentReadList tmpRecentReadList = new RecentReadList();
-                try
-                {
-                    // 從設定檔讀取最近閱讀記錄
-                    using (StreamReader file = new StreamReader(@".\TextSpeedReader.ini"))
-                    {
-                        while ((line = file.ReadLine()) != null)
-                        {
-                            tmpRecentReadList.FileFullName = line;
-                            if ((line = file.ReadLine()) != null)
-                            {
-                                try
-                                {
-                                    tmpRecentReadList.LastCharCount = Int32.Parse(line);
-                                }
-                                catch (FormatException exc)
-                                {
-                                    Console.WriteLine($"Unable to parse '{line}'" + exc);
-                                }
-                            }
-                            m_RecentReadList.Add(tmpRecentReadList);
-
-                            // 更新最近閱讀檔案列表顯示
-                            ListViewItem item = new ListViewItem(m_RecentReadList[counter].FileFullName, 1);
-                            ListViewItem.ListViewSubItem[] subItems = new ListViewItem.ListViewSubItem[]
-                               { new ListViewItem.ListViewSubItem(item, m_RecentReadList[counter].LastCharCount.ToString())};
-                            item.SubItems.AddRange(subItems);
-                            listViewRecentFiles.Items.Add(item);
-
-                            counter++;
-                        }
-                        file.Close();
-                    }
-                }
-                catch (IOException e)
-                {
-                    Console.WriteLine(@".\TextSpeedReader.ini" + " 啟始檔案無法讀取");
-                    Console.WriteLine(e.Message);
-                }
+                appSettings.LastFontFamily = richTextBoxText.Font.FontFamily.Name;
+                appSettings.LastFontSize = richTextBoxText.Font.Size;
             }
+
+            appSettings.SaveSettings();
         }
-        */
 
         #endregion
 

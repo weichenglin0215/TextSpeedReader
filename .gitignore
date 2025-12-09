@@ -8,3 +8,4 @@ packages/
 AppPackages/
 publish/
 .fake
+.vs/

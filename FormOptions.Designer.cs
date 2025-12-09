@@ -28,62 +28,81 @@ namespace TextSpeedReader
         /// </summary>
         private void InitializeComponent()
         {
-            this.checkBoxAutoOpenLastDirectory = new System.Windows.Forms.CheckBox();
-            this.buttonOK = new System.Windows.Forms.Button();
-            this.buttonCancel = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            checkBoxAutoOpenLastDirectory = new CheckBox();
+            buttonOK = new Button();
+            buttonCancel = new Button();
+            checkBoxKeepFontSize = new CheckBox();
+            SuspendLayout();
             // 
             // checkBoxAutoOpenLastDirectory
             // 
-            this.checkBoxAutoOpenLastDirectory.AutoSize = true;
-            this.checkBoxAutoOpenLastDirectory.Checked = true;
-            this.checkBoxAutoOpenLastDirectory.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxAutoOpenLastDirectory.Location = new System.Drawing.Point(20, 20);
-            this.checkBoxAutoOpenLastDirectory.Name = "checkBoxAutoOpenLastDirectory";
-            this.checkBoxAutoOpenLastDirectory.Size = new System.Drawing.Size(280, 19);
-            this.checkBoxAutoOpenLastDirectory.TabIndex = 0;
-            this.checkBoxAutoOpenLastDirectory.Text = "啟動程式時是否自動開啟上次的目錄？";
-            this.checkBoxAutoOpenLastDirectory.UseVisualStyleBackColor = true;
+            checkBoxAutoOpenLastDirectory.AutoSize = true;
+            checkBoxAutoOpenLastDirectory.Checked = true;
+            checkBoxAutoOpenLastDirectory.CheckState = CheckState.Checked;
+            checkBoxAutoOpenLastDirectory.Location = new Point(29, 27);
+            checkBoxAutoOpenLastDirectory.Margin = new Padding(4, 4, 4, 4);
+            checkBoxAutoOpenLastDirectory.Name = "checkBoxAutoOpenLastDirectory";
+            checkBoxAutoOpenLastDirectory.Size = new Size(268, 24);
+            checkBoxAutoOpenLastDirectory.TabIndex = 0;
+            checkBoxAutoOpenLastDirectory.Text = "啟動程式時自動開啟上次的目錄。";
+            checkBoxAutoOpenLastDirectory.UseVisualStyleBackColor = true;
             // 
             // buttonOK
             // 
-            this.buttonOK.Location = new System.Drawing.Point(150, 70);
-            this.buttonOK.Name = "buttonOK";
-            this.buttonOK.Size = new System.Drawing.Size(100, 30);
-            this.buttonOK.TabIndex = 1;
-            this.buttonOK.Text = "確定(&O)";
-            this.buttonOK.UseVisualStyleBackColor = true;
-            this.buttonOK.Click += new System.EventHandler(this.buttonOK_Click);
+            buttonOK.Location = new Point(219, 107);
+            buttonOK.Margin = new Padding(4, 4, 4, 4);
+            buttonOK.Name = "buttonOK";
+            buttonOK.Size = new Size(143, 40);
+            buttonOK.TabIndex = 1;
+            buttonOK.Text = "確定(&O)";
+            buttonOK.UseVisualStyleBackColor = true;
+            buttonOK.Click += buttonOK_Click;
             // 
             // buttonCancel
             // 
-            this.buttonCancel.Location = new System.Drawing.Point(260, 70);
-            this.buttonCancel.Name = "buttonCancel";
-            this.buttonCancel.Size = new System.Drawing.Size(100, 30);
-            this.buttonCancel.TabIndex = 2;
-            this.buttonCancel.Text = "取消(&C)";
-            this.buttonCancel.UseVisualStyleBackColor = true;
-            this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
+            buttonCancel.Location = new Point(376, 107);
+            buttonCancel.Margin = new Padding(4, 4, 4, 4);
+            buttonCancel.Name = "buttonCancel";
+            buttonCancel.Size = new Size(143, 40);
+            buttonCancel.TabIndex = 2;
+            buttonCancel.Text = "取消(&C)";
+            buttonCancel.UseVisualStyleBackColor = true;
+            buttonCancel.Click += buttonCancel_Click;
+            // 
+            // checkBoxKeepFontSize
+            // 
+            checkBoxKeepFontSize.AutoSize = true;
+            checkBoxKeepFontSize.Checked = true;
+            checkBoxKeepFontSize.CheckState = CheckState.Checked;
+            checkBoxKeepFontSize.Location = new Point(29, 59);
+            checkBoxKeepFontSize.Margin = new Padding(4);
+            checkBoxKeepFontSize.Name = "checkBoxKeepFontSize";
+            checkBoxKeepFontSize.Size = new Size(156, 24);
+            checkBoxKeepFontSize.TabIndex = 3;
+            checkBoxKeepFontSize.Text = "保留字型與大小。";
+            checkBoxKeepFontSize.UseVisualStyleBackColor = true;
             // 
             // FormOptions
             // 
-            this.AcceptButton = this.buttonOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(380, 120);
-            this.Controls.Add(this.buttonCancel);
-            this.Controls.Add(this.buttonOK);
-            this.Controls.Add(this.checkBoxAutoOpenLastDirectory);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "FormOptions";
-            this.ShowInTaskbar = false;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "選項";
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AcceptButton = buttonOK;
+            AutoScaleDimensions = new SizeF(10F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = buttonCancel;
+            ClientSize = new Size(543, 160);
+            Controls.Add(checkBoxKeepFontSize);
+            Controls.Add(buttonCancel);
+            Controls.Add(buttonOK);
+            Controls.Add(checkBoxAutoOpenLastDirectory);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Margin = new Padding(4, 4, 4, 4);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FormOptions";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "選項";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -91,6 +110,7 @@ namespace TextSpeedReader
         private System.Windows.Forms.CheckBox checkBoxAutoOpenLastDirectory;
         private System.Windows.Forms.Button buttonOK;
         private System.Windows.Forms.Button buttonCancel;
+        private CheckBox checkBoxKeepFontSize;
     }
 }
 

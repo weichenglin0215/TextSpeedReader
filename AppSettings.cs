@@ -15,6 +15,9 @@ namespace TextSpeedReader
         // 設定項目
         public bool AutoOpenLastDirectory { get; set; } = true; // 預設為勾選
         public string LastDirectory { get; set; } = ""; // 上次使用的目錄路徑
+        public bool KeepFontSize { get; set; } = true; // 保留字型與大小
+        public string LastFontFamily { get; set; } = "Microsoft JhengHei"; // 上次使用的字型
+        public float LastFontSize { get; set; } = 12.0f; // 上次使用的字型大小
 
         /// <summary>
         /// 載入設定
@@ -64,7 +67,21 @@ namespace TextSpeedReader
                                 case "LastDirectory":
                                     LastDirectory = value;
                                     break;
-                                // 可以在這裡添加更多設定項目的解析
+                                case "KeepFontSize":
+                                    if (bool.TryParse(value, out bool keepFont))
+                                    {
+                                        KeepFontSize = keepFont;
+                                    }
+                                    break;
+                                case "LastFontFamily":
+                                    LastFontFamily = value;
+                                    break;
+                                case "LastFontSize":
+                                    if (float.TryParse(value, out float fontSize))
+                                    {
+                                        LastFontSize = fontSize;
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -89,7 +106,9 @@ namespace TextSpeedReader
                     writer.WriteLine($"[{SectionName}]");
                     writer.WriteLine($"AutoOpenLastDirectory={AutoOpenLastDirectory}");
                     writer.WriteLine($"LastDirectory={LastDirectory}");
-                    // 可以在這裡添加更多設定項目的保存
+                    writer.WriteLine($"KeepFontSize={KeepFontSize}");
+                    writer.WriteLine($"LastFontFamily={LastFontFamily}");
+                    writer.WriteLine($"LastFontSize={LastFontSize}");
                 }
             }
             catch (Exception ex)
