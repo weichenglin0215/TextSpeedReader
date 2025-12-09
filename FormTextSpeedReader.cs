@@ -98,7 +98,7 @@ namespace TextSpeedReader
                 {
                     Font newFont = new Font(appSettings.LastFontFamily, appSettings.LastFontSize);
                     richTextBoxText.Font = newFont;
-                    
+
                     // 更新 toolStripComboBoxFonts
                     if (toolStripComboBoxFonts.Items.Contains(appSettings.LastFontFamily))
                     {
@@ -1692,6 +1692,26 @@ namespace TextSpeedReader
         private void toolStripMenuItem_SaveTxtAsNewFile2_Click(object sender, EventArgs e)
         {
             SaveTxtAsNewFile();
+        }
+
+        private void toolStripMenuItem_AddSpaceAtBegining_Click(object sender, EventArgs e)
+        {
+            AddSpaceAtBegining();
+        }
+
+        private void toolStripMenuItem_SplitBeginingByJudgment_Click(object sender, EventArgs e)
+        {
+            SplitBeginingByJudgment();
+        }
+
+        private void toolStripMenuItem_SplitEndByJudgment_Click(object sender, EventArgs e)
+        {
+            SplitEndByJudgment();
+        }
+
+        private void toolStripMenuItem_MergeByJudgment_Click(object sender, EventArgs e)
+        {
+            MergeByJudgment();
         }
     }
 }

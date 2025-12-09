@@ -18,6 +18,9 @@ namespace TextSpeedReader
         public bool KeepFontSize { get; set; } = true; // 保留字型與大小
         public string LastFontFamily { get; set; } = "Microsoft JhengHei"; // 上次使用的字型
         public float LastFontSize { get; set; } = 12.0f; // 上次使用的字型大小
+        public int AddSpaceChrCount { get; set; } = 4; // 每行行首增加空白字元數
+        public string NewLineStartJudgment { get; set; } = "/*新咒語開始------------------- */"; // 新行開頭的判定字串
+        public string NewLineEndJudgment { get; set; } = "/*新咒語結束-------------------- */"; // 新行結尾的判定字串
 
         /// <summary>
         /// 載入設定
@@ -82,6 +85,18 @@ namespace TextSpeedReader
                                         LastFontSize = fontSize;
                                     }
                                     break;
+                                case "AddSpaceChrCount":
+                                    if (int.TryParse(value, out int spaceCount))
+                                    {
+                                        AddSpaceChrCount = spaceCount;
+                                    }
+                                    break;
+                                case "NewLineStartJudgment":
+                                    NewLineStartJudgment = value;
+                                    break;
+                                case "NewLineEndJudgment":
+                                    NewLineEndJudgment = value;
+                                    break;
                             }
                         }
                     }
@@ -109,6 +124,9 @@ namespace TextSpeedReader
                     writer.WriteLine($"KeepFontSize={KeepFontSize}");
                     writer.WriteLine($"LastFontFamily={LastFontFamily}");
                     writer.WriteLine($"LastFontSize={LastFontSize}");
+                    writer.WriteLine($"AddSpaceChrCount={AddSpaceChrCount}");
+                    writer.WriteLine($"NewLineStartJudgment={NewLineStartJudgment}");
+                    writer.WriteLine($"NewLineEndJudgment={NewLineEndJudgment}");
                 }
             }
             catch (Exception ex)

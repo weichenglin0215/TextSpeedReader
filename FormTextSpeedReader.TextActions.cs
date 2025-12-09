@@ -908,6 +908,295 @@ namespace TextSpeedReader
                 richTextBoxText.Select(selStart, newLength);
             }
         }
+        private void AddSpaceAtBegining()
+        {
+            // 取得原始/選取內容和位置
+            string text;
+            bool processWholeDocument;
+            int selectionStart = richTextBoxText.SelectionStart;
+            int selectionLength = richTextBoxText.SelectionLength;
 
+            if (selectionLength > 0)
+            {
+                text = richTextBoxText.SelectedText;
+                processWholeDocument = false;
+            }
+            else
+            {
+                text = richTextBoxText.Text;
+                processWholeDocument = true;
+            }
+
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            // 取得要添加的空白數量
+            int spaceCount = appSettings.AddSpaceChrCount;
+            string spacePrefix = new string(' ', spaceCount);
+
+            // 分割成行並處理每一行 (統一使用 \r\n 斷行)
+            // 注意：Split如果不移除空元素，會保留原有的空行邏輯
+            string[] lines = text.Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
+            StringBuilder result = new StringBuilder();
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                
+                // 移除行首的連續空白字元(全形或半形)
+                // 這裡複用已有的 RemoveLeadingFullWhitespace 方法
+                string trimmedLine = RemoveLeadingFullWhitespace(line);
+
+                if (trimmedLine.Length > 0)
+                {
+                    // 只有當行內有內容時才添加縮排
+                    result.Append(spacePrefix);
+                    result.Append(trimmedLine);
+                }
+                else
+                {
+                    // 空行直接保留空（不添加縮排空格，避免產生只有空白的行）
+                }
+
+                // 添加換行符（除了最後一行）
+                if (i < lines.Length - 1)
+                {
+                    result.Append("\r\n");
+                }
+            }
+
+            // 套用結果
+            if (processWholeDocument)
+            {
+                int originalSelectionStart = richTextBoxText.SelectionStart;
+                richTextBoxText.Text = result.ToString();
+                
+                // 嘗試恢復游標位置
+                if (originalSelectionStart < richTextBoxText.Text.Length)
+                    richTextBoxText.SelectionStart = originalSelectionStart;
+                else
+                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                
+                richTextBoxText.ScrollToCaret();
+            }
+            else
+            {
+                // 記錄選擇區舊長度
+                int selStart = richTextBoxText.SelectionStart;
+                richTextBoxText.SelectedText = result.ToString();
+                
+                // 選取剛剛處理完的文字
+                int newLength = result.Length;
+                richTextBoxText.Select(selStart, newLength);
+            }
+        }
+
+        private void SplitBeginingByJudgment()
+        {
+            // 取得原始/選取內容和位置
+            string text;
+            bool processWholeDocument;
+            int selectionStart = richTextBoxText.SelectionStart;
+            int selectionLength = richTextBoxText.SelectionLength;
+
+            if (selectionLength > 0)
+            {
+                text = richTextBoxText.SelectedText;
+                processWholeDocument = false;
+            }
+            else
+            {
+                text = richTextBoxText.Text;
+                processWholeDocument = true;
+            }
+
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            string judgment = appSettings.NewLineStartJudgment;
+            if (string.IsNullOrEmpty(judgment))
+            {
+                MessageBox.Show("設定中的「新行開頭的判定字串」為空，請先至選項設定。", "提示");
+                return;
+            }
+
+            // 在符合字串之前插入新行符號
+            // 防止重複插入：如果前面已經是換行符，可以考慮不插，但簡單實作先直接插入
+            // 使用 Replace 將 "Judgment" 替換為 "\r\nJudgment"
+            // 注意：這可能會導致已經折行的變成兩行空行，但符合使用者需求描述
+            string result = text.Replace(judgment, "\r\n" + judgment);
+
+            // 如果沒有變更則不動作
+            if (text == result) return;
+
+            // 套用結果
+            if (processWholeDocument)
+            {
+                // 為了避免整份文件重置導致捲動問題，盡量保持體驗
+                richTextBoxText.Text = result;
+                
+                // 簡單恢復
+                if (selectionStart < richTextBoxText.Text.Length)
+                    richTextBoxText.SelectionStart = selectionStart;
+                richTextBoxText.ScrollToCaret();
+            }
+            else
+            {
+                int selStart = richTextBoxText.SelectionStart;
+                richTextBoxText.SelectedText = result;
+                richTextBoxText.Select(selStart, result.Length);
+            }
+        }
+
+        private void SplitEndByJudgment()
+        { 
+             // 取得原始/選取內容和位置
+            string text;
+            bool processWholeDocument;
+            int selectionStart = richTextBoxText.SelectionStart;
+            int selectionLength = richTextBoxText.SelectionLength;
+
+            if (selectionLength > 0)
+            {
+                text = richTextBoxText.SelectedText;
+                processWholeDocument = false;
+            }
+            else
+            {
+                text = richTextBoxText.Text;
+                processWholeDocument = true;
+            }
+
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            string judgment = appSettings.NewLineEndJudgment;
+            if (string.IsNullOrEmpty(judgment))
+            {
+                MessageBox.Show("設定中的「新行結尾的判定字串」為空，請先至選項設定。", "提示");
+                return;
+            }
+
+            // 在符合字串之後插入新行符號
+            // 使用 Replace 將 "Judgment" 替換為 "Judgment\r\n"
+            string result = text.Replace(judgment, judgment + "\r\n");
+
+             // 如果沒有變更則不動作
+            if (text == result) return;
+
+            // 套用結果
+            if (processWholeDocument)
+            {
+                richTextBoxText.Text = result;
+                
+                if (selectionStart < richTextBoxText.Text.Length)
+                    richTextBoxText.SelectionStart = selectionStart;
+                richTextBoxText.ScrollToCaret();
+            }
+            else
+            {
+                int selStart = richTextBoxText.SelectionStart;
+                richTextBoxText.SelectedText = result;
+                richTextBoxText.Select(selStart, result.Length);
+            }
+        }
+
+        private void MergeByJudgment()
+        {
+            // 取得原始/選取內容和位置
+            string text;
+            bool processWholeDocument;
+            int selectionStart = richTextBoxText.SelectionStart;
+            int selectionLength = richTextBoxText.SelectionLength;
+
+            if (selectionLength > 0)
+            {
+                text = richTextBoxText.SelectedText;
+                processWholeDocument = false;
+            }
+            else
+            {
+                text = richTextBoxText.Text;
+                processWholeDocument = true;
+            }
+
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            string startMark = appSettings.NewLineStartJudgment;
+            string endMark = appSettings.NewLineEndJudgment;
+
+            if (string.IsNullOrEmpty(startMark) || string.IsNullOrEmpty(endMark))
+            {
+                MessageBox.Show("設定中的「新行開頭」或「新行結尾」判定字串為空，請先至選項設定。", "提示");
+                return;
+            }
+
+            StringBuilder result = new StringBuilder();
+            int currentIndex = 0;
+            int textLength = text.Length;
+
+            while (currentIndex < textLength)
+            {
+                // 尋找下一個開始標記
+                int startIndex = text.IndexOf(startMark, currentIndex);
+
+                if (startIndex == -1)
+                {
+                    // 找不到開始標記，將剩餘文字加入並結束
+                    result.Append(text.Substring(currentIndex));
+                    break;
+                }
+
+                // 將目前位置到開始標記前的文字加入
+                result.Append(text.Substring(currentIndex, startIndex - currentIndex));
+
+                // 尋找對應的結束標記 (從開始標記之後開始找)
+                int searchEndFrom = startIndex + startMark.Length;
+                int endIndex = text.IndexOf(endMark, searchEndFrom);
+
+                if (endIndex == -1)
+                {
+                    // 找不到結束標記，將剩餘文字加入並結束 (保留開始標記)
+                    result.Append(text.Substring(startIndex));
+                    break;
+                }
+
+                // 加入開始標記
+                result.Append(startMark);
+
+                // 取得判定字串之間的內容
+                string content = text.Substring(searchEndFrom, endIndex - searchEndFrom);
+
+                // 移除內容中的斷行符號 (合併成同一行)
+                string mergedContent = content.Replace("\r", "").Replace("\n", "");
+                result.Append(mergedContent);
+
+                // 加入結束標記
+                result.Append(endMark);
+
+                // 更新目前位置到結束標記之後
+                currentIndex = endIndex + endMark.Length;
+            }
+
+            // 如果沒有變更則不動作
+            if (text == result.ToString()) return;
+
+            // 套用結果
+            if (processWholeDocument)
+            {
+                richTextBoxText.Text = result.ToString();
+                
+                if (selectionStart < richTextBoxText.Text.Length)
+                    richTextBoxText.SelectionStart = selectionStart;
+                richTextBoxText.ScrollToCaret();
+            }
+            else
+            {
+                int selStart = richTextBoxText.SelectionStart;
+                richTextBoxText.SelectedText = result.ToString();
+                richTextBoxText.Select(selStart, result.Length);
+            }
+        }
     }
 }

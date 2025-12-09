@@ -70,9 +70,15 @@ namespace TextSpeedReader
             toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR = new ToolStripMenuItem();
             toolStripMenuItem_RemoveCR = new ToolStripMenuItem();
             toolStripMenuItem_AutoRemoveCRButton2 = new ToolStripMenuItem();
+            toolStripSeparator19 = new ToolStripSeparator();
+            toolStripMenuItem_AddSpaceAtBegining = new ToolStripMenuItem();
             toolStripMenuItem_RemoveMoreThan120CharB = new ToolStripMenuItem();
             toolStripMenuItem_EndingAddDot = new ToolStripMenuItem();
             toolStripMenuItem_MergeNoneSpace = new ToolStripMenuItem();
+            toolStripSeparator20 = new ToolStripSeparator();
+            toolStripMenuItem_SplitBeginingByJudgment = new ToolStripMenuItem();
+            toolStripMenuItem_SplitEndByJudgment = new ToolStripMenuItem();
+            toolStripMenuItem_MergeByJudgment = new ToolStripMenuItem();
             toolStripSeparator10 = new ToolStripSeparator();
             toolStripMenuItem_WithoutCRBetweenLines = new ToolStripMenuItem();
             toolStripMenuItem_KeepTwoCRBetweenLines = new ToolStripMenuItem();
@@ -393,9 +399,9 @@ namespace TextSpeedReader
             // contextMenuStrip_RichTextBox
             // 
             contextMenuStrip_RichTextBox.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_EndingAddDot, toolStripMenuItem_MergeNoneSpace, toolStripSeparator10, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13 });
+            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripSeparator19, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_EndingAddDot, toolStripMenuItem_MergeNoneSpace, toolStripSeparator20, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13 });
             contextMenuStrip_RichTextBox.Name = "contextMenuStrip_RichTextBox";
-            contextMenuStrip_RichTextBox.Size = new Size(537, 376);
+            contextMenuStrip_RichTextBox.Size = new Size(537, 484);
             // 
             // toolStripSeparator11
             // 
@@ -446,6 +452,18 @@ namespace TextSpeedReader
             toolStripMenuItem_AutoRemoveCRButton2.Text = "移除選取的文字斷行Ｘ》＼ｎ，保留空白行";
             toolStripMenuItem_AutoRemoveCRButton2.Click += toolStripMenuItem_AutoRemoveCRButton2_Click;
             // 
+            // toolStripSeparator19
+            // 
+            toolStripSeparator19.Name = "toolStripSeparator19";
+            toolStripSeparator19.Size = new Size(533, 6);
+            // 
+            // toolStripMenuItem_AddSpaceAtBegining
+            // 
+            toolStripMenuItem_AddSpaceAtBegining.Name = "toolStripMenuItem_AddSpaceAtBegining";
+            toolStripMenuItem_AddSpaceAtBegining.Size = new Size(536, 24);
+            toolStripMenuItem_AddSpaceAtBegining.Text = "每行開頭增加空白字元";
+            toolStripMenuItem_AddSpaceAtBegining.Click += toolStripMenuItem_AddSpaceAtBegining_Click;
+            // 
             // toolStripMenuItem_RemoveMoreThan120CharB
             // 
             toolStripMenuItem_RemoveMoreThan120CharB.Name = "toolStripMenuItem_RemoveMoreThan120CharB";
@@ -469,6 +487,32 @@ namespace TextSpeedReader
             toolStripMenuItem_MergeNoneSpace.Size = new Size(536, 24);
             toolStripMenuItem_MergeNoneSpace.Text = "若下一行文字之間無空格則合併";
             toolStripMenuItem_MergeNoneSpace.Click += toolStripMenuItem_MergeNoneSpace_Click;
+            // 
+            // toolStripSeparator20
+            // 
+            toolStripSeparator20.Name = "toolStripSeparator20";
+            toolStripSeparator20.Size = new Size(533, 6);
+            // 
+            // toolStripMenuItem_SplitBeginingByJudgment
+            // 
+            toolStripMenuItem_SplitBeginingByJudgment.Name = "toolStripMenuItem_SplitBeginingByJudgment";
+            toolStripMenuItem_SplitBeginingByJudgment.Size = new Size(536, 24);
+            toolStripMenuItem_SplitBeginingByJudgment.Text = "根據選項視窗的《開頭判定文字來分割新行";
+            toolStripMenuItem_SplitBeginingByJudgment.Click += toolStripMenuItem_SplitBeginingByJudgment_Click;
+            // 
+            // toolStripMenuItem_SplitEndByJudgment
+            // 
+            toolStripMenuItem_SplitEndByJudgment.Name = "toolStripMenuItem_SplitEndByJudgment";
+            toolStripMenuItem_SplitEndByJudgment.Size = new Size(536, 24);
+            toolStripMenuItem_SplitEndByJudgment.Text = "根據選項視窗的》結尾判定文字來分割新行";
+            toolStripMenuItem_SplitEndByJudgment.Click += toolStripMenuItem_SplitEndByJudgment_Click;
+            // 
+            // toolStripMenuItem_MergeByJudgment
+            // 
+            toolStripMenuItem_MergeByJudgment.Name = "toolStripMenuItem_MergeByJudgment";
+            toolStripMenuItem_MergeByJudgment.Size = new Size(536, 24);
+            toolStripMenuItem_MergeByJudgment.Text = "根據選項視窗的《開頭至結尾》判定字串，合併成同一行";
+            toolStripMenuItem_MergeByJudgment.Click += toolStripMenuItem_MergeByJudgment_Click;
             // 
             // toolStripSeparator10
             // 
@@ -790,7 +834,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 2.0.1.0  (新增保留字型大小、全新架構，單一執行檔)";
+            Text = "TextSpeedReader Ver. 2.0.2.0  (新增關鍵字斷行、行首填空、保留字型大小、全新架構，單一執行檔)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -894,6 +938,12 @@ namespace TextSpeedReader
         private ToolStripMenuItem toolStripMenuItem_AutoRemoveCRButton2;
         private ToolStripMenuItem toolStripMenuItem_SaveTxtFile2;
         private ToolStripMenuItem toolStripMenuItem_SaveTxtAsNewFile2;
+        private ToolStripMenuItem toolStripMenuItem_AddSpaceAtBegining;
+        private ToolStripSeparator toolStripSeparator19;
+        private ToolStripMenuItem toolStripMenuItem_SplitBeginingByJudgment;
+        private ToolStripMenuItem toolStripMenuItem_SplitEndByJudgment;
+        private ToolStripSeparator toolStripSeparator20;
+        private ToolStripMenuItem toolStripMenuItem_MergeByJudgment;
     }
 }
 
