@@ -518,11 +518,7 @@ namespace TextSpeedReader
             }
         }
     
-        // 將目前TXT繁體中文轉換成簡體中文並儲存（按鈕）
-        private void buttonConvertToSimplified_Click(object sender, EventArgs e)
-        {
-            ConvertCurrentTxtToSimplifiedAndSave();
-        }
+
 
         // 將目前TXT繁體中文轉換成簡體中文並儲存
         private void ConvertCurrentTxtToSimplifiedAndSave()
@@ -630,11 +626,7 @@ namespace TextSpeedReader
             }
         }
 
-        // 將 listViewFile 中被選取的 TXT 檔案批次轉換為簡體並另存為 _簡體.txt（按鈕）
-        private void toolStripButtonFileConvertToSimplified_Click(object sender, EventArgs e)
-        {
-            BatchConvertTxtFilesToSimplifiedAndSave();
-        }
+
 
         // 將 listViewFile 中被選取的 TXT 檔案批次轉換為簡體並另存為 _簡體.txt
         private void BatchConvertTxtFilesToSimplifiedAndSave()
@@ -711,11 +703,7 @@ namespace TextSpeedReader
                 "批次轉換結果");
         }
 
-        // 將 listViewFile 中被選取的 TXT 檔案批次轉換為繁體並另存為 _繁體.txt（右鍵選單）
-        private void toolStripMenuItem_FileConvertToTraditional_Click(object sender, EventArgs e)
-        {
-            BatchConvertTxtFilesToTraditionalAndSave();
-        }
+
 
         // 將 listViewFile 中被選取的 TXT 檔案批次轉換為繁體並另存為 _繁體.txt
         private void BatchConvertTxtFilesToTraditionalAndSave()
@@ -957,67 +945,7 @@ namespace TextSpeedReader
             }
         }
 
-        // 編碼轉換對話框
-        private void toolStripMenuItem_EncodingConvert_Click(object sender, EventArgs e)
-        {
-            if (listViewFile.SelectedItems.Count == 0)
-            {
-                MessageBox.Show("請先選擇要轉換編碼的檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
 
-            using (Form encodingDialog = new Form())
-            {
-                encodingDialog.Text = "編碼轉換";
-                encodingDialog.Size = new Size(300, 200);
-                encodingDialog.StartPosition = FormStartPosition.CenterParent;
-                encodingDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
-                encodingDialog.MaximizeBox = false;
-                encodingDialog.MinimizeBox = false;
-
-                Label label = new Label();
-                label.Text = "選擇來源編碼：";
-                label.Location = new Point(20, 20);
-                label.AutoSize = true;
-
-                ComboBox comboBox = new ComboBox();
-                comboBox.Location = new Point(20, 45);
-                comboBox.Size = new Size(240, 25);
-                comboBox.Items.AddRange(new string[] {
-                    "自動檢測",
-                    "UTF-8",
-                    "GB2312 (簡體中文)",
-                    "Big5 (繁體中文)",
-                    "ASCII"
-                });
-                comboBox.SelectedIndex = 0;
-
-                CheckBox convertToTraditionalCheckBox = new CheckBox();
-                convertToTraditionalCheckBox.Text = "同時轉換為繁體中文";
-                convertToTraditionalCheckBox.Location = new Point(20, 80);
-                convertToTraditionalCheckBox.AutoSize = true;
-                convertToTraditionalCheckBox.Checked = true;
-
-                Button okButton = new Button();
-                okButton.Text = "確定";
-                okButton.Location = new Point(80, 120);
-                okButton.Size = new Size(75, 30);
-                okButton.DialogResult = DialogResult.OK;
-
-                Button cancelButton = new Button();
-                cancelButton.Text = "取消";
-                cancelButton.Location = new Point(165, 120);
-                cancelButton.Size = new Size(75, 30);
-                cancelButton.DialogResult = DialogResult.Cancel;
-
-                encodingDialog.Controls.AddRange(new Control[] { label, comboBox, convertToTraditionalCheckBox, okButton, cancelButton });
-
-                if (encodingDialog.ShowDialog() == DialogResult.OK)
-                {
-                    ConvertFileEncoding(comboBox.SelectedItem.ToString(), convertToTraditionalCheckBox.Checked);
-                }
-            }
-        }
 
         // 執行檔案編碼轉換
         private void ConvertFileEncoding(string sourceEncoding, bool convertToTraditional)
@@ -1099,15 +1027,7 @@ namespace TextSpeedReader
             }
         }
 
-        private void toolStripMenuItem_FileConvertToSimplified_Click(object sender, EventArgs e)
-        {
-            BatchConvertTxtFilesToSimplifiedAndSave();
-        }
 
-        private void toolStripMenuItem_CopyHtmlSaveFile_Click(object sender, EventArgs e)
-        {
-            CopyHtmlSaveFile();
-        }
 
         // 檢測檔案編碼
         private Encoding DetectFileEncoding(string filePath)
@@ -1268,10 +1188,6 @@ namespace TextSpeedReader
             }
         }
 
-        private void toolStripMenuItem_CopyHtmlSaveFileSimplified_Click(object sender, EventArgs e)
-        {
-            CopyHtmlSaveFileSimplified();
-        }
 
         // 載入HTML檔案並確保正確編碼顯示
         private void LoadHtmlFileWithEncoding(string htmlFilePath)
@@ -1679,7 +1595,30 @@ namespace TextSpeedReader
             bool isMulti = listViewFile.SelectedItems.Count > 1;
 
             // 無論單檔或多檔，預設值都包含副檔名
+            string FullInputName = listViewFile.SelectedItems[0].Text;
+            string inputNameWithoutExt = Path.GetFileNameWithoutExtension(FullInputName);
+            string extension = Path.GetExtension(FullInputName);
             string defaultInputName = listViewFile.SelectedItems[0].Text;
+            //目前選取的項目的全檔名
+            string tmpSelectedFullFileName = m_TreeViewSelectedNodeText + @"\" + this.listViewFile.SelectedItems[0].Text;
+            //目前正在編輯的檔案的全檔名，只能是TXT檔，HTML檔不會列入編輯檔案清單。
+            string tmpcurrentFilePath = "";
+            if(m_RecentReadList.Count > 0)
+            {
+                tmpcurrentFilePath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
+            }
+
+            //MessageBox.Show(tmpSelectedFullFileName + "\n\r" + tmpcurrentFilePath);
+
+            if (richTextBoxText.SelectedText.Length > 0 && tmpcurrentFilePath == tmpSelectedFullFileName)
+            {
+                inputNameWithoutExt = richTextBoxText.SelectedText.Trim(m_AllIllegalFileName).Replace("","").Replace("　","");
+                if (inputNameWithoutExt.Length > 30)
+                {
+                    inputNameWithoutExt = inputNameWithoutExt.Substring(0,30);
+                }
+                defaultInputName = inputNameWithoutExt + extension;
+            }
 
             FormRenameInput renameDialog = new FormRenameInput(
                 isMulti

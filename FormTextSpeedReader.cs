@@ -1,15 +1,18 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using Microsoft.VisualBasic.FileIO;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Text;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
-using System.Drawing.Text;
-using Microsoft.VisualBasic.FileIO;
-using Microsoft.VisualBasic;
+using static System.Net.Mime.MediaTypeNames;
+using Application = System.Windows.Forms.Application;
+using Font = System.Drawing.Font;
 
 namespace TextSpeedReader
 {
@@ -31,6 +34,7 @@ namespace TextSpeedReader
 
         // 系統字體列表
         private FontFamily[] m_FontFamilies = Array.Empty<FontFamily>();
+        private Font m_Font = SystemFonts.DefaultFont;
 
         // 當前選中的樹狀目錄節點文字
         private string m_TreeViewSelectedNodeText = "";
@@ -72,6 +76,28 @@ namespace TextSpeedReader
         // 標記是否正在載入檔案（用於避免載入時觸發 TextChanged 事件設置修改標誌）
         private bool m_IsLoadingFile = false;
 
+        //不合法或無法辨識的檔名字元
+        char[] m_AllIllegalFileName = new char[] {
+            // SpaceSeparator category
+            '\u0020', '\u1680', '\u180E', '\u2000', '\u2001', '\u2002', '\u2003',
+            '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A',
+            '\u202F', '\u205F', '\u3000',
+            // LineSeparator category
+            '\u2028',
+            // ParagraphSeparator category
+            '\u2029',
+            // Latin1 characters
+            '\u0009', '\u000A', '\u000B', '\u000C', '\u000D', '\u0085', '\u00A0',
+            // ZERO WIDTH SPACE (U+200B) & ZERO WIDTH NO-BREAK SPACE (U+FEFF)
+            '\u200B', '\uFEFF'
+            //常見斷行、空白字元
+            ,'\t','\r','\n',' ','\u3000',
+            //少見的不可見空格字元，很奇怪，無法用Trim移除，只能用Replace
+            '','　'
+    };
+        //使用Trim移除 String result = str.Trim(m_AllIllegalFileName).Replace("","").Replace("　","");
+        //""這一類無法用Trim移除，只能用Replace
+
         #endregion
 
         #region 建構函式
@@ -97,7 +123,8 @@ namespace TextSpeedReader
                 try
                 {
                     Font newFont = new Font(appSettings.LastFontFamily, appSettings.LastFontSize);
-                    richTextBoxText.Font = newFont;
+                    m_Font = newFont;
+                    richTextBoxText.Font = m_Font;
 
                     // 更新 toolStripComboBoxFonts
                     if (toolStripComboBoxFonts.Items.Contains(appSettings.LastFontFamily))
@@ -1460,7 +1487,72 @@ namespace TextSpeedReader
                 m_IsCurrentFileModified = true;
             }
         }
+        // 編碼轉換對話框
+        private void toolStripMenuItem_EncodingConvert_Click(object sender, EventArgs e)
+        {
+            if (listViewFile.SelectedItems.Count == 0)
+            {
+                MessageBox.Show("請先選擇要轉換編碼的檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
+            using (Form encodingDialog = new Form())
+            {
+                encodingDialog.Text = "編碼轉換";
+                encodingDialog.Size = new Size(300, 200);
+                encodingDialog.StartPosition = FormStartPosition.CenterParent;
+                encodingDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                encodingDialog.MaximizeBox = false;
+                encodingDialog.MinimizeBox = false;
+
+                Label label = new Label();
+                label.Text = "選擇來源編碼：";
+                label.Location = new Point(20, 20);
+                label.AutoSize = true;
+
+                ComboBox comboBox = new ComboBox();
+                comboBox.Location = new Point(20, 45);
+                comboBox.Size = new Size(240, 25);
+                comboBox.Items.AddRange(new string[] {
+                    "自動檢測",
+                    "UTF-8",
+                    "GB2312 (簡體中文)",
+                    "Big5 (繁體中文)",
+                    "ASCII"
+                });
+                comboBox.SelectedIndex = 0;
+
+                CheckBox convertToTraditionalCheckBox = new CheckBox();
+                convertToTraditionalCheckBox.Text = "同時轉換為繁體中文";
+                convertToTraditionalCheckBox.Location = new Point(20, 80);
+                convertToTraditionalCheckBox.AutoSize = true;
+                convertToTraditionalCheckBox.Checked = true;
+
+                Button okButton = new Button();
+                okButton.Text = "確定";
+                okButton.Location = new Point(80, 120);
+                okButton.Size = new Size(75, 30);
+                okButton.DialogResult = DialogResult.OK;
+
+                Button cancelButton = new Button();
+                cancelButton.Text = "取消";
+                cancelButton.Location = new Point(165, 120);
+                cancelButton.Size = new Size(75, 30);
+                cancelButton.DialogResult = DialogResult.Cancel;
+
+                encodingDialog.Controls.AddRange(new Control[] { label, comboBox, convertToTraditionalCheckBox, okButton, cancelButton });
+
+                if (encodingDialog.ShowDialog() == DialogResult.OK)
+                {
+                    ConvertFileEncoding(comboBox.SelectedItem.ToString(), convertToTraditionalCheckBox.Checked);
+                }
+            }
+        }
+
+        private void toolStripMenuItem_CopyHtmlSaveFileSimplified_Click(object sender, EventArgs e)
+        {
+            CopyHtmlSaveFileSimplified();
+        }
         // 處理 richTextBoxText 選擇變更事件
         private void RichTextBoxText_SelectionChanged(object? sender, EventArgs e)
         {
@@ -1569,7 +1661,18 @@ namespace TextSpeedReader
                     }
 
                     // 設置建議檔名（原檔名）
-                    suggestedFileName = fileNameWithoutExtension + extension;
+                    if (richTextBoxText.SelectedText.Length > 0)
+                    {
+                        string tmpSelected = richTextBoxText.SelectedText.Trim(m_AllIllegalFileName).Replace("", "").Replace("　", "");
+                        if (tmpSelected.Length > 20) tmpSelected = tmpSelected.Substring(0, 20);
+                        // 如果有選取文字，則在檔名前加上"_選取"
+                        suggestedFileName = fileNameWithoutExtension + "_" + tmpSelected + extension;
+                    }
+                    else
+                    {
+                        suggestedFileName = fileNameWithoutExtension + extension;
+                    }
+                    //suggestedFileName = fileNameWithoutExtension + extension;
                     saveFileDialog.FileName = suggestedFileName;
                 }
                 else
@@ -1713,5 +1816,56 @@ namespace TextSpeedReader
         {
             MergeByJudgment();
         }
+
+        private void toolStripMenuItem_SortLines_Click(object sender, EventArgs e)
+        {
+            SortLines();
+        }
+
+        private void toolStripMenuItem_FileConvertToSimplified_Click(object sender, EventArgs e)
+        {
+            BatchConvertTxtFilesToSimplifiedAndSave();
+        }
+
+        private void toolStripMenuItem_CopyHtmlSaveFile_Click(object sender, EventArgs e)
+        {
+            CopyHtmlSaveFile();
+        }
+        // 將 listViewFile 中被選取的 TXT 檔案批次轉換為簡體並另存為 _簡體.txt（按鈕）
+        private void toolStripButtonFileConvertToSimplified_Click(object sender, EventArgs e)
+        {
+            BatchConvertTxtFilesToSimplifiedAndSave();
+        }
+        // 將 listViewFile 中被選取的 TXT 檔案批次轉換為繁體並另存為 _繁體.txt（右鍵選單）
+        private void toolStripMenuItem_FileConvertToTraditional_Click(object sender, EventArgs e)
+        {
+            BatchConvertTxtFilesToTraditionalAndSave();
+        }
+        // 自動移除目前文章中多餘的斷行（按鈕）
+        private void AutoRemoveCRButton_Click(object sender, EventArgs e)
+        {
+            AutoRemoveCR();
+        }
+        // 自動移除目前文章中多餘的斷行，不包含該行最後一個字是句點或驚嘆號的行（按鈕）
+        private void AutoRemoveCRWithoutDotAndExclamationMarkButton_Click(object sender, EventArgs e)
+        {
+            AutoRemoveCRWithoutDotAndExclamationMark();
+        }
+        // 移除行首和行尾的空白字元（按鈕）
+        private void RemoveLeadSpace_Click(object sender, EventArgs e)
+        {
+            RemoveLeadingAndTrailingSpaces();
+        }
+        // 將目前TXT繁體中文轉換成簡體中文並儲存（按鈕）
+        private void buttonConvertToSimplified_Click(object sender, EventArgs e)
+        {
+            ConvertCurrentTxtToSimplifiedAndSave();
+        }
+        /*
+        private void ListViewFile_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+        */
     }
 }

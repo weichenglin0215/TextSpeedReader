@@ -89,6 +89,7 @@ namespace TextSpeedReader
             toolStripMenuItem_SelectedTextSaveAsNew = new ToolStripMenuItem();
             toolStripMenuItem_WholeTextSaveAsNew = new ToolStripMenuItem();
             toolStripSeparator13 = new ToolStripSeparator();
+            toolStripMenuItem_SortLines = new ToolStripMenuItem();
             webBrowser1 = new WebBrowser();
             navigationBar = new ToolStrip();
             ShowFolderButton = new ToolStripButton();
@@ -102,8 +103,8 @@ namespace TextSpeedReader
             toolStripMenuItem_FileConvertToSimplified = new ToolStripMenuItem();
             toolStripMenuItem_FileConvertToTraditional = new ToolStripMenuItem();
             toolStripSeparator17 = new ToolStripSeparator();
-            toolStripMenuItem_CopyHtmlSaveFile = new ToolStripMenuItem();
             toolStripMenuItem_CopyHtmlSaveFileSimplified = new ToolStripMenuItem();
+            toolStripMenuItem_CopyHtmlSaveFile = new ToolStripMenuItem();
             toolStripSeparator1 = new ToolStripSeparator();
             toolStripButton_Option = new ToolStripButton();
             toolStripSeparator18 = new ToolStripSeparator();
@@ -294,46 +295,50 @@ namespace TextSpeedReader
             contextMenuStrip_ListViewFile.ImageScalingSize = new Size(20, 20);
             contextMenuStrip_ListViewFile.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile2, toolStripMenuItem_SaveTxtAsNewFile2, toolStripMenuItem_ConvertSimple, toolStripMenuItem_ConvertTraditional, toolStripSeparator15, toolStripMenuItem_SearchFiles, toolStripMenuItem_RenameFile, toolStripSeparator14, toolStripMenuItem_DelFiles });
             contextMenuStrip_ListViewFile.Name = "contextMenuStrip_ListViewFile";
-            contextMenuStrip_ListViewFile.Size = new Size(349, 204);
+            contextMenuStrip_ListViewFile.Size = new Size(381, 204);
             // 
             // toolStripMenuItem_SaveTxtFile2
             // 
+            toolStripMenuItem_SaveTxtFile2.Enabled = false;
             toolStripMenuItem_SaveTxtFile2.Name = "toolStripMenuItem_SaveTxtFile2";
-            toolStripMenuItem_SaveTxtFile2.Size = new Size(348, 24);
+            toolStripMenuItem_SaveTxtFile2.Size = new Size(380, 24);
             toolStripMenuItem_SaveTxtFile2.Text = "儲存TXT檔案";
+            toolStripMenuItem_SaveTxtFile2.Visible = false;
             toolStripMenuItem_SaveTxtFile2.Click += toolStripMenuItem_SaveTxtFile2_Click;
             // 
             // toolStripMenuItem_SaveTxtAsNewFile2
             // 
+            toolStripMenuItem_SaveTxtAsNewFile2.Enabled = false;
             toolStripMenuItem_SaveTxtAsNewFile2.Name = "toolStripMenuItem_SaveTxtAsNewFile2";
-            toolStripMenuItem_SaveTxtAsNewFile2.Size = new Size(348, 24);
+            toolStripMenuItem_SaveTxtAsNewFile2.Size = new Size(380, 24);
             toolStripMenuItem_SaveTxtAsNewFile2.Text = "另存TXT新檔...";
+            toolStripMenuItem_SaveTxtAsNewFile2.Visible = false;
             toolStripMenuItem_SaveTxtAsNewFile2.Click += toolStripMenuItem_SaveTxtAsNewFile2_Click;
             // 
             // toolStripMenuItem_ConvertSimple
             // 
             toolStripMenuItem_ConvertSimple.Name = "toolStripMenuItem_ConvertSimple";
-            toolStripMenuItem_ConvertSimple.Size = new Size(348, 24);
-            toolStripMenuItem_ConvertSimple.Text = "將選取檔案轉換成-簡體-並儲存新檔名";
+            toolStripMenuItem_ConvertSimple.Size = new Size(380, 24);
+            toolStripMenuItem_ConvertSimple.Text = "將選取檔案轉換成-ＳＣ簡體-並儲存新檔名";
             toolStripMenuItem_ConvertSimple.Click += toolStripButtonFileConvertToSimplified_Click;
             // 
             // toolStripMenuItem_ConvertTraditional
             // 
             toolStripMenuItem_ConvertTraditional.Name = "toolStripMenuItem_ConvertTraditional";
-            toolStripMenuItem_ConvertTraditional.Size = new Size(348, 24);
-            toolStripMenuItem_ConvertTraditional.Text = "將選取檔案轉換成-繁體-並儲存新檔名";
+            toolStripMenuItem_ConvertTraditional.Size = new Size(380, 24);
+            toolStripMenuItem_ConvertTraditional.Text = "將選取檔案轉換成-ＴＣ繁體-並儲存新檔名";
             toolStripMenuItem_ConvertTraditional.Click += toolStripMenuItem_ConvertTraditional_Click;
             // 
             // toolStripSeparator15
             // 
             toolStripSeparator15.Name = "toolStripSeparator15";
-            toolStripSeparator15.Size = new Size(345, 6);
+            toolStripSeparator15.Size = new Size(377, 6);
             // 
             // toolStripMenuItem_SearchFiles
             // 
             toolStripMenuItem_SearchFiles.Name = "toolStripMenuItem_SearchFiles";
             toolStripMenuItem_SearchFiles.ShortcutKeys = Keys.Control | Keys.F;
-            toolStripMenuItem_SearchFiles.Size = new Size(348, 24);
+            toolStripMenuItem_SearchFiles.Size = new Size(380, 24);
             toolStripMenuItem_SearchFiles.Text = "尋找檔案";
             toolStripMenuItem_SearchFiles.Click += toolStripMenuItem_SearchFiles_Click;
             // 
@@ -341,14 +346,14 @@ namespace TextSpeedReader
             // 
             toolStripMenuItem_RenameFile.Name = "toolStripMenuItem_RenameFile";
             toolStripMenuItem_RenameFile.ShortcutKeys = Keys.F2;
-            toolStripMenuItem_RenameFile.Size = new Size(348, 24);
+            toolStripMenuItem_RenameFile.Size = new Size(380, 24);
             toolStripMenuItem_RenameFile.Text = "更名檔案";
             toolStripMenuItem_RenameFile.Click += toolStripMenuItem_RenameFile_Click;
             // 
             // toolStripSeparator14
             // 
             toolStripSeparator14.Name = "toolStripSeparator14";
-            toolStripSeparator14.Size = new Size(345, 6);
+            toolStripSeparator14.Size = new Size(377, 6);
             // 
             // toolStripMenuItem_DelFiles
             // 
@@ -356,7 +361,7 @@ namespace TextSpeedReader
             toolStripMenuItem_DelFiles.Margin = new Padding(0, 10, 0, 10);
             toolStripMenuItem_DelFiles.Name = "toolStripMenuItem_DelFiles";
             toolStripMenuItem_DelFiles.ShortcutKeys = Keys.Delete;
-            toolStripMenuItem_DelFiles.Size = new Size(348, 24);
+            toolStripMenuItem_DelFiles.Size = new Size(380, 24);
             toolStripMenuItem_DelFiles.Text = "Ｘ刪除檔案";
             toolStripMenuItem_DelFiles.Click += toolStripMenuItem_DelFiles_Click;
             // 
@@ -399,9 +404,9 @@ namespace TextSpeedReader
             // contextMenuStrip_RichTextBox
             // 
             contextMenuStrip_RichTextBox.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripSeparator19, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_EndingAddDot, toolStripMenuItem_MergeNoneSpace, toolStripSeparator20, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13 });
+            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripSeparator19, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_EndingAddDot, toolStripMenuItem_MergeNoneSpace, toolStripSeparator20, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines });
             contextMenuStrip_RichTextBox.Name = "contextMenuStrip_RichTextBox";
-            contextMenuStrip_RichTextBox.Size = new Size(537, 484);
+            contextMenuStrip_RichTextBox.Size = new Size(537, 508);
             // 
             // toolStripSeparator11
             // 
@@ -576,6 +581,13 @@ namespace TextSpeedReader
             toolStripSeparator13.Name = "toolStripSeparator13";
             toolStripSeparator13.Size = new Size(533, 6);
             // 
+            // toolStripMenuItem_SortLines
+            // 
+            toolStripMenuItem_SortLines.Name = "toolStripMenuItem_SortLines";
+            toolStripMenuItem_SortLines.Size = new Size(536, 24);
+            toolStripMenuItem_SortLines.Text = "逐行排序...";
+            toolStripMenuItem_SortLines.Click += toolStripMenuItem_SortLines_Click;
+            // 
             // webBrowser1
             // 
             webBrowser1.Dock = DockStyle.Fill;
@@ -625,7 +637,7 @@ namespace TextSpeedReader
             // toolStripDropDownButtonSave
             // 
             toolStripDropDownButtonSave.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripDropDownButtonSave.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile, toolStripMenuItem_SaveTxtAsNewFile, toolStripSeparator16, toolStripMenuItem_ConvertToSimplified, toolStripMenuItem_FileConvertToSimplified, toolStripMenuItem_FileConvertToTraditional, toolStripSeparator17, toolStripMenuItem_CopyHtmlSaveFile, toolStripMenuItem_CopyHtmlSaveFileSimplified });
+            toolStripDropDownButtonSave.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile, toolStripMenuItem_SaveTxtAsNewFile, toolStripSeparator16, toolStripMenuItem_ConvertToSimplified, toolStripMenuItem_FileConvertToSimplified, toolStripMenuItem_FileConvertToTraditional, toolStripSeparator17, toolStripMenuItem_CopyHtmlSaveFileSimplified, toolStripMenuItem_CopyHtmlSaveFile });
             toolStripDropDownButtonSave.Image = (Image)resources.GetObject("toolStripDropDownButtonSave.Image");
             toolStripDropDownButtonSave.ImageTransparentColor = Color.Magenta;
             toolStripDropDownButtonSave.Name = "toolStripDropDownButtonSave";
@@ -636,7 +648,7 @@ namespace TextSpeedReader
             // 
             toolStripMenuItem_SaveTxtFile.Name = "toolStripMenuItem_SaveTxtFile";
             toolStripMenuItem_SaveTxtFile.ShortcutKeys = Keys.Control | Keys.S;
-            toolStripMenuItem_SaveTxtFile.Size = new Size(472, 24);
+            toolStripMenuItem_SaveTxtFile.Size = new Size(504, 24);
             toolStripMenuItem_SaveTxtFile.Text = "儲存TXT檔案";
             toolStripMenuItem_SaveTxtFile.Click += toolStripMenuItem_SaveTxtFile_Click;
             // 
@@ -644,54 +656,54 @@ namespace TextSpeedReader
             // 
             toolStripMenuItem_SaveTxtAsNewFile.Name = "toolStripMenuItem_SaveTxtAsNewFile";
             toolStripMenuItem_SaveTxtAsNewFile.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
-            toolStripMenuItem_SaveTxtAsNewFile.Size = new Size(472, 24);
+            toolStripMenuItem_SaveTxtAsNewFile.Size = new Size(504, 24);
             toolStripMenuItem_SaveTxtAsNewFile.Text = "另存TXT新檔...";
             toolStripMenuItem_SaveTxtAsNewFile.Click += toolStripMenuItem_SaveTxtAsNewFile_Click;
             // 
             // toolStripSeparator16
             // 
             toolStripSeparator16.Name = "toolStripSeparator16";
-            toolStripSeparator16.Size = new Size(469, 6);
+            toolStripSeparator16.Size = new Size(501, 6);
             // 
             // toolStripMenuItem_ConvertToSimplified
             // 
             toolStripMenuItem_ConvertToSimplified.Name = "toolStripMenuItem_ConvertToSimplified";
-            toolStripMenuItem_ConvertToSimplified.Size = new Size(472, 24);
+            toolStripMenuItem_ConvertToSimplified.Size = new Size(504, 24);
             toolStripMenuItem_ConvertToSimplified.Text = "將目前TXT轉換成簡體並儲存新檔名";
             toolStripMenuItem_ConvertToSimplified.Click += toolStripMenuItem_ConvertToSimplified_Click;
             // 
             // toolStripMenuItem_FileConvertToSimplified
             // 
             toolStripMenuItem_FileConvertToSimplified.Name = "toolStripMenuItem_FileConvertToSimplified";
-            toolStripMenuItem_FileConvertToSimplified.Size = new Size(472, 24);
-            toolStripMenuItem_FileConvertToSimplified.Text = "將目錄清單中選取的TXT檔案轉換成-簡體-並儲存新檔名";
+            toolStripMenuItem_FileConvertToSimplified.Size = new Size(504, 24);
+            toolStripMenuItem_FileConvertToSimplified.Text = "將目錄清單中選取的TXT檔案轉換成-ＳＣ簡體-並儲存新檔名";
             toolStripMenuItem_FileConvertToSimplified.Click += toolStripMenuItem_FileConvertToSimplified_Click;
             // 
             // toolStripMenuItem_FileConvertToTraditional
             // 
             toolStripMenuItem_FileConvertToTraditional.Name = "toolStripMenuItem_FileConvertToTraditional";
-            toolStripMenuItem_FileConvertToTraditional.Size = new Size(472, 24);
-            toolStripMenuItem_FileConvertToTraditional.Text = "將目錄清單中選取的TXT檔案轉換成-繁體-並儲存新檔名";
+            toolStripMenuItem_FileConvertToTraditional.Size = new Size(504, 24);
+            toolStripMenuItem_FileConvertToTraditional.Text = "將目錄清單中選取的TXT檔案轉換成-ＴＣ繁體-並儲存新檔名";
             toolStripMenuItem_FileConvertToTraditional.Click += toolStripMenuItem_FileConvertToTraditional_Click;
             // 
             // toolStripSeparator17
             // 
             toolStripSeparator17.Name = "toolStripSeparator17";
-            toolStripSeparator17.Size = new Size(469, 6);
-            // 
-            // toolStripMenuItem_CopyHtmlSaveFile
-            // 
-            toolStripMenuItem_CopyHtmlSaveFile.Name = "toolStripMenuItem_CopyHtmlSaveFile";
-            toolStripMenuItem_CopyHtmlSaveFile.Size = new Size(472, 24);
-            toolStripMenuItem_CopyHtmlSaveFile.Text = "複製HTML文字並儲存TXT檔案(繁體)";
-            toolStripMenuItem_CopyHtmlSaveFile.Click += toolStripMenuItem_CopyHtmlSaveFile_Click;
+            toolStripSeparator17.Size = new Size(501, 6);
             // 
             // toolStripMenuItem_CopyHtmlSaveFileSimplified
             // 
             toolStripMenuItem_CopyHtmlSaveFileSimplified.Name = "toolStripMenuItem_CopyHtmlSaveFileSimplified";
-            toolStripMenuItem_CopyHtmlSaveFileSimplified.Size = new Size(472, 24);
-            toolStripMenuItem_CopyHtmlSaveFileSimplified.Text = "複製HTML文字並儲存TXT檔案(簡體)";
+            toolStripMenuItem_CopyHtmlSaveFileSimplified.Size = new Size(504, 24);
+            toolStripMenuItem_CopyHtmlSaveFileSimplified.Text = "複製HTML文字並儲存TXT檔案(ＳＣ簡體)";
             toolStripMenuItem_CopyHtmlSaveFileSimplified.Click += toolStripMenuItem_CopyHtmlSaveFileSimplified_Click;
+            // 
+            // toolStripMenuItem_CopyHtmlSaveFile
+            // 
+            toolStripMenuItem_CopyHtmlSaveFile.Name = "toolStripMenuItem_CopyHtmlSaveFile";
+            toolStripMenuItem_CopyHtmlSaveFile.Size = new Size(504, 24);
+            toolStripMenuItem_CopyHtmlSaveFile.Text = "複製HTML文字並儲存TXT檔案(ＴＣ繁體)";
+            toolStripMenuItem_CopyHtmlSaveFile.Click += toolStripMenuItem_CopyHtmlSaveFile_Click;
             // 
             // toolStripSeparator1
             // 
@@ -834,7 +846,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 2.0.2.0  (新增關鍵字斷行、行首填空、保留字型大小、全新架構，單一執行檔)";
+            Text = "TextSpeedReader Ver. 2.1.0.0  (新增逐行排序、關鍵字斷行、行首填空、保留字型大小、全新架構，單一執行檔)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -944,6 +956,7 @@ namespace TextSpeedReader
         private ToolStripMenuItem toolStripMenuItem_SplitEndByJudgment;
         private ToolStripSeparator toolStripSeparator20;
         private ToolStripMenuItem toolStripMenuItem_MergeByJudgment;
+        private ToolStripMenuItem toolStripMenuItem_SortLines;
     }
 }
 

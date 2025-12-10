@@ -81,7 +81,8 @@ namespace TextSpeedReader
             try
             {
                 // 獲取當前 richTextBoxText 的字體設定作為參考
-                Font currentFont = richTextBoxText.Font;
+                //Font currentFont = richTextBoxText.Font;
+                Font currentFont = m_Font;
                 string fontFamily = currentFont.FontFamily.Name;
                 float fontSize = currentFont.SizeInPoints;
 
@@ -99,10 +100,10 @@ namespace TextSpeedReader
                 // 方法1：直接設置 body 樣式（簡單但可能被 HTML 內聯樣式覆蓋）
                 if (webBrowser1.Document.Body != null)
                 {
-                    string style = $"font-family: '{escapedFontFamily}', sans-serif; font-size: {fontSize}pt; background-color: {backgroundColor}; color: {textColor};";
+                    string style = $"zoom: {m_WebBrowserZoom.ToString()}%; font-family: '{escapedFontFamily}', sans-serif; font-size: {fontSize}pt; background-color: {backgroundColor}; color: {textColor};";
                     webBrowser1.Document.Body.Style = style;
                 }
-
+                /*
                 // 方法2：注入 CSS 樣式到 head（更可靠，優先級更高）
                 HtmlElement? headElement = webBrowser1.Document.GetElementsByTagName("head")[0];
                 if (headElement != null)
@@ -124,6 +125,7 @@ namespace TextSpeedReader
                         headElement.AppendChild(styleElement);
                     }
                 }
+                */
             }
             catch (Exception ex)
             {
@@ -131,5 +133,44 @@ namespace TextSpeedReader
                 Console.WriteLine($"設置 WebBrowser 樣式時發生錯誤: {ex.Message}");
             }
         }
+
+        private void ApplyWebBrowserFontStyle(string zoomRate)
+        {
+            if (webBrowser1.Document == null)
+                return;
+
+            try
+            {
+                // 獲取當前 richTextBoxText 的字體設定作為參考
+                //Font currentFont = richTextBoxText.Font;
+                Font currentFont = m_Font;
+                string fontFamily = currentFont.FontFamily.Name;
+                float fontSize = currentFont.SizeInPoints;
+
+                // 設定背景顏色（例如：白色 #FFFFFF，或淺灰色 #F5F5F5）
+                // 可以根據需要修改顏色值
+                //string backgroundColor = "#FFFFFF"; // 白色背景
+                string backgroundColor = "#000000"; // 黑色背景
+
+                // 設定字型家族（處理字體名稱中的特殊字符）
+                string escapedFontFamily = fontFamily.Replace("'", "\\'");
+
+                // 設定文字顏色
+                string textColor = "#FFFFFF"; // 白色文字
+
+                // 方法1：直接設置 body 樣式（簡單但可能被 HTML 內聯樣式覆蓋）
+                if (webBrowser1.Document.Body != null)
+                {
+                    string style = $"zoom: {zoomRate}%; font-family: '{escapedFontFamily}', sans-serif; font-size: {fontSize}pt; background-color: {backgroundColor}; color: {textColor};";
+                    webBrowser1.Document.Body.Style = style;
+                }
+            }
+            catch (Exception ex)
+            {
+                // 如果設置樣式失敗，不影響其他功能
+                Console.WriteLine($"設置 WebBrowser 樣式時發生錯誤: {ex.Message}");
+            }
+        }
+
     }
 }

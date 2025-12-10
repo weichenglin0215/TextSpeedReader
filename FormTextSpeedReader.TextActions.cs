@@ -15,8 +15,8 @@ namespace TextSpeedReader
         {
             if (richTextBoxText.Visible)
             {
-                Font tmpFont = richTextBoxText.Font;
-                float tmpFontSize = richTextBoxText.Font.Size;
+                Font tmpFont = m_Font;
+                float tmpFontSize = m_Font.Size;
                 // 在預設字體大小列表中尋找下一個較大的尺寸
                 for (int i = 0; i < m_FontSize.Length; i++)
                 {
@@ -29,9 +29,11 @@ namespace TextSpeedReader
                 // 套用新字體大小
                 Font newFont = new Font(tmpFont.FontFamily, tmpFontSize);
                 richTextBoxText.Font = newFont;
+                m_Font = newFont;
             }
             else if (webBrowser1.Visible)
             {
+                //webbrowser 無法設定字體大小，僅能以縮放比例功能來達成
                 // 在預設縮放比例列表中尋找下一個較大的比例
                 for (int i = 0; i < m_WebBrowserSize.Length; i++)
                 {
@@ -44,8 +46,10 @@ namespace TextSpeedReader
                 // 套用新縮放比例
                 if (webBrowser1.Document?.Body != null)
                 {
-                    webBrowser1.Document.Body.Style = "zoom: " + m_WebBrowserZoom.ToString() + "%";
+                    //webBrowser1.Document.Body.Style = "zoom: " + m_WebBrowserZoom.ToString() + "%";
+                    ApplyWebBrowserFontStyle(m_WebBrowserZoom.ToString());
                 }
+
             }
         }
 
@@ -54,8 +58,8 @@ namespace TextSpeedReader
         {
             if (richTextBoxText.Visible)
             {
-                Font tmpFont = richTextBoxText.Font;
-                float tmpFontSize = richTextBoxText.Font.Size;
+                Font tmpFont = m_Font;
+                float tmpFontSize = m_Font.Size;
                 // 在預設字體大小列表中尋找下一個較小的尺寸
                 for (int i = m_FontSize.Length - 1; i >= 0; i--)
                 {
@@ -68,9 +72,11 @@ namespace TextSpeedReader
                 // 套用新字體大小
                 Font newFont = new Font(tmpFont.FontFamily, tmpFontSize);
                 richTextBoxText.Font = newFont;
+                m_Font = newFont;
             }
             else if (webBrowser1.Visible)
             {
+                //webbrowser 無法設定字體大小，僅能以縮放比例功能來達成
                 // 在預設縮放比例列表中尋找下一個較小的比例
                 for (int i = m_WebBrowserSize.Length - 1; i >= 0; i--)
                 {
@@ -83,7 +89,8 @@ namespace TextSpeedReader
                 // 套用新縮放比例
                 if (webBrowser1.Document?.Body != null)
                 {
-                    webBrowser1.Document.Body.Style = "zoom: " + m_WebBrowserZoom.ToString() + "%";
+                    //webBrowser1.Document.Body.Style = "zoom: " + m_WebBrowserZoom.ToString() + "%";
+                    ApplyWebBrowserFontStyle(m_WebBrowserZoom.ToString());
                 }
             }
         }
@@ -106,11 +113,7 @@ namespace TextSpeedReader
             }
         }
 
-        // 自動移除目前文章中多餘的斷行（按鈕）
-        private void AutoRemoveCRButton_Click(object sender, EventArgs e)
-        {
-            AutoRemoveCR();
-        }
+
 
         // 自動移除目前文章中多餘的斷行
         private void AutoRemoveCR()
@@ -224,11 +227,7 @@ namespace TextSpeedReader
             }
         }
 
-        // 自動移除目前文章中多餘的斷行，不包含該行最後一個字是句點或驚嘆號的行（按鈕）
-        private void AutoRemoveCRWithoutDotAndExclamationMarkButton_Click(object sender, EventArgs e)
-        {
-            AutoRemoveCRWithoutDotAndExclamationMark();
-        }
+
 
         // 自動移除目前文章中多餘的斷行，不包含該行最後一個字是句點或驚嘆號的行
         private void AutoRemoveCRWithoutDotAndExclamationMark()
@@ -411,11 +410,7 @@ namespace TextSpeedReader
             richTextBoxText.Select(start, Math.Max(0, end - start));
         }
 
-        // 移除行首和行尾的空白字元（按鈕）
-        private void RemoveLeadSpace_Click(object sender, EventArgs e)
-        {
-            RemoveLeadingAndTrailingSpaces();
-        }
+
 
         // 移除行首和行尾的空白字元
         private void RemoveLeadingAndTrailingSpaces()
@@ -942,7 +937,7 @@ namespace TextSpeedReader
             for (int i = 0; i < lines.Length; i++)
             {
                 string line = lines[i];
-                
+
                 // 移除行首的連續空白字元(全形或半形)
                 // 這裡複用已有的 RemoveLeadingFullWhitespace 方法
                 string trimmedLine = RemoveLeadingFullWhitespace(line);
@@ -970,13 +965,13 @@ namespace TextSpeedReader
             {
                 int originalSelectionStart = richTextBoxText.SelectionStart;
                 richTextBoxText.Text = result.ToString();
-                
+
                 // 嘗試恢復游標位置
                 if (originalSelectionStart < richTextBoxText.Text.Length)
                     richTextBoxText.SelectionStart = originalSelectionStart;
                 else
                     richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                
+
                 richTextBoxText.ScrollToCaret();
             }
             else
@@ -984,7 +979,7 @@ namespace TextSpeedReader
                 // 記錄選擇區舊長度
                 int selStart = richTextBoxText.SelectionStart;
                 richTextBoxText.SelectedText = result.ToString();
-                
+
                 // 選取剛剛處理完的文字
                 int newLength = result.Length;
                 richTextBoxText.Select(selStart, newLength);
@@ -1034,7 +1029,7 @@ namespace TextSpeedReader
             {
                 // 為了避免整份文件重置導致捲動問題，盡量保持體驗
                 richTextBoxText.Text = result;
-                
+
                 // 簡單恢復
                 if (selectionStart < richTextBoxText.Text.Length)
                     richTextBoxText.SelectionStart = selectionStart;
@@ -1049,8 +1044,8 @@ namespace TextSpeedReader
         }
 
         private void SplitEndByJudgment()
-        { 
-             // 取得原始/選取內容和位置
+        {
+            // 取得原始/選取內容和位置
             string text;
             bool processWholeDocument;
             int selectionStart = richTextBoxText.SelectionStart;
@@ -1081,14 +1076,14 @@ namespace TextSpeedReader
             // 使用 Replace 將 "Judgment" 替換為 "Judgment\r\n"
             string result = text.Replace(judgment, judgment + "\r\n");
 
-             // 如果沒有變更則不動作
+            // 如果沒有變更則不動作
             if (text == result) return;
 
             // 套用結果
             if (processWholeDocument)
             {
                 richTextBoxText.Text = result;
-                
+
                 if (selectionStart < richTextBoxText.Text.Length)
                     richTextBoxText.SelectionStart = selectionStart;
                 richTextBoxText.ScrollToCaret();
@@ -1186,7 +1181,7 @@ namespace TextSpeedReader
             if (processWholeDocument)
             {
                 richTextBoxText.Text = result.ToString();
-                
+
                 if (selectionStart < richTextBoxText.Text.Length)
                     richTextBoxText.SelectionStart = selectionStart;
                 richTextBoxText.ScrollToCaret();
@@ -1196,6 +1191,203 @@ namespace TextSpeedReader
                 int selStart = richTextBoxText.SelectionStart;
                 richTextBoxText.SelectedText = result.ToString();
                 richTextBoxText.Select(selStart, result.Length);
+            }
+        }
+        private void SortLines()
+        {
+            // 1. 處理選取範圍：若未選取文字，則選取全文；若有選取，擴展至完整行
+            if (richTextBoxText.SelectionLength == 0)
+            {
+                richTextBoxText.SelectAll();
+            }
+            else
+            {
+                int selectionStart = richTextBoxText.SelectionStart;
+                int selectionLength = richTextBoxText.SelectionLength;
+                string text = richTextBoxText.Text;
+
+                // 往回找行首
+                int newStart = selectionStart;
+                while (newStart > 0)
+                {
+                    char c = text[newStart - 1];
+                    if (c == '\r' || c == '\n') break;
+                    newStart--;
+                }
+
+                // 往後找行尾
+                int newEnd = selectionStart + selectionLength;
+                while (newEnd < text.Length)
+                {
+                    char c = text[newEnd];
+                    if (c == '\r' || c == '\n')
+                    {
+                        if (c == '\r' && newEnd + 1 < text.Length && text[newEnd + 1] == '\n')
+                            newEnd += 2;
+                        else
+                            newEnd += 1;
+                        break;
+                    }
+                    newEnd++;
+                }
+                richTextBoxText.Select(newStart, newEnd - newStart);
+            }
+
+            // 2. 跳出對話視窗
+            using (Form sortDialog = new Form())
+            {
+                sortDialog.Text = "排序選項";
+                sortDialog.Size = new Size(800, 160);
+                sortDialog.StartPosition = FormStartPosition.CenterParent;
+                sortDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+                sortDialog.MaximizeBox = false;
+                sortDialog.MinimizeBox = false;
+
+                Label lbl = new Label();
+                lbl.Text = "請選擇每一行的排序方式：";
+                lbl.Location = new Point(20, 20);
+                lbl.AutoSize = true;
+                sortDialog.Controls.Add(lbl);
+
+                int sortMode = 0; // 0:None, 1:Asc, 2:Desc, 3:AscPreserve, 4:DescPreserve
+
+                int startX = 15;
+                int btnY = 55;
+                int btnHeight = 45;
+                int gap = 16;
+
+                // 取消
+                Button btnCancel = new Button();
+                btnCancel.Text = "取消";
+                btnCancel.Location = new Point(startX, btnY);
+                btnCancel.Size = new Size(80, btnHeight);
+                btnCancel.DialogResult = DialogResult.Cancel;
+                sortDialog.Controls.Add(btnCancel);
+                sortDialog.CancelButton = btnCancel;
+                startX += 80 + gap;
+
+                // 正向
+                Button btnAsc = new Button();
+                btnAsc.Text = "正向排序";
+                btnAsc.Location = new Point(startX, btnY);
+                btnAsc.Size = new Size(100, btnHeight);
+                btnAsc.Click += (s, e) => { sortMode = 1; sortDialog.DialogResult = DialogResult.OK; sortDialog.Close(); };
+                sortDialog.Controls.Add(btnAsc);
+                startX += btnAsc.Size.Width + gap;
+
+                // 反向
+                Button btnDesc = new Button();
+                btnDesc.Text = "反向排序";
+                btnDesc.Location = new Point(startX, btnY);
+                btnDesc.Size = new Size(100, btnHeight);
+                btnDesc.Click += (s, e) => { sortMode = 2; sortDialog.DialogResult = DialogResult.OK; sortDialog.Close(); };
+                sortDialog.Controls.Add(btnDesc);
+                startX += btnDesc.Size.Width + gap;
+
+                // 正向(保留)
+                Button btnAscP = new Button();
+                btnAscP.Text = "正向排序(保留空白行)";
+                btnAscP.Location = new Point(startX, btnY);
+                btnAscP.Size = new Size(200, btnHeight);
+                btnAscP.Click += (s, e) => { sortMode = 3; sortDialog.DialogResult = DialogResult.OK; sortDialog.Close(); };
+                sortDialog.Controls.Add(btnAscP);
+                startX += btnAscP.Size.Width + gap;
+
+                // 反向(保留)
+                Button btnDescP = new Button();
+                btnDescP.Text = "反向排序(保留空白行)";
+                btnDescP.Location = new Point(startX, btnY);
+                btnDescP.Size = new Size(200, btnHeight);
+                btnDescP.Click += (s, e) => { sortMode = 4; sortDialog.DialogResult = DialogResult.OK; sortDialog.Close(); };
+                sortDialog.Controls.Add(btnDescP);
+
+                sortDialog.ShowDialog(this);
+
+                if (sortMode == 0) return;
+
+                string selectedText = richTextBoxText.SelectedText;
+                if (string.IsNullOrEmpty(selectedText)) return;
+
+                bool endsWithNewLine = selectedText.EndsWith("\n") || selectedText.EndsWith("\r");
+
+                List<string> lines = new List<string>();
+                using (System.IO.StringReader sr = new System.IO.StringReader(selectedText))
+                {
+                    string? line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        lines.Add(line);
+                    }
+                }
+
+                if (sortMode == 1 || sortMode == 2)
+                {
+                    lines.Sort(StringComparer.CurrentCulture);
+                    if (sortMode == 2) lines.Reverse();
+                }
+                else
+                {
+                    // Preserve format logic
+                    var blocks = new List<List<string>>();
+                    List<string>? currentBlock = null;
+
+                    foreach (var line in lines)
+                    {
+                        bool isEmpty = string.IsNullOrWhiteSpace(line);
+
+                        if (!isEmpty)
+                        {
+                            currentBlock = new List<string>();
+                            currentBlock.Add(line);
+                            blocks.Add(currentBlock);
+                        }
+                        else
+                        {
+                            if (currentBlock == null)
+                            {
+                                currentBlock = new List<string>();
+                                blocks.Add(currentBlock);
+                            }
+                            currentBlock.Add(line);
+                        }
+                    }
+
+                    blocks.Sort((a, b) => {
+                        string keyA = (a.Count > 0) ? a[0] : "";
+                        string keyB = (b.Count > 0) ? b[0] : "";
+                        return StringComparer.CurrentCulture.Compare(keyA, keyB);
+                    });
+
+                    if (sortMode == 4) blocks.Reverse();
+
+                    lines.Clear();
+                    foreach (var block in blocks)
+                    {
+                        lines.AddRange(block);
+                    }
+                }
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    sb.Append(lines[i]);
+                    if (i < lines.Count - 1)
+                    {
+                        sb.Append("\r\n");
+                    }
+                    else
+                    {
+                        if (endsWithNewLine)
+                        {
+                            sb.Append("\r\n");
+                        }
+                    }
+                }
+
+                int finalStart = richTextBoxText.SelectionStart;
+                string newText = sb.ToString();
+                richTextBoxText.SelectedText = newText;
+                richTextBoxText.Select(finalStart, newText.Length);
             }
         }
     }
