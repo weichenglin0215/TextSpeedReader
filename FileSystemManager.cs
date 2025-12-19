@@ -11,7 +11,7 @@ namespace TextSpeedReader
         // 檔案瀏覽器根目錄路徑
         public string FullPath { get; set; } = @"C:/";
         // 支援的文字檔案類型
-        public string[] TextExtensions { get; } = { ".txt", ".cs", ".htm", ".html" };
+        public string[] TextExtensions { get; } = { ".txt", ".cs", ".yaml", ".htm", ".html" };
 
         // 最近閱讀檔案清單結構
         public struct RecentReadList

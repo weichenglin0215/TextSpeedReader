@@ -70,6 +70,8 @@ namespace TextSpeedReader
         private bool m_IsRightClick = false;
         // 記錄最後一次右鍵點擊的時間戳
         private DateTime m_LastRightClickTime = DateTime.MinValue;
+        // 記錄最近在 TreeView 上的滑鼠按鍵是否為右鍵（用於區分右鍵/左鍵行為）
+        private bool m_LastTreeMouseWasRight = false;
 
         // 標記當前檔案是否被修改過（文件載入後是否有編輯）
         private bool m_IsCurrentFileModified = false;
@@ -106,12 +108,21 @@ namespace TextSpeedReader
         public FormTextSpeedReader()
         {
             InitializeComponent();
+            toolStripButtonHTMLChangeFontChecker.CheckOnClick = true;
+            toolStripButtonHTMLChangeFontChecker.Text = toolStripButtonHTMLChangeFontChecker.Checked ? "✔改變HTML字體底色" : "　改變HTML字體底色";
+            toolStripButtonHTMLChangeFontChecker.Click += ToolStripButtonHTMLChangeFontChecker_Click;
 
             // 載入應用程式設定
             appSettings.LoadSettings();
 
             // 註冊 TreeView 展開事件
             this.treeViewFolder.BeforeExpand += treeViewFolder_BeforeExpand;
+            // 註冊 TreeView MouseDown 以便右鍵點擊時選取目標節點
+            this.treeViewFolder.MouseDown += treeViewFolder_MouseDown;
+            // 註冊 TreeView NodeMouseClick 以便重複點擊同一節點時也能檢查目錄是否存在
+            this.treeViewFolder.NodeMouseClick += treeViewFolder_NodeMouseClick;
+            // 使 TreeView 支援整行選取行為，類似 Windows 檔案總管
+            this.treeViewFolder.FullRowSelect = true;
 
             PopulateTreeViewAll(1);        // 初始化檔案樹狀圖（僅第一層以減少資源消耗）
             fileManager.LoadRecentReadList();           // 讀取最近閱讀清單
@@ -162,6 +173,12 @@ namespace TextSpeedReader
 
             // 初始化菜單狀態
             UpdateMenuStatus();
+            UpdateHistoryMenu(); // 初始化歷史紀錄菜單
+
+            // 啟用拖曳功能
+            this.AllowDrop = true;
+            this.DragEnter += FormTextSpeedReader_DragEnter;
+            this.DragDrop += FormTextSpeedReader_DragDrop;
         }
 
         #endregion
@@ -173,7 +190,7 @@ namespace TextSpeedReader
         {
             // 設定最小視窗大小
             MinimumSize = new Size(1320, 800);
-            // 獲取螢幕工作區域大小
+            // 獲取螞蟻工作區域大小
             Screen? primaryScreen = Screen.PrimaryScreen;
             if (primaryScreen != null)
             {
@@ -303,10 +320,54 @@ namespace TextSpeedReader
             if (newSelected.Tag == null || !(newSelected.Tag is DirectoryInfo))
                 return;
 
-            DirectoryInfo nodeDirInfo = (DirectoryInfo)newSelected.Tag;
-            if (newSelected.GetNodeCount(false) == 0)
+            // 重新建立 DirectoryInfo 並先檢查目錄是否存在
+            DirectoryInfo nodeDirInfo = new DirectoryInfo(((DirectoryInfo)newSelected.Tag).FullName);
+            string nodePath = nodeDirInfo.FullName;
+
+            if (!Directory.Exists(nodePath))
             {
-                fileManager.GetDirectories(nodeDirInfo.GetDirectories(), e.Node, 0, 1);
+                // 若不存在，更新樹狀結構並返回
+                HandleMissingDirectory(newSelected);
+                return;
+            }
+
+            // 嘗試載入子目錄（安全處理例外）
+            try
+            {
+                if (newSelected.GetNodeCount(false) == 0)
+                {
+                    // 先以 DirectoryInfo[] 取得子目錄，這裡再次檢查可能的 race condition
+                    DirectoryInfo[] children = Array.Empty<DirectoryInfo>();
+                    try
+                    {
+                        children = nodeDirInfo.GetDirectories();
+                    }
+                    catch (DirectoryNotFoundException)
+                    {
+                        HandleMissingDirectory(newSelected);
+                        return;
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // 標示為無存取權限並返回
+                        newSelected.Text += " (無存取權限)";
+                        UpdateFileSelectionStatus();
+                        return;
+                    }
+
+                    fileManager.GetDirectories(children, e.Node, 0, 1);
+                }
+            }
+            catch (DirectoryNotFoundException)
+            {
+                HandleMissingDirectory(newSelected);
+                return;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                newSelected.Text += " (無存取權限)";
+                UpdateFileSelectionStatus();
+                return;
             }
 
             // 更新檔案列表顯示
@@ -315,29 +376,51 @@ namespace TextSpeedReader
 
             // 開始更新檔案列表
             listViewFile.BeginUpdate();
-            foreach (FileInfo file in nodeDirInfo.GetFiles())
+            try
             {
-                // 只顯示支援的檔案類型
-                foreach (var itemExt in fileManager.TextExtensions)
+                FileInfo[] files;
+                try
                 {
-                    if (file.Extension.ToLower() == itemExt)
+                    files = nodeDirInfo.GetFiles();
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    HandleMissingDirectory(newSelected);
+                    return;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    newSelected.Text += " (無存取權限)";
+                    return;
+                }
+
+                foreach (FileInfo file in files)
+                {
+                    // 只顯示支援的檔案類型
+                    foreach (var itemExt in fileManager.TextExtensions)
                     {
-                        item = new ListViewItem(file.Name, 1);
-                        subItems = new ListViewItem.ListViewSubItem[]
-                           //{ new ListViewItem.ListViewSubItem(item, file.LastWriteTime.ToShortDateString())};
-                           { new ListViewItem.ListViewSubItem(item, file.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss"))};
-                        item.SubItems.AddRange(subItems);
-                        subItems = new ListViewItem.ListViewSubItem[]
-                           { new ListViewItem.ListViewSubItem(item, file.Length.ToString("N0"))};
-                        item.SubItems.AddRange(subItems); listViewFile.Items.Add(item);
+                        if (file.Extension.Equals(itemExt, StringComparison.OrdinalIgnoreCase))
+                        {
+                            item = new ListViewItem(file.Name, 1);
+                            subItems = new ListViewItem.ListViewSubItem[]
+                               //{ new ListViewItem.ListViewSubItem(item, file.LastWriteTime.ToShortDateString())};
+                               { new ListViewItem.ListViewSubItem(item, file.LastWriteTime.ToString("yyyy/MM/dd HH:mm:ss"))};
+                            item.SubItems.AddRange(subItems);
+                            subItems = new ListViewItem.ListViewSubItem[]
+                               { new ListViewItem.ListViewSubItem(item, file.Length.ToString("N0"))};
+                            item.SubItems.AddRange(subItems); listViewFile.Items.Add(item);
+                            break; // 找到符合的副檔名後可跳出內層迴圈
+                        }
                     }
                 }
             }
-
-            // 調整列寬並設定排序器
-            listViewFile.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
-            this.listViewFile.ListViewItemSorter = m_LvwColumnSorter;
-            listViewFile.EndUpdate();
+            finally
+            {
+                // 調整列寬並設定排序器
+                listViewFile.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+                this.listViewFile.ListViewItemSorter = m_LvwColumnSorter;
+                listViewFile.EndUpdate();
+            }
 
             // 如果有要選中的檔案名稱，重新選中它並保持滾動位置
             if (!string.IsNullOrEmpty(currentSelectedFileName))
@@ -353,48 +436,220 @@ namespace TextSpeedReader
             UpdateFileSelectionStatus();
         }
 
-        // 恢復選中檔案的位置（不觸發文件載入）
-        private void RestoreSelectedFilePosition(string fileName)
+        // 當節點對應的目錄不存在時，更新樹狀結構（移除或重整父節點）
+        private void HandleMissingDirectory(TreeNode missingNode)
         {
-            if (listViewFile.Items.Count == 0)
-                return;
-
+            MessageBox.Show("『" + (missingNode.Tag?.ToString() ?? "未知路徑") + "』目錄不存在，將自動更新目錄樹狀結構。", "目錄不存在", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             try
             {
-                // 暫時禁用 SelectedIndexChanged 事件，避免觸發文件載入
-                listViewFile.SelectedIndexChanged -= ListViewFile_SelectedIndexChanged;
-
-                // 找到對應的檔案項目
-                ListViewItem? targetItem = null;
-                foreach (ListViewItem item in listViewFile.Items)
+                // 步驟1: 記住該項目的完整路徑名稱
+                string missingPath = "";
+                if (missingNode.Tag is DirectoryInfo missingDirInfo)
                 {
-                    if (item.Text.Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                    missingPath = missingDirInfo.FullName;
+                }
+
+                // 如果無法取得路徑，直接移除節點並返回
+                if (string.IsNullOrEmpty(missingPath))
+                {
+                    missingNode.Remove();
+                    UpdateFileSelectionStatus();
+                    return;
+                }
+
+                // 步驟2: 暫停 treeViewFolder 顯示更新
+                treeViewFolder.BeginUpdate();
+
+                try
+                {
+                    // 步驟3: 從完整目錄路徑，一層一層往上找是否有存在的目錄
+                    string? existingPath = FindFirstExistingParentPath(missingPath);
+
+                    if (existingPath != null)
                     {
-                        targetItem = item;
-                        break;
+                        // 找到存在的目錄，去 treeViewFolder 找到相對的目錄項目並更新該項目下一層的樹狀結構
+                        TreeNode? existingNode = FindNodeByPath(existingPath);
+
+                        if (existingNode != null)
+                        {
+                            // 更新該節點下一層的樹狀結構
+                            RefreshNodeChildren(existingNode);
+
+                            // 選擇該存在的節點
+                            treeViewFolder.SelectedNode = existingNode;
+                            m_TreeViewSelectedNodeText = existingNode.FullPath;
+                            existingNode.EnsureVisible();
+                        }
+                        else
+                        {
+                            // 如果找不到對應的節點，移除原節點
+                            missingNode.Remove();
+                        }
+                    }
+                    else
+                    {
+                        // 如果沒有找到任何存在的父目錄（根節點被刪除），重新載入整個樹狀結構
+                        PopulateTreeViewAll(1);
                     }
                 }
-
-                if (targetItem != null)
+                finally
                 {
-                    // 選中該項目
-                    targetItem.Selected = true;
-                    targetItem.Focused = true;
-                    // 確保項目可見（保持當前滾動位置）
-                    targetItem.EnsureVisible();
+                    // 步驟4: 恢復 treeViewFolder 顯示更新
+                    treeViewFolder.EndUpdate();
                 }
 
-                // 重新啟用 SelectedIndexChanged 事件
-                listViewFile.SelectedIndexChanged += ListViewFile_SelectedIndexChanged;
+                UpdateFileSelectionStatus();
+            }
+            catch (Exception ex)
+            {
+                // 保證不拋出例外，但記錄錯誤訊息
+                Console.WriteLine($"HandleMissingDirectory 錯誤: {ex.Message}");
+                try
+                {
+                    // 確保即使發生錯誤也恢復更新
+                    treeViewFolder.EndUpdate();
+                }
+                catch { }
+            }
+        }
+
+        // 從指定路徑往上找第一個存在的父目錄路徑
+        private string? FindFirstExistingParentPath(string path)
+        {
+            try
+            {
+                // 從指定路徑開始，逐層往上檢查
+                string? currentPath = Path.GetDirectoryName(path);
+
+                while (!string.IsNullOrEmpty(currentPath))
+                {
+                    if (Directory.Exists(currentPath))
+                    {
+                        return currentPath;
+                    }
+
+                    // 往上一層
+                    currentPath = Path.GetDirectoryName(currentPath);
+                }
+
+                // 如果都找不到，返回 null
+                return null;
             }
             catch
             {
-                // 確保重新啟用事件（即使發生錯誤）
+                return null;
+            }
+        }
+
+        // 根據完整路徑在 treeViewFolder 中找到對應的節點
+        private TreeNode? FindNodeByPath(string path)
+        {
+            try
+            {
+                // 標準化路徑（移除結尾的反斜線）
+                path = path.TrimEnd('\\', '/');
+
+                // 遞迴搜尋所有節點
+                foreach (TreeNode rootNode in treeViewFolder.Nodes)
+                {
+                    TreeNode? found = FindNodeByPathRecursive(rootNode, path);
+                    if (found != null)
+                        return found;
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // 遞迴搜尋節點
+        private TreeNode? FindNodeByPathRecursive(TreeNode node, string targetPath)
+        {
+            try
+            {
+                if (node.Tag is DirectoryInfo dirInfo)
+                {
+                    string nodePath = dirInfo.FullName.TrimEnd('\\', '/');
+                    if (nodePath.Equals(targetPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return node;
+                    }
+                }
+
+                // 遞迴搜尋子節點
+                foreach (TreeNode child in node.Nodes)
+                {
+                    TreeNode? found = FindNodeByPathRecursive(child, targetPath);
+                    if (found != null)
+                        return found;
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // 刷新指定節點的子節點（重新載入）
+        private void RefreshNodeChildren(TreeNode node)
+        {
+            try
+            {
+                if (node.Tag is not DirectoryInfo dirInfo)
+                    return;
+
+                // 檢查目錄是否存在
+                if (!Directory.Exists(dirInfo.FullName))
+                    return;
+
+                // 清空現有子節點
+                node.Nodes.Clear();
+
+                // 重新載入子目錄
                 try
                 {
-                    listViewFile.SelectedIndexChanged += ListViewFile_SelectedIndexChanged;
+                    DirectoryInfo[] subDirs = dirInfo.GetDirectories();
+
+                    foreach (DirectoryInfo subDir in subDirs)
+                    {
+                        try
+                        {
+                            TreeNode childNode = new TreeNode(subDir.Name);
+                            childNode.Tag = subDir;
+                            childNode.ImageKey = "folder";
+
+                            // 檢查是否有子目錄（孫目錄），若有則添加 Dummy 節點以顯示 "+"
+                            if (HasSubDirectories(subDir))
+                            {
+                                childNode.Nodes.Add("Dummy");
+                            }
+
+                            node.Nodes.Add(childNode);
+                        }
+                        catch
+                        {
+                            // 忽略個別子目錄錯誤
+                        }
+                    }
                 }
-                catch { }
+                catch (UnauthorizedAccessException)
+                {
+                    // 無權限存取，標示節點
+                    node.Text += " (無存取權限)";
+                }
+                catch
+                {
+                    // 其他錯誤，忽略
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RefreshNodeChildren 錯誤: {ex.Message}");
             }
         }
 
@@ -1263,13 +1518,13 @@ namespace TextSpeedReader
                         {
                             int actualCutPos = punctuationPos + 1;
 
-                            // 規則2：如果找到的句點是連續兩個以上的句點或驚嘆號或問號，從最後一個符號之後去添加斷行符號
+                            // 規則2：如果找到的句點是連續兩個以上的句點或驚嘆號或問號，從最後一個符號之後去添加斻行符號
                             while (actualCutPos < line.Length && Array.IndexOf(punctuationMarks, line[actualCutPos]) >= 0)
                             {
                                 actualCutPos++;
                             }
 
-                            // 規則3：如果是句點或驚嘆號或問號之後有"」"，從"」"之後去添加斷行符號
+                            // 規則3：如果是句點或驚嘆號或問號之後有"」"，從"」"之後去添加斻行符號
                             if (actualCutPos < line.Length && line[actualCutPos] == '」')
                             {
                                 actualCutPos++;
@@ -1436,10 +1691,10 @@ namespace TextSpeedReader
             }
 
             // 更新檔案名稱到 toolStripStatusLabelFileName
-            // 如果路徑長度超過 40 個字，顯示前3個字+"..."+最後34個字
-            if (!string.IsNullOrEmpty(fullPath) && fullPath.Length > 36)
+            // 如果路徑長度超過 50 個字，顯示前10個字+"..."+最後37個字
+            if (!string.IsNullOrEmpty(fullPath) && fullPath.Length > 45)
             {
-                toolStripStatusLabelFileName.Text = fullPath.Substring(0, 3) + "..." + fullPath.Substring(fullPath.Length - 30);
+                toolStripStatusLabelFileName.Text = fullPath.Substring(0, 12) + "..." + fullPath.Substring(fullPath.Length - 30, 30);
             }
             else
             {
@@ -1450,8 +1705,11 @@ namespace TextSpeedReader
             int totalChars = richTextBoxText.Text.Length;
             int selectedChars = richTextBoxText.SelectionLength;
 
-            // 更新總字數和選取字數到 toolStripStatusLabelFixed
-            toolStripStatusLabelFixed.Text = $"總字數: {totalChars:N0} | 選取字數: {selectedChars:N0}";
+            // 獲取目前游標所在的行數 (0-indexed -> 1-indexed)
+            int currentLine = richTextBoxText.GetLineFromCharIndex(richTextBoxText.SelectionStart) + 1;
+
+            // 更新總字數、選取字數和目前行數到 toolStripStatusLabelFixed
+            toolStripStatusLabelFixed.Text = $"總字數: {totalChars:N0} | 選取字數: {selectedChars:N0} | 目前行數: {currentLine:N0}";
         }
 
         // 更新菜單項的啟用/禁用狀態
@@ -1746,6 +2004,8 @@ namespace TextSpeedReader
                     // 設定已保存（在 FormOptions 中已處理）
                     // 可以在這裡添加需要立即生效的設定處理
                 }
+                // 更新歷史紀錄菜單 (因為可能在選項中清除了歷史紀錄)
+                UpdateHistoryMenu();
             }
         }
 
@@ -1867,5 +2127,148 @@ namespace TextSpeedReader
 
         }
         */
+
+        // 更新歷史紀錄菜單
+        private void UpdateHistoryMenu()
+        {
+            toolStripDropDownButtonHistoryList.DropDownItems.Clear();
+
+            // 1. 最近開啟的目錄
+            if (appSettings.HistoryDirectories.Count > 0)
+            {
+                var headerDir = new ToolStripMenuItem("【最近開啟的目錄】");
+                headerDir.Enabled = false;
+                headerDir.ForeColor = Color.Blue;
+                toolStripDropDownButtonHistoryList.DropDownItems.Add(headerDir);
+
+                foreach (string dir in appSettings.HistoryDirectories)
+                {
+                    if (Directory.Exists(dir))
+                    {
+                        var item = new ToolStripMenuItem(dir);
+                        item.Image = imageList1.Images["folder"]; // 假設有 folder 圖示
+                        item.Tag = dir;
+                        item.Click += OnHistoryDirectoryClick;
+                        toolStripDropDownButtonHistoryList.DropDownItems.Add(item);
+                    }
+                }
+            }
+
+            // 分隔線
+            if (appSettings.HistoryDirectories.Count > 0 && appSettings.HistoryFiles.Count > 0)
+            {
+                toolStripDropDownButtonHistoryList.DropDownItems.Add(new ToolStripSeparator());
+            }
+
+            // 2. 最近開啟的檔案
+            if (appSettings.HistoryFiles.Count > 0)
+            {
+                var headerFile = new ToolStripMenuItem("【最近開啟的檔案】");
+                headerFile.Enabled = false;
+                headerFile.ForeColor = Color.Blue;
+                toolStripDropDownButtonHistoryList.DropDownItems.Add(headerFile);
+
+                foreach (string file in appSettings.HistoryFiles)
+                {
+                    if (File.Exists(file))
+                    {
+                        var item = new ToolStripMenuItem(Path.GetFileName(file));
+                        item.ToolTipText = file;
+                        item.Tag = file;
+                        item.Image = imageList1.Images["file"]; // 假設有 file 圖示
+                        item.Click += OnHistoryFileClick;
+                        toolStripDropDownButtonHistoryList.DropDownItems.Add(item);
+                    }
+                }
+            }
+        }
+
+        private void OnHistoryDirectoryClick(object sender, EventArgs e)
+        {
+            if (sender is ToolStripMenuItem item && item.Tag is string dirPath)
+            {
+                ExpandToLastDirectory(dirPath);
+            }
+        }
+
+        private void OnHistoryFileClick(object sender, EventArgs e)
+        {
+            if (sender is ToolStripMenuItem item && item.Tag is string filePath)
+            {
+                string dir = Path.GetDirectoryName(filePath);
+                string fileName = Path.GetFileName(filePath);
+
+                if (Directory.Exists(dir))
+                {
+                    ExpandToLastDirectory(dir);
+                    // 尋找並選取檔案
+                    foreach (ListViewItem lvItem in listViewFile.Items)
+                    {
+                        if (lvItem.Text.Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            lvItem.Selected = true;
+                            lvItem.EnsureVisible();
+                            // 手動觸發選擇事件以開啟檔案
+                            ListViewFile_SelectedIndexChanged(listViewFile, EventArgs.Empty);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void toolStripMenuItem_InsertBeginingEndByInsertText_Click(object sender, EventArgs e)
+        {
+            InsertBeginingEndByInsertText();
+        }
+
+        private void toolStripMenuItem_DeleteDirectory_Click(object sender, EventArgs e)
+        {
+            DeleteDirectory();
+        }
+
+        // 恢復選中檔案的位置（不觸發文件載入）
+        private void RestoreSelectedFilePosition(string fileName)
+        {
+            if (listViewFile.Items.Count == 0)
+                return;
+
+            try
+            {
+                // 暫時禁用 SelectedIndexChanged 事件，避免觸發文件載入
+                listViewFile.SelectedIndexChanged -= ListViewFile_SelectedIndexChanged;
+
+                // 找到對應的檔案項目
+                ListViewItem? targetItem = null;
+                foreach (ListViewItem item in listViewFile.Items)
+                {
+                    if (item.Text.Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        targetItem = item;
+                        break;
+                    }
+                }
+
+                if (targetItem != null)
+                {
+                    targetItem.Selected = true;
+                    targetItem.Focused = true;
+                    // 確保項目可見（保持當前滾動位置）
+                    targetItem.EnsureVisible();
+                }
+
+                // 重新啟用 SelectedIndexChanged 事件
+                listViewFile.SelectedIndexChanged += ListViewFile_SelectedIndexChanged;
+            }
+            catch
+            {
+                // 確保重新啟用事件（即使發生錯誤）
+                try
+                {
+                    listViewFile.SelectedIndexChanged += ListViewFile_SelectedIndexChanged;
+                }
+                catch { }
+            }
+        }
     }
 }

@@ -1390,5 +1390,130 @@ namespace TextSpeedReader
                 richTextBoxText.Select(finalStart, newText.Length);
             }
         }
+
+        private void InsertBeginingEndByInsertText()
+        {
+            // 取得原始/選取內容和位置
+            string text;
+            bool processWholeDocument;
+            int selectionStart = richTextBoxText.SelectionStart;
+            int selectionLength = richTextBoxText.SelectionLength;
+
+            if (selectionLength > 0)
+            {
+                text = richTextBoxText.SelectedText;
+                processWholeDocument = false;
+            }
+            else
+            {
+                text = richTextBoxText.Text;
+                processWholeDocument = true;
+            }
+
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            // 取用設定中的插入字串
+            string insertBegin = appSettings.InsertBeginingText ?? "";
+            string insertEnd = appSettings.InsertEndText ?? "";
+
+            // 按行處理，保留原有換行符
+            List<string> lines = new List<string>();
+            List<string> lineBreaks = new List<string>();
+
+            int pos = 0;
+            while (pos < text.Length)
+            {
+                int lineEnd = pos;
+                string foundBreak = "";
+                while (lineEnd < text.Length)
+                {
+                    if (text[lineEnd] == '\r')
+                    {
+                        if (lineEnd + 1 < text.Length && text[lineEnd + 1] == '\n')
+                        {
+                            foundBreak = "\r\n";
+                            break;
+                        }
+                        else
+                        {
+                            foundBreak = "\r";
+                            break;
+                        }
+                    }
+                    else if (text[lineEnd] == '\n')
+                    {
+                        foundBreak = "\n";
+                        break;
+                    }
+                    lineEnd++;
+                }
+
+                string line = text.Substring(pos, lineEnd - pos);
+                lines.Add(line);
+                lineBreaks.Add(foundBreak);
+
+                if (string.IsNullOrEmpty(foundBreak))
+                    pos = lineEnd;
+                else
+                    pos = lineEnd + foundBreak.Length;
+            }
+
+            StringBuilder result = new StringBuilder();
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string line = lines[i];
+                string br = lineBreaks[i];
+
+                // 若該行只有空白或TAB，則不插入
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    result.Append(line);
+                    result.Append(br);
+                    continue;
+                }
+
+                // 檢查行首是否已具有 insertBegin
+                bool hasBegin = false;
+                if (!string.IsNullOrEmpty(insertBegin) && line.Length >= insertBegin.Length)
+                {
+                    if (line.StartsWith(insertBegin)) hasBegin = true;
+                }
+
+                // 檢查行尾是否已具有 insertEnd
+                bool hasEnd = false;
+                if (!string.IsNullOrEmpty(insertEnd) && line.Length >= insertEnd.Length)
+                {
+                    if (line.EndsWith(insertEnd)) hasEnd = true;
+                }
+
+                if (!hasBegin)
+                    line = insertBegin + line;
+                if (!hasEnd)
+                    line = line + insertEnd;
+
+                result.Append(line);
+                result.Append(br);
+            }
+
+            // 套用結果
+            if (processWholeDocument)
+            {
+                int originalSelectionStart = richTextBoxText.SelectionStart;
+                richTextBoxText.Text = result.ToString();
+                if (originalSelectionStart < richTextBoxText.Text.Length)
+                    richTextBoxText.SelectionStart = originalSelectionStart;
+                else
+                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                richTextBoxText.ScrollToCaret();
+            }
+            else
+            {
+                int selStart = richTextBoxText.SelectionStart;
+                richTextBoxText.SelectedText = result.ToString();
+                int newLength = result.Length;
+                richTextBoxText.Select(selStart, newLength);
+            }
+        }
     }
 }

@@ -38,6 +38,11 @@ namespace TextSpeedReader
             textBoxNewLineEndJudgment = new TextBox();
             label3 = new Label();
             numericUpDown_AddSpaceChrCount = new NumericUpDown();
+            buttonClearHistory = new Button();
+            this.textBoxInsertEndText = new TextBox();
+            textBoxInsertBeginingText = new TextBox();
+            label4 = new Label();
+            label5 = new Label();
             ((System.ComponentModel.ISupportInitialize)numericUpDown_AddSpaceChrCount).BeginInit();
             SuspendLayout();
             // 
@@ -56,7 +61,7 @@ namespace TextSpeedReader
             // 
             // buttonOK
             // 
-            buttonOK.Location = new Point(230, 249);
+            buttonOK.Location = new Point(230, 368);
             buttonOK.Margin = new Padding(4);
             buttonOK.Name = "buttonOK";
             buttonOK.Size = new Size(143, 40);
@@ -67,7 +72,7 @@ namespace TextSpeedReader
             // 
             // buttonCancel
             // 
-            buttonCancel.Location = new Point(387, 249);
+            buttonCancel.Location = new Point(387, 368);
             buttonCancel.Margin = new Padding(4);
             buttonCancel.Name = "buttonCancel";
             buttonCancel.Size = new Size(143, 40);
@@ -141,14 +146,64 @@ namespace TextSpeedReader
             numericUpDown_AddSpaceChrCount.TextAlign = HorizontalAlignment.Center;
             numericUpDown_AddSpaceChrCount.Value = new decimal(new int[] { 4, 0, 0, 0 });
             // 
+            // buttonClearHistory
+            // 
+            buttonClearHistory.Location = new Point(29, 368);
+            buttonClearHistory.Margin = new Padding(4);
+            buttonClearHistory.Name = "buttonClearHistory";
+            buttonClearHistory.Size = new Size(180, 40);
+            buttonClearHistory.TabIndex = 10;
+            buttonClearHistory.Text = "清除歷史紀錄";
+            buttonClearHistory.UseVisualStyleBackColor = true;
+            buttonClearHistory.Click += buttonClearHistory_Click;
+            // 
+            // textBoxInsertEndText
+            // 
+            this.textBoxInsertEndText.Location = new Point(206, 299);
+            this.textBoxInsertEndText.Name = "textBoxInsertEndText";
+            this.textBoxInsertEndText.Size = new Size(324, 28);
+            this.textBoxInsertEndText.TabIndex = 14;
+            this.textBoxInsertEndText.Text = ", ";
+            // 
+            // textBoxInsertBeginingText
+            // 
+            textBoxInsertBeginingText.Location = new Point(206, 261);
+            textBoxInsertBeginingText.Name = "textBoxInsertBeginingText";
+            textBoxInsertBeginingText.Size = new Size(324, 28);
+            textBoxInsertBeginingText.TabIndex = 13;
+            textBoxInsertBeginingText.Text = "\"";
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(29, 302);
+            label4.Name = "label4";
+            label4.Size = new Size(137, 20);
+            label4.TabIndex = 12;
+            label4.Text = "插入每行結尾字串";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(29, 264);
+            label5.Name = "label5";
+            label5.Size = new Size(137, 20);
+            label5.TabIndex = 11;
+            label5.Text = "插入每行開頭字串";
+            // 
             // FormOptions
             // 
             AcceptButton = buttonOK;
             AutoScaleDimensions = new SizeF(10F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = buttonCancel;
-            ClientSize = new Size(543, 302);
+            ClientSize = new Size(543, 423);
+            Controls.Add(this.textBoxInsertEndText);
+            Controls.Add(textBoxInsertBeginingText);
+            Controls.Add(label4);
+            Controls.Add(label5);
             Controls.Add(numericUpDown_AddSpaceChrCount);
+            Controls.Add(buttonClearHistory);
             Controls.Add(label3);
             Controls.Add(textBoxNewLineEndJudgment);
             Controls.Add(textBoxNewLineStartJudgment);
@@ -183,6 +238,12 @@ namespace TextSpeedReader
         private TextBox textBoxNewLineEndJudgment;
         private Label label3;
         private NumericUpDown numericUpDown_AddSpaceChrCount;
+        private Button buttonClearHistory;
+        private TextBox textBox1;
+        private TextBox textBoxInsertBeginingText;
+        private Label label4;
+        private Label label5;
+        private TextBox textBoxInsertEndText;
     }
 }
 

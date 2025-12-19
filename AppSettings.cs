@@ -20,7 +20,17 @@ namespace TextSpeedReader
         public float LastFontSize { get; set; } = 12.0f; // 上次使用的字型大小
         public int AddSpaceChrCount { get; set; } = 4; // 每行行首增加空白字元數
         public string NewLineStartJudgment { get; set; } = "/*新咒語開始------------------- */"; // 新行開頭的判定字串
+
         public string NewLineEndJudgment { get; set; } = "/*新咒語結束-------------------- */"; // 新行結尾的判定字串
+
+        // 新增：插入每行開頭/結尾字串的設定
+        public string InsertBeginingText { get; set; } = "\""; // 預設為 '"'
+        public string InsertEndText { get; set; } = "\", "; // 預設為 '", '
+
+        // 歷史紀錄
+        public System.Collections.Generic.List<string> HistoryFiles { get; set; } = new System.Collections.Generic.List<string>();
+        public System.Collections.Generic.List<string> HistoryDirectories { get; set; } = new System.Collections.Generic.List<string>();
+        public const int MaxHistoryCount = 10;
 
         /// <summary>
         /// 載入設定
@@ -97,6 +107,24 @@ namespace TextSpeedReader
                                 case "NewLineEndJudgment":
                                     NewLineEndJudgment = value;
                                     break;
+                                case "InsertBeginingText":
+                                    InsertBeginingText = value;
+                                    break;
+                                case "InsertEndText":
+                                    InsertEndText = value;
+                                    break;
+                                case "HistoryFiles":
+                                    if (!string.IsNullOrEmpty(value))
+                                    {
+                                        HistoryFiles = new System.Collections.Generic.List<string>(value.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries));
+                                    }
+                                    break;
+                                case "HistoryDirectories":
+                                    if (!string.IsNullOrEmpty(value))
+                                    {
+                                        HistoryDirectories = new System.Collections.Generic.List<string>(value.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries));
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -127,11 +155,43 @@ namespace TextSpeedReader
                     writer.WriteLine($"AddSpaceChrCount={AddSpaceChrCount}");
                     writer.WriteLine($"NewLineStartJudgment={NewLineStartJudgment}");
                     writer.WriteLine($"NewLineEndJudgment={NewLineEndJudgment}");
+                    writer.WriteLine($"InsertBeginingText={InsertBeginingText}");
+                    writer.WriteLine($"InsertEndText={InsertEndText}");
+                    writer.WriteLine($"HistoryFiles={string.Join("|", HistoryFiles)}");
+                    writer.WriteLine($"HistoryDirectories={string.Join("|", HistoryDirectories)}");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"儲存設定檔失敗: {ex.Message}");
+            }
+        }
+
+        public void AddHistoryFile(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath)) return;
+            // 移除重複（如果已存在）
+            HistoryFiles.RemoveAll(f => f.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+            // 插入到最前面
+            HistoryFiles.Insert(0, filePath);
+            // 保持最大數量
+            if (HistoryFiles.Count > MaxHistoryCount)
+            {
+                HistoryFiles.RemoveRange(MaxHistoryCount, HistoryFiles.Count - MaxHistoryCount);
+            }
+        }
+
+        public void AddHistoryDirectory(string dirPath)
+        {
+            if (string.IsNullOrEmpty(dirPath)) return;
+            // 移除重複
+            HistoryDirectories.RemoveAll(d => d.Equals(dirPath, StringComparison.OrdinalIgnoreCase));
+            // 插入到最前面
+            HistoryDirectories.Insert(0, dirPath);
+            // 保持最大數量
+            if (HistoryDirectories.Count > MaxHistoryCount)
+            {
+                HistoryDirectories.RemoveRange(MaxHistoryCount, HistoryDirectories.Count - MaxHistoryCount);
             }
         }
     }

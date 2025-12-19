@@ -22,6 +22,9 @@
     <Compile Update="FormTextSpeedReader.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="FormTextSpeedReader.DragDrop.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="FormTextSpeedReader.FileBrowser.cs">
       <SubType>Form</SubType>
     </Compile>

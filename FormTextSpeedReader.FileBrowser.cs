@@ -245,6 +245,64 @@ namespace TextSpeedReader
             }
         }
 
+        // 處理 TreeView 的 MouseDown，用於右鍵選取目錄項目並記錄按鍵
+        private void treeViewFolder_MouseDown(object sender, MouseEventArgs e)
+        {
+            TreeNode? node = treeViewFolder.GetNodeAt(e.Location);
+            if (node != null)
+            {
+                // 當右鍵點擊某個節點時，將該節點設為選中（使右鍵選單等操作針對該節點）
+                if (e.Button == MouseButtons.Right)
+                {
+                    treeViewFolder.SelectedNode = node;
+                    m_LastTreeMouseWasRight = true;
+                }
+                else
+                {
+                    m_LastTreeMouseWasRight = false;
+                }
+            }
+            else
+            {
+                // 如果沒有點擊到節點，重置標記
+                m_LastTreeMouseWasRight = false;
+            }
+        }
+
+        // 處理 TreeView 的 NodeMouseClick，用於檢查重複點擊同一節點時目錄是否存在
+        private void treeViewFolder_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
+        {
+            // 只處理左鍵點擊
+            if (e.Button != MouseButtons.Left)
+                return;
+
+            TreeNode clickedNode = e.Node;
+            if (clickedNode == null)
+                return;
+
+            // 檢查是否點擊的是當前已選中的節點
+            bool isAlreadySelected = (treeViewFolder.SelectedNode == clickedNode);
+
+            if (isAlreadySelected)
+            {
+                // 點擊已選中的節點，檢查目錄是否仍然存在
+                if (clickedNode.Tag is DirectoryInfo dirInfo)
+                {
+                    if (!Directory.Exists(dirInfo.FullName))
+                    {
+                        // 目錄不存在，手動觸發處理
+                        HandleMissingDirectory(clickedNode);
+                    }
+                    else
+                    {
+                        // 目錄存在，手動觸發 AfterSelect 以重新載入檔案列表
+                        treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(clickedNode));
+                    }
+                }
+            }
+            // 如果不是已選中的節點，AfterSelect 事件會自動處理
+        }
+
         // 處理檔案列表滑鼠點擊事件（用於區分左右鍵）
         private void ListViewFile_MouseClick(object sender, MouseEventArgs e)
         {
@@ -283,7 +341,7 @@ namespace TextSpeedReader
             // 檢查是否為文字檔案
             Console.WriteLine("this.listViewFile.SelectedItems.Count " + this.listViewFile.SelectedItems.Count);
             //Console.WriteLine("this.listViewFile.SelectedItems[0].Text " + this.listViewFile.SelectedItems[0].Text);
-            if (this.listViewFile.SelectedItems.Count > 0 && Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower() == ".txt")
+            if (this.listViewFile.SelectedItems.Count > 0 && Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower() == ".txt" || Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower() == ".yaml")
             {
                 string tmpFullFileName = m_TreeViewSelectedNodeText + @"\" + this.listViewFile.SelectedItems[0].Text;
 
@@ -438,6 +496,12 @@ namespace TextSpeedReader
 
                     // 更新菜單狀態
                     UpdateMenuStatus();
+
+                    // 加入歷史紀錄
+                    appSettings.AddHistoryFile(tmpFullFileName);
+                    string? dir = Path.GetDirectoryName(tmpFullFileName);
+                    if (dir != null) appSettings.AddHistoryDirectory(dir);
+                    UpdateHistoryMenu();
                 }
             }
 
@@ -455,13 +519,29 @@ namespace TextSpeedReader
                     // 讀取並處理HTML檔案內容，確保正確編碼顯示
                     LoadHtmlFileWithEncoding(m_CurrentHtmlFilePath);
 
-                    // 更新狀態欄：顯示HTML檔案名稱，清空固定狀態欄
+                    // 更新狀態欄：顯示HTML檔案名稱到 toolStripStatusLabelFileName，清空固定狀態欄
                     string htmlFileName = Path.GetFileName(m_CurrentHtmlFilePath);
-                    toolStripStatusLabelFileName.Text = htmlFileName;
+                    string htmlFileFullName = m_CurrentHtmlFilePath;
+                    // 更新檔案名稱到 toolStripStatusLabelFileName
+                    // 如果路徑長度超過 50 個字，顯示前10個字+"..."+最後37個字
+                    if (!string.IsNullOrEmpty(htmlFileFullName) && htmlFileFullName.Length > 45)
+                    {
+                        toolStripStatusLabelFileName.Text = htmlFileFullName.Substring(0, 12) + "..." + htmlFileFullName.Substring(htmlFileFullName.Length - 30,30);
+                    }
+                    else
+                    {
+                        toolStripStatusLabelFileName.Text = htmlFileFullName;
+                    }
                     toolStripStatusLabelFixed.Text = "";
 
                     // 更新菜單狀態
                     UpdateMenuStatus();
+
+                    // 加入歷史紀錄
+                    appSettings.AddHistoryFile(m_CurrentHtmlFilePath);
+                    string? dir = Path.GetDirectoryName(m_CurrentHtmlFilePath);
+                    if (dir != null) appSettings.AddHistoryDirectory(dir);
+                    UpdateHistoryMenu();
                 }
                 catch (System.UriFormatException exc)
                 {
@@ -602,6 +682,63 @@ namespace TextSpeedReader
                         throw;
                     }
                 }
+            }
+        }
+
+        // 比較節點的目前子目錄與實際檔案系統，若不同則重新載入該節點的子目錄
+        private void RefreshChildNodesIfChanged(TreeNode node)
+        {
+            if (node == null || node.Tag == null || !(node.Tag is DirectoryInfo dirInfo))
+                return;
+
+            try
+            {
+                // 取得實際的第一層子目錄名稱集合
+                string[] actualSubDirs = Array.Empty<string>();
+                try
+                {
+                    actualSubDirs = Directory.GetDirectories(dirInfo.FullName)
+                        .Select(d => Path.GetFileName(d) ?? d).ToArray();
+                }
+                catch { /* 權限或其他錯誤時忽略 */ }
+
+                // 取得目前 TreeNode 下的子節點名稱集合（忽略 Dummy）
+                var nodeNames = new List<string>();
+                foreach (TreeNode child in node.Nodes)
+                {
+                    if (child.Text == "Dummy") continue;
+                    nodeNames.Add(child.Text);
+                }
+
+                bool different = false;
+                if (nodeNames.Count != actualSubDirs.Length)
+                {
+                    different = true;
+                }
+                else
+                {
+                    // 比對名稱清單（不分大小寫）
+                    var setA = new HashSet<string>(nodeNames, StringComparer.OrdinalIgnoreCase);
+                    foreach (var sd in actualSubDirs)
+                    {
+                        if (!setA.Contains(sd))
+                        {
+                            different = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (different)
+                {
+                    // 重新載入該節點的子目錄
+                    node.Nodes.Clear();
+                    LoadDirectories(node);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RefreshChildNodesIfChanged error: {ex.Message}");
             }
         }
     }

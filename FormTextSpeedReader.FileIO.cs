@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.IO;
 using Microsoft.VisualBasic;
 using System.Drawing;
+using Microsoft.VisualBasic.FileIO;
 
 namespace TextSpeedReader
 {
@@ -98,6 +99,74 @@ namespace TextSpeedReader
             }
         }
 
+        private void DeleteDirectory()
+        {
+            // 刪除該目錄，並重新整理跟該目錄相關的treeViewFolder的樹狀結構項目。
+            if (treeViewFolder.SelectedNode == null)
+            {
+                MessageBox.Show("請先選擇要刪除的資料夾。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            TreeNode selectedNode = treeViewFolder.SelectedNode;
+            DirectoryInfo? dirInfo = selectedNode.Tag as DirectoryInfo;
+            if (dirInfo == null)
+            {
+                MessageBox.Show("所選項目不是資料夾。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string fullPath = dirInfo.FullName;
+
+            // 不允許刪除根目錄
+            if (Path.GetPathRoot(fullPath).Equals(fullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("無法刪除磁碟機根目錄。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var dr = MessageBox.Show($"確定要將資料夾\n\"{fullPath}\"\n移到資源回收筒嗎？", "刪除確認", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr != DialogResult.Yes)
+                return;
+
+            try
+            {
+                // 使用資源回收筒刪除
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(fullPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+
+                // 更新 tree view：移除節點並選取父節點
+                TreeNode parent = selectedNode.Parent;
+                if (parent != null)
+                {
+                    parent.Nodes.Remove(selectedNode);
+                    treeViewFolder.SelectedNode = parent;
+                    // 更新 m_TreeViewSelectedNodeText
+                    if (parent.Tag is DirectoryInfo pd)
+                        m_TreeViewSelectedNodeText = pd.FullName;
+                    else
+                        m_TreeViewSelectedNodeText = parent.FullPath;
+
+                    // 重新載入父節點下的檔案列表
+                    treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(parent));
+                }
+                else
+                {
+                    // 如果沒有父節點（應該很少發生），直接從根移除並清空檔案列表
+                    treeViewFolder.Nodes.Remove(selectedNode);
+                    m_TreeViewSelectedNodeText = string.Empty;
+                    listViewFile.Items.Clear();
+                    richTextBoxText.Text = string.Empty;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // 使用者取消或系統拒絕，無需處理
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"刪除失敗：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         private void SaveCurrentFile()
         {
             SaveCurrentFile(true);

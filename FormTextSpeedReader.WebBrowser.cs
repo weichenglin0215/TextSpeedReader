@@ -78,6 +78,9 @@ namespace TextSpeedReader
             if (webBrowser1.Document == null)
                 return;
 
+            if (!toolStripButtonHTMLChangeFontChecker.Checked)
+                return;
+
             try
             {
                 // 獲取當前 richTextBoxText 的字體設定作為參考
@@ -139,6 +142,9 @@ namespace TextSpeedReader
             if (webBrowser1.Document == null)
                 return;
 
+            if (!toolStripButtonHTMLChangeFontChecker.Checked)
+                return;
+
             try
             {
                 // 獲取當前 richTextBoxText 的字體設定作為參考
@@ -169,6 +175,24 @@ namespace TextSpeedReader
             {
                 // 如果設置樣式失敗，不影響其他功能
                 Console.WriteLine($"設置 WebBrowser 樣式時發生錯誤: {ex.Message}");
+            }
+        }
+
+        private void ToolStripButtonHTMLChangeFontChecker_Click(object sender, EventArgs e)
+        {
+            toolStripButtonHTMLChangeFontChecker.Text = toolStripButtonHTMLChangeFontChecker.Checked ? "✔改變HTML字體底色" : "　改變HTML字體底色";
+            
+            if (toolStripButtonHTMLChangeFontChecker.Checked)
+            {
+                ApplyWebBrowserDefaultStyle();
+            }
+            else
+            {
+                // 重整以恢復預設樣式
+                if (webBrowser1.Url != null)
+                {
+                    webBrowser1.Refresh();
+                }
             }
         }
 
