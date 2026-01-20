@@ -269,57 +269,8 @@ namespace TextSpeedReader
             }
         }
 
-        // 處理 TreeView 的 NodeMouseClick，用於檢查重複點擊同一節點時目錄是否存在
-        private void treeViewFolder_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
-        {
-            // 只處理左鍵點擊
-            if (e.Button != MouseButtons.Left)
-                return;
-
-            TreeNode clickedNode = e.Node;
-            if (clickedNode == null)
-                return;
-
-            // 檢查是否點擊的是當前已選中的節點
-            bool isAlreadySelected = (treeViewFolder.SelectedNode == clickedNode);
-
-            if (isAlreadySelected)
-            {
-                // 點擊已選中的節點，檢查目錄是否仍然存在
-                if (clickedNode.Tag is DirectoryInfo dirInfo)
-                {
-                    if (!Directory.Exists(dirInfo.FullName))
-                    {
-                        // 目錄不存在，手動觸發處理
-                        HandleMissingDirectory(clickedNode);
-                    }
-                    else
-                    {
-                        // 目錄存在，手動觸發 AfterSelect 以重新載入檔案列表
-                        treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(clickedNode));
-                    }
-                }
-            }
-            // 如果不是已選中的節點，AfterSelect 事件會自動處理
-        }
-
-        // 處理檔案列表滑鼠點擊事件（用於區分左右鍵）
-        private void ListViewFile_MouseClick(object sender, MouseEventArgs e)
-        {
-            // 記錄是否為右鍵點擊
-            if (e.Button == MouseButtons.Right)
-            {
-                m_IsRightClick = true;
-                m_LastRightClickTime = DateTime.Now;
-            }
-            else
-            {
-                m_IsRightClick = false;
-            }
-        }
-
         // 處理檔案列表選擇變更事件
-        private void ListViewFile_SelectedIndexChanged(object sender, EventArgs e)
+        private void ListViewFileSelectedIndexChanged(object sender, EventArgs e)
         {
             // 更新狀態欄顯示檔案數量和選取數量
             UpdateFileSelectionStatus();

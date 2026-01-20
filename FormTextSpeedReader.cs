@@ -434,6 +434,7 @@ namespace TextSpeedReader
 
             // 更新狀態欄顯示檔案數量和選取數量
             UpdateFileSelectionStatus();
+            UpdateMenuStatus();
         }
 
         // 當節點對應的目錄不存在時，更新樹狀結構（移除或重整父節點）
@@ -1731,6 +1732,27 @@ namespace TextSpeedReader
             // 更新HTML相關菜單項的狀態
             toolStripMenuItem_CopyHtmlSaveFile.Enabled = hasHtmlFileOpen;
             toolStripMenuItem_CopyHtmlSaveFileSimplified.Enabled = hasHtmlFileOpen;
+
+            // 更新檔案列表相關菜單項的狀態
+            bool hasFileSelected = listViewFile.SelectedItems.Count > 0;
+            //toolStripMenuItem_ReCodeFileName.Enabled = hasFileSelected;
+            //toolStripMenuItem_RenameFile.Enabled = hasFileSelected;
+            //toolStripMenuItem_DelFiles.Enabled = hasFileSelected;
+            toolStripMenuItem_ReCodeFileName.Enabled = true;
+            toolStripMenuItem_RenameFile.Enabled = true;
+            toolStripMenuItem_DelFiles.Enabled = true;
+            toolStripMenuItem_ConvertSimple.Enabled = hasFileSelected;
+            toolStripMenuItem_ConvertTraditional.Enabled = hasFileSelected;
+            //toolStripMenuItem_FileNameSim2Trad.Enabled = hasFileSelected;
+            toolStripMenuItem_FileNameSim2Trad.Enabled = true;
+
+            // 更新目錄樹相關菜單項的狀態
+            bool hasFolderSelected = treeViewFolder.SelectedNode != null && treeViewFolder.SelectedNode.Tag is DirectoryInfo;
+            toolStripMenuItem_ReCodeFolderName.Enabled = hasFolderSelected;
+            toolStripMenuItem_RenameDirectory.Enabled = hasFolderSelected;
+            toolStripMenuItem_DeleteDirectory.Enabled = hasFolderSelected;
+            toolStripMenuItem_OpenFileManager.Enabled = hasFolderSelected;
+            toolStripMenuItem_FolderNameSim2Trad.Enabled = hasFolderSelected;
         }
 
         // 處理 richTextBoxText 文字變更事件
@@ -2217,6 +2239,61 @@ namespace TextSpeedReader
             }
         }
 
+
+        // 處理 TreeView 的 NodeMouseClick，用於檢查重複點擊同一節點時目錄是否存在
+        private void treeViewFolder_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
+        {
+            // 只處理左鍵點擊
+            if (e.Button != MouseButtons.Left)
+                return;
+
+            TreeNode clickedNode = e.Node;
+            if (clickedNode == null)
+                return;
+
+            // 檢查是否點擊的是當前已選中的節點
+            bool isAlreadySelected = (treeViewFolder.SelectedNode == clickedNode);
+
+            if (isAlreadySelected)
+            {
+                // 點擊已選中的節點，檢查目錄是否仍然存在
+                if (clickedNode.Tag is DirectoryInfo dirInfo)
+                {
+                    if (!Directory.Exists(dirInfo.FullName))
+                    {
+                        // 目錄不存在，手動觸發處理
+                        HandleMissingDirectory(clickedNode);
+                    }
+                    else
+                    {
+                        // 目錄存在，手動觸發 AfterSelect 以重新載入檔案列表
+                        treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(clickedNode));
+                    }
+                }
+            }
+            // 如果不是已選中的節點，AfterSelect 事件會自動處理
+        }
+
+        // 處理檔案列表滑鼠點擊事件（用於區分左右鍵）
+        private void ListViewFile_MouseClick(object sender, MouseEventArgs e)
+        {
+            // 記錄是否為右鍵點擊
+            if (e.Button == MouseButtons.Right)
+            {
+                m_IsRightClick = true;
+                m_LastRightClickTime = DateTime.Now;
+            }
+            else
+            {
+                m_IsRightClick = false;
+            }
+        }
+
+
+        private void ListViewFile_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ListViewFileSelectedIndexChanged(sender, e);
+        }
         private void toolStripMenuItem_InsertBeginingEndByInsertText_Click(object sender, EventArgs e)
         {
             InsertBeginingEndByInsertText();
@@ -2269,6 +2346,26 @@ namespace TextSpeedReader
                 }
                 catch { }
             }
+        }
+
+        private void toolStripMenuItem_ReCodeFileName_Click(object sender, EventArgs e)
+        {
+            ReCodeFileName();
+        }
+
+        private void toolStripMenuItem_ReCodeFolderName_Click(object sender, EventArgs e)
+        {
+            ReCodeFolderName();
+        }
+
+        private void toolStripMenuItem_FileNameSim2Trad_Click(object sender, EventArgs e)
+        {
+            FileNameSim2Trad();
+        }
+
+        private void toolStripMenuItem_FolderNameSim2Trad_Click(object sender, EventArgs e)
+        {
+            FolderNameSim2Trad();
         }
     }
 }

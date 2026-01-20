@@ -44,6 +44,8 @@ namespace TextSpeedReader
             toolStripMenuItem_OpenFileManager = new ToolStripMenuItem();
             toolStripMenuItem_RenameDirectory = new ToolStripMenuItem();
             toolStripMenuItem_DeleteDirectory = new ToolStripMenuItem();
+            toolStripMenuItem_ReCodeFolderName = new ToolStripMenuItem();
+            toolStripMenuItem_FolderNameSim2Trad = new ToolStripMenuItem();
             imageList1 = new ImageList(components);
             listViewFile = new ListView();
             columnHeader1 = new ColumnHeader();
@@ -57,6 +59,8 @@ namespace TextSpeedReader
             toolStripSeparator15 = new ToolStripSeparator();
             toolStripMenuItem_SearchFiles = new ToolStripMenuItem();
             toolStripMenuItem_RenameFile = new ToolStripMenuItem();
+            toolStripMenuItem_ReCodeFileName = new ToolStripMenuItem();
+            toolStripMenuItem_FileNameSim2Trad = new ToolStripMenuItem();
             toolStripSeparator14 = new ToolStripSeparator();
             toolStripMenuItem_DelFiles = new ToolStripMenuItem();
             listViewRecentFiles = new ListView();
@@ -234,30 +238,45 @@ namespace TextSpeedReader
             // 
             // contextMenuStrip_treeViewFolder
             // 
-            contextMenuStrip_treeViewFolder.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_OpenFileManager, toolStripMenuItem_RenameDirectory, toolStripMenuItem_DeleteDirectory });
+            contextMenuStrip_treeViewFolder.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_OpenFileManager, toolStripMenuItem_RenameDirectory, toolStripMenuItem_DeleteDirectory, toolStripMenuItem_ReCodeFolderName, toolStripMenuItem_FolderNameSim2Trad });
             contextMenuStrip_treeViewFolder.Name = "contextMenuStrip_treeViewFolder";
-            contextMenuStrip_treeViewFolder.Size = new Size(187, 76);
+            contextMenuStrip_treeViewFolder.Size = new Size(290, 124);
             // 
             // toolStripMenuItem_OpenFileManager
             // 
             toolStripMenuItem_OpenFileManager.Name = "toolStripMenuItem_OpenFileManager";
-            toolStripMenuItem_OpenFileManager.Size = new Size(186, 24);
+            toolStripMenuItem_OpenFileManager.Size = new Size(289, 24);
             toolStripMenuItem_OpenFileManager.Text = "開啟檔案總管...";
             toolStripMenuItem_OpenFileManager.Click += toolStripMenuItem_OpenFileManager_Click;
             // 
             // toolStripMenuItem_RenameDirectory
             // 
             toolStripMenuItem_RenameDirectory.Name = "toolStripMenuItem_RenameDirectory";
-            toolStripMenuItem_RenameDirectory.Size = new Size(186, 24);
+            toolStripMenuItem_RenameDirectory.Size = new Size(289, 24);
             toolStripMenuItem_RenameDirectory.Text = "更改目錄名稱...";
             toolStripMenuItem_RenameDirectory.Click += toolStripMenuItem_RenameDirectory_Click;
             // 
             // toolStripMenuItem_DeleteDirectory
             // 
+            toolStripMenuItem_DeleteDirectory.BackColor = Color.Pink;
             toolStripMenuItem_DeleteDirectory.Name = "toolStripMenuItem_DeleteDirectory";
-            toolStripMenuItem_DeleteDirectory.Size = new Size(186, 24);
+            toolStripMenuItem_DeleteDirectory.Size = new Size(289, 24);
             toolStripMenuItem_DeleteDirectory.Text = "刪除目錄...";
             toolStripMenuItem_DeleteDirectory.Click += toolStripMenuItem_DeleteDirectory_Click;
+            // 
+            // toolStripMenuItem_ReCodeFolderName
+            // 
+            toolStripMenuItem_ReCodeFolderName.Name = "toolStripMenuItem_ReCodeFolderName";
+            toolStripMenuItem_ReCodeFolderName.Size = new Size(289, 24);
+            toolStripMenuItem_ReCodeFolderName.Text = "目錄名稱編碼(亂碼)轉換...";
+            toolStripMenuItem_ReCodeFolderName.Click += toolStripMenuItem_ReCodeFolderName_Click;
+            // 
+            // toolStripMenuItem_FolderNameSim2Trad
+            // 
+            toolStripMenuItem_FolderNameSim2Trad.Name = "toolStripMenuItem_FolderNameSim2Trad";
+            toolStripMenuItem_FolderNameSim2Trad.Size = new Size(289, 24);
+            toolStripMenuItem_FolderNameSim2Trad.Text = "目錄名稱ＳＣ簡體->ＴＣ繁體";
+            toolStripMenuItem_FolderNameSim2Trad.Click += toolStripMenuItem_FolderNameSim2Trad_Click;
             // 
             // imageList1
             // 
@@ -305,9 +324,9 @@ namespace TextSpeedReader
             // contextMenuStrip_ListViewFile
             // 
             contextMenuStrip_ListViewFile.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_ListViewFile.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile2, toolStripMenuItem_SaveTxtAsNewFile2, toolStripMenuItem_ConvertSimple, toolStripMenuItem_ConvertTraditional, toolStripSeparator15, toolStripMenuItem_SearchFiles, toolStripMenuItem_RenameFile, toolStripSeparator14, toolStripMenuItem_DelFiles });
+            contextMenuStrip_ListViewFile.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile2, toolStripMenuItem_SaveTxtAsNewFile2, toolStripMenuItem_ConvertSimple, toolStripMenuItem_ConvertTraditional, toolStripSeparator15, toolStripMenuItem_SearchFiles, toolStripMenuItem_RenameFile, toolStripMenuItem_ReCodeFileName, toolStripMenuItem_FileNameSim2Trad, toolStripSeparator14, toolStripMenuItem_DelFiles });
             contextMenuStrip_ListViewFile.Name = "contextMenuStrip_ListViewFile";
-            contextMenuStrip_ListViewFile.Size = new Size(381, 204);
+            contextMenuStrip_ListViewFile.Size = new Size(381, 274);
             // 
             // toolStripMenuItem_SaveTxtFile2
             // 
@@ -362,6 +381,20 @@ namespace TextSpeedReader
             toolStripMenuItem_RenameFile.Text = "更名檔案";
             toolStripMenuItem_RenameFile.Click += toolStripMenuItem_RenameFile_Click;
             // 
+            // toolStripMenuItem_ReCodeFileName
+            // 
+            toolStripMenuItem_ReCodeFileName.Name = "toolStripMenuItem_ReCodeFileName";
+            toolStripMenuItem_ReCodeFileName.Size = new Size(380, 24);
+            toolStripMenuItem_ReCodeFileName.Text = "檔名編碼(亂碼)轉換...";
+            toolStripMenuItem_ReCodeFileName.Click += toolStripMenuItem_ReCodeFileName_Click;
+            // 
+            // toolStripMenuItem_FileNameSim2Trad
+            // 
+            toolStripMenuItem_FileNameSim2Trad.Name = "toolStripMenuItem_FileNameSim2Trad";
+            toolStripMenuItem_FileNameSim2Trad.Size = new Size(380, 24);
+            toolStripMenuItem_FileNameSim2Trad.Text = "檔案名稱ＳＣ簡體->ＴＣ繁體";
+            toolStripMenuItem_FileNameSim2Trad.Click += toolStripMenuItem_FileNameSim2Trad_Click;
+            // 
             // toolStripSeparator14
             // 
             toolStripSeparator14.Name = "toolStripSeparator14";
@@ -374,7 +407,7 @@ namespace TextSpeedReader
             toolStripMenuItem_DelFiles.Name = "toolStripMenuItem_DelFiles";
             toolStripMenuItem_DelFiles.ShortcutKeys = Keys.Delete;
             toolStripMenuItem_DelFiles.Size = new Size(380, 24);
-            toolStripMenuItem_DelFiles.Text = "Ｘ刪除檔案";
+            toolStripMenuItem_DelFiles.Text = "Ｘ刪除檔案...";
             toolStripMenuItem_DelFiles.Click += toolStripMenuItem_DelFiles_Click;
             // 
             // listViewRecentFiles
@@ -893,7 +926,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 2.1.1.0  (新增逐行排序、關鍵字斷行、行首填空、保留字型大小、全新架構，單一執行檔)";
+            Text = "TextSpeedReader Ver. 2.3.0.0  (新增檔名編碼(亂碼)轉換、檔名簡轉繁，逐行排序、關鍵字斷行、行首填空、保留字型大小、全新架構，單一執行檔)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -1009,6 +1042,10 @@ namespace TextSpeedReader
         private ToolStripButton toolStripButtonHTMLChangeFontChecker;
         private ToolStripMenuItem toolStripMenuItem_InsertBeginingEndByInsertText;
         private ToolStripMenuItem toolStripMenuItem_DeleteDirectory;
+        private ToolStripMenuItem toolStripMenuItem_ReCodeFileName;
+        private ToolStripMenuItem toolStripMenuItem_ReCodeFolderName;
+        private ToolStripMenuItem toolStripMenuItem_FolderNameSim2Trad;
+        private ToolStripMenuItem toolStripMenuItem_FileNameSim2Trad;
     }
 }
 

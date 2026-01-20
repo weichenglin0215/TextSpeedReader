@@ -1184,8 +1184,9 @@ namespace TextSpeedReader
             try
             {
                 // 使用 Microsoft.VisualBasic.Strings.StrConv 進行簡繁轉換
+                // 使用 0x0804 (zh-CN) 作為 LCID 確保能正確從簡體字集中辨識並轉換
                 return Microsoft.VisualBasic.Strings.StrConv(simplifiedText,
-                    Microsoft.VisualBasic.VbStrConv.TraditionalChinese, 0);
+                    Microsoft.VisualBasic.VbStrConv.TraditionalChinese, 0x0804);
             }
             catch
             {
@@ -1862,6 +1863,384 @@ namespace TextSpeedReader
                         }
                     }));
                 }
+            }
+        }
+        /// <summary>
+        /// 針對 TreeView 中選取的目錄進行名稱編碼修正
+        /// </summary>
+        private void ReCodeFolderName()
+        {
+            if (treeViewFolder.SelectedNode == null || treeViewFolder.SelectedNode.Tag is not DirectoryInfo)
+            {
+                MessageBox.Show("請先選擇要變更編碼的目錄。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            TreeNode node = treeViewFolder.SelectedNode;
+            DirectoryInfo dirInfo = (DirectoryInfo)node.Tag;
+            string srcName = dirInfo.Name;
+
+            // 磁碟機根目錄不允許更名
+            if (dirInfo.Parent == null)
+            {
+                MessageBox.Show("無法變更磁碟機根目錄的編碼。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (FormReCodeFileName recodeDialog = new FormReCodeFileName(srcName))
+            {
+                recodeDialog.Text = "變更目錄名稱編碼";
+                if (recodeDialog.ShowDialog(this) == DialogResult.OK &&
+                    recodeDialog.SelectedCorrectEncoding != null &&
+                    recodeDialog.SelectedWrongEncoding != null)
+                {
+                    Encoding correct = recodeDialog.SelectedCorrectEncoding;
+                    Encoding wrong = recodeDialog.SelectedWrongEncoding;
+
+                    try
+                    {
+                        byte[] bytes = wrong.GetBytes(srcName);
+                        string newName = correct.GetString(bytes);
+
+                        if (newName == srcName) return;
+
+                        string oldPath = dirInfo.FullName;
+                        string newPath = Path.Combine(dirInfo.Parent.FullName, newName);
+
+                        if (Directory.Exists(newPath))
+                        {
+                            if (MessageBox.Show($"目的地目錄「{newName}」已存在。是否嘗試合併？\n(這可能會覆蓋現有同名檔案)", "確認", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                                return;
+                        }
+
+                        Directory.Move(oldPath, newPath);
+
+                        // 更新節點資訊
+                        node.Text = newName;
+                        node.Tag = new DirectoryInfo(newPath);
+
+                        // 刷新此節點的子目錄結構 (因為路徑已變)
+                        node.Nodes.Clear();
+                        if (HasSubDirectories((DirectoryInfo)node.Tag))
+                        {
+                            node.Nodes.Add("Dummy");
+                        }
+
+                        if (node.IsExpanded)
+                        {
+                            node.Collapse();
+                            node.Expand();
+                        }
+
+                        // 同時刷新 ListView
+                        treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(node));
+                        
+                        toolStripStatusLabelFixed.Text = $"目錄編碼已修正：{newName}";
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"變更目錄編碼失敗：{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// 針對 ListView 中選取的檔案或目錄進行名稱編碼修正
+        /// </summary>
+        private void ReCodeFileName()
+        {
+            if (this.listViewFile.SelectedItems.Count <= 0)
+            {
+                MessageBox.Show("請先選取要更碼的檔案或目錄。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 使用第一個選取項目的名稱作為預覽範本
+            string sampleName = this.listViewFile.SelectedItems[0].Text;
+
+            using (FormReCodeFileName recodeDialog = new FormReCodeFileName(sampleName))
+            {
+                if (recodeDialog.ShowDialog(this) != DialogResult.OK ||
+                    recodeDialog.SelectedCorrectEncoding == null ||
+                    recodeDialog.SelectedWrongEncoding == null)
+                {
+                    return;
+                }
+
+                Encoding correct = recodeDialog.SelectedCorrectEncoding;
+                Encoding wrong = recodeDialog.SelectedWrongEncoding;
+
+                List<string> renamedItems = new List<string>();
+                bool anyDirectoryRenamed = false;
+
+                this.listViewFile.BeginUpdate();
+
+                foreach (ListViewItem lvItem in this.listViewFile.SelectedItems)
+                {
+                    string srcName = lvItem.Text;
+                    string srcPath = Path.Combine(m_TreeViewSelectedNodeText, srcName);
+
+                    try
+                    {
+                        byte[] bytes = wrong.GetBytes(srcName);
+                        string newName = correct.GetString(bytes);
+
+                        if (newName == srcName) continue;
+
+                        string destPath = Path.Combine(m_TreeViewSelectedNodeText, newName);
+
+                        bool isFile = File.Exists(srcPath);
+                        bool isDir = !isFile && Directory.Exists(srcPath);
+
+                        if (!isFile && !isDir) continue;
+
+                        if (File.Exists(destPath) || Directory.Exists(destPath))
+                        {
+                            if (MessageBox.Show($"目的地「{newName}」已存在。是否覆蓋或合併？", "確認", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                                continue;
+                        }
+
+                        if (isFile)
+                        {
+                            File.Move(srcPath, destPath, true);
+                        }
+                        else if (isDir)
+                        {
+                            Directory.Move(srcPath, destPath);
+                            anyDirectoryRenamed = true;
+                        }
+
+                        renamedItems.Add(newName);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"更新「{srcName}」名稱時發生錯誤：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+
+                this.listViewFile.EndUpdate();
+
+                if (treeViewFolder.SelectedNode != null)
+                {
+                    // 如果有目錄被更名，通知 TreeView 刷新
+                    if (anyDirectoryRenamed)
+                    {
+                        RefreshChildNodesIfChanged(treeViewFolder.SelectedNode);
+                    }
+
+                    // 刷新 ListView 內容
+                    string? firstRenamed = renamedItems.Count > 0 ? renamedItems[0] : null;
+                    treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode), firstRenamed);
+
+                    // 重新選取所有更名後的項目
+                    if (renamedItems.Count > 1)
+                    {
+                        this.BeginInvoke(new Action(() =>
+                        {
+                            try
+                            {
+                                listViewFile.SelectedIndexChanged -= ListViewFile_SelectedIndexChanged;
+                                listViewFile.BeginUpdate();
+                                listViewFile.SelectedItems.Clear();
+                                foreach (string name in renamedItems)
+                                {
+                                    foreach (ListViewItem item in listViewFile.Items)
+                                    {
+                                        if (item.Text.Equals(name, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            item.Selected = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                listViewFile.EndUpdate();
+                                listViewFile.SelectedIndexChanged += ListViewFile_SelectedIndexChanged;
+                                UpdateFileSelectionStatus();
+                            }
+                            catch { /* 忽略 UI 更新錯誤 */ }
+                        }));
+                    }
+                }
+                
+                toolStripStatusLabelFixed.Text = $"已修正 {renamedItems.Count} 個項目的編碼";
+            }
+        }
+
+        /// <summary>
+        /// 將 ListView 中選取的檔案或目錄名稱由簡體中文轉換為繁體中文
+        /// </summary>
+        private void FileNameSim2Trad()
+        {
+            if (this.listViewFile.SelectedItems.Count <= 0)
+            {
+                MessageBox.Show("請先選取要轉換名稱的檔案或目錄。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            List<string> renamedItems = new List<string>();
+            bool anyDirectoryRenamed = false;
+
+            this.listViewFile.BeginUpdate();
+
+            foreach (ListViewItem lvItem in this.listViewFile.SelectedItems)
+            {
+                string srcName = lvItem.Text;
+                string srcPath = Path.Combine(m_TreeViewSelectedNodeText, srcName);
+
+                try
+                {
+                    string newName = ConvertSimplifiedToTraditional(srcName);
+
+                    // 如果轉換結果與原文相同 (包括大小寫)，則跳過
+                    if (string.Equals(newName, srcName, StringComparison.Ordinal)) continue;
+
+                    string destPath = Path.Combine(m_TreeViewSelectedNodeText, newName);
+
+                    bool isFile = File.Exists(srcPath);
+                    bool isDir = !isFile && Directory.Exists(srcPath);
+
+                    if (!isFile && !isDir) continue;
+
+                    // 檢查目標是否已存在 (且不是原檔案的僅大小寫差異)
+                    if (!string.Equals(srcPath, destPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (File.Exists(destPath) || Directory.Exists(destPath))
+                        {
+                            if (MessageBox.Show($"目的地「{newName}」已存在。是否覆蓋或合併？", "確認", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                                continue;
+                        }
+                    }
+
+                    if (isFile)
+                    {
+                        // File.Move 在 .NET Core 支援同路徑大小寫變更，但在某些情況下仍需小心
+                        File.Move(srcPath, destPath, true);
+                    }
+                    else if (isDir)
+                    {
+                        Directory.Move(srcPath, destPath);
+                        anyDirectoryRenamed = true;
+                    }
+
+                    renamedItems.Add(newName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"轉換名稱失敗！\n來源：{srcName}\n錯誤：{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            this.listViewFile.EndUpdate();
+
+            if (treeViewFolder.SelectedNode != null)
+            {
+                if (anyDirectoryRenamed)
+                {
+                    RefreshChildNodesIfChanged(treeViewFolder.SelectedNode);
+                }
+
+                string? firstRenamed = renamedItems.Count > 0 ? renamedItems[0] : null;
+                treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode), firstRenamed);
+                
+                // 重新選取所有轉換後的項
+                if (renamedItems.Count > 1)
+                {
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        try
+                        {
+                            listViewFile.SelectedIndexChanged -= ListViewFile_SelectedIndexChanged;
+                            listViewFile.BeginUpdate();
+                            listViewFile.SelectedItems.Clear();
+                            foreach (string name in renamedItems)
+                            {
+                                foreach (ListViewItem item in listViewFile.Items)
+                                {
+                                    if (item.Text.Equals(name, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        item.Selected = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            listViewFile.EndUpdate();
+                            listViewFile.SelectedIndexChanged += ListViewFile_SelectedIndexChanged;
+                            UpdateFileSelectionStatus();
+                        }
+                        catch { }
+                    }));
+                }
+            }
+            
+            toolStripStatusLabelFixed.Text = $"已將 {renamedItems.Count} 個項目轉換為繁體";
+        }
+
+        /// <summary>
+        /// 將 TreeView 中選取的目錄名稱由簡體中文轉換為繁體中文
+        /// </summary>
+        private void FolderNameSim2Trad()
+        {
+            if (treeViewFolder.SelectedNode == null || treeViewFolder.SelectedNode.Tag is not DirectoryInfo)
+            {
+                MessageBox.Show("請先選擇要轉換名稱的目錄。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            TreeNode node = treeViewFolder.SelectedNode;
+            DirectoryInfo dirInfo = (DirectoryInfo)node.Tag;
+            string srcName = dirInfo.Name;
+
+            if (dirInfo.Parent == null)
+            {
+                MessageBox.Show("無法轉換磁碟機根目錄的名稱。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            try
+            {
+                string newName = ConvertSimplifiedToTraditional(srcName);
+
+                if (string.Equals(newName, srcName, StringComparison.Ordinal)) return;
+
+                string oldPath = dirInfo.FullName;
+                string newPath = Path.Combine(dirInfo.Parent.FullName, newName);
+
+                // 檢查目標是否已存在 (且不是僅大小寫差異)
+                if (!string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (Directory.Exists(newPath))
+                    {
+                        if (MessageBox.Show($"目的地目錄「{newName}」已存在。是否嘗試合併？", "確認", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                            return;
+                    }
+                }
+
+                Directory.Move(oldPath, newPath);
+
+                node.Text = newName;
+                node.Tag = new DirectoryInfo(newPath);
+
+                node.Nodes.Clear();
+                if (HasSubDirectories((DirectoryInfo)node.Tag))
+                {
+                    node.Nodes.Add("Dummy");
+                }
+
+                if (node.IsExpanded)
+                {
+                    node.Collapse();
+                    node.Expand();
+                }
+
+                // 更新選中路徑變數並刷新列表
+                m_TreeViewSelectedNodeText = newPath;
+                treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(node));
+                
+                toolStripStatusLabelFixed.Text = $"目錄名稱已轉換為繁體：{newName}";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"轉換目錄名稱失敗！\n來源：{srcName}\n錯誤：{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
