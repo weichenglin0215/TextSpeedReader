@@ -16,6 +16,9 @@
     <Compile Update="FormReCodeFileName.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="FormReCodeFull.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="FormRenameInput.cs">
       <SubType>Form</SubType>
     </Compile>

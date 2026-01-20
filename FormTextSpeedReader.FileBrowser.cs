@@ -282,6 +282,13 @@ namespace TextSpeedReader
                 return;
             }
 
+            // 如果多重選擇項目，也不要自動開啟檔案（多重選擇通常只是為了刪除或是滑鼠右鍵選單功能）
+            if (this.listViewFile.SelectedItems.Count > 1)
+            {
+                UpdateMenuStatus();
+                return;
+            }
+
             // 檢查是否為右鍵點擊（檢查標記和時間戳，如果在最近500毫秒內有右鍵點擊，則不打開檔案）
             if (m_IsRightClick || (DateTime.Now - m_LastRightClickTime).TotalMilliseconds < 500)
             {

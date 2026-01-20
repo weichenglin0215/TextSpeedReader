@@ -1,23 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
 namespace TextSpeedReader
 {
-    public partial class FormReCodeFileName : Form
+    public partial class FormReCodeFull : Form
     {
-        public string SelectedName { get; private set; } = "";
         public Encoding? SelectedCorrectEncoding { get; private set; }
         public Encoding? SelectedWrongEncoding { get; private set; }
         public bool IsSim2TradChecked => checkBoxSim2Trad.Checked;
         private string m_OriginalName;
 
-        public FormReCodeFileName(string originalName)
+        public FormReCodeFull(string originalName)
         {
             InitializeComponent();
             m_OriginalName = originalName;
-            labelOriginal.Text = "目前檔名: " + originalName;
+            labelOriginal.Text = "根目錄名稱: " + originalName;
             PopulatePreviews();
         }
 
@@ -50,7 +50,7 @@ namespace TextSpeedReader
             AddPreview("目前: UTF-8 -> 轉成: GBK", gbk, utf8);
             AddPreview("目前: UTF-8 -> 轉成: GB18030", gb18030, utf8);
             AddPreview("目前: UTF-8 -> 轉成: Unicode", unicode, utf8);
-            
+
             AddPreview("目前: Unicode -> 轉成: Big5", big5, unicode);
             AddPreview("目前: Unicode -> 轉成: GBK", gbk, unicode);
             AddPreview("目前: Unicode -> 轉成: UTF-8", utf8, unicode);
@@ -78,7 +78,6 @@ namespace TextSpeedReader
         {
             if (listBoxPreviews.SelectedItem is PreviewItem selected)
             {
-                SelectedName = selected.FixedName;
                 SelectedCorrectEncoding = selected.CorrectEncoding;
                 SelectedWrongEncoding = selected.WrongEncoding;
                 this.DialogResult = DialogResult.OK;

@@ -1896,11 +1896,17 @@ namespace TextSpeedReader
                 {
                     Encoding correct = recodeDialog.SelectedCorrectEncoding;
                     Encoding wrong = recodeDialog.SelectedWrongEncoding;
+                    bool sim2Trad = recodeDialog.IsSim2TradChecked;
 
                     try
                     {
                         byte[] bytes = wrong.GetBytes(srcName);
                         string newName = correct.GetString(bytes);
+
+                        if (sim2Trad)
+                        {
+                            newName = ConvertSimplifiedToTraditional(newName);
+                        }
 
                         if (newName == srcName) return;
 
@@ -1969,6 +1975,7 @@ namespace TextSpeedReader
 
                 Encoding correct = recodeDialog.SelectedCorrectEncoding;
                 Encoding wrong = recodeDialog.SelectedWrongEncoding;
+                bool sim2Trad = recodeDialog.IsSim2TradChecked;
 
                 List<string> renamedItems = new List<string>();
                 bool anyDirectoryRenamed = false;
@@ -1984,6 +1991,11 @@ namespace TextSpeedReader
                     {
                         byte[] bytes = wrong.GetBytes(srcName);
                         string newName = correct.GetString(bytes);
+
+                        if (sim2Trad)
+                        {
+                            newName = ConvertSimplifiedToTraditional(newName);
+                        }
 
                         if (newName == srcName) continue;
 
@@ -2064,6 +2076,134 @@ namespace TextSpeedReader
                 
                 toolStripStatusLabelFixed.Text = $"已修正 {renamedItems.Count} 個項目的編碼";
             }
+        }
+
+        private void ReCodeFullFoldersFilesName()
+        {
+            if (treeViewFolder.SelectedNode == null || treeViewFolder.SelectedNode.Tag is not DirectoryInfo)
+            {
+                MessageBox.Show("請先選擇要批量變更名稱編碼的目錄。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            TreeNode rootNode = treeViewFolder.SelectedNode;
+            DirectoryInfo rootDir = (DirectoryInfo)rootNode.Tag;
+
+            using (FormReCodeFull recodeDialog = new FormReCodeFull(rootDir.Name))
+            {
+                if (recodeDialog.ShowDialog(this) != DialogResult.OK ||
+                    recodeDialog.SelectedCorrectEncoding == null ||
+                    recodeDialog.SelectedWrongEncoding == null)
+                {
+                    return;
+                }
+
+                Encoding correct = recodeDialog.SelectedCorrectEncoding;
+                Encoding wrong = recodeDialog.SelectedWrongEncoding;
+                bool sim2Trad = recodeDialog.IsSim2TradChecked;
+
+                try
+                {
+                    this.Cursor = Cursors.WaitCursor;
+                    
+                    // 執行遞迴處理
+                    ProcessReCodeFull(rootDir, correct, wrong, sim2Trad);
+
+                    // 處理根目錄自身的更名 (如果有需要)
+                    string newRootName = ReCodeString(rootDir.Name, correct, wrong);
+                    if (sim2Trad) newRootName = ConvertSimplifiedToTraditional(newRootName);
+
+                    if (newRootName != rootDir.Name)
+                    {
+                        DirectoryInfo? parent = rootDir.Parent;
+                        if (parent != null)
+                        {
+                            string newRootPath = Path.Combine(parent.FullName, newRootName);
+                            if (!Directory.Exists(newRootPath))
+                            {
+                                Directory.Move(rootDir.FullName, newRootPath);
+                                rootNode.Text = newRootName;
+                                rootNode.Tag = new DirectoryInfo(newRootPath);
+                                m_TreeViewSelectedNodeText = newRootPath;
+                            }
+                        }
+                    }
+
+                    // 重新整理 UI
+                    RefreshChildNodesIfChanged(rootNode);
+                    treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(rootNode));
+
+                    MessageBox.Show("批量變更名稱編碼完成。", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    toolStripStatusLabelFixed.Text = "批量變更名稱編碼已完成";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"批量變更名稱時發生錯誤：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    this.Cursor = Cursors.Default;
+                }
+            }
+        }
+
+        private void ProcessReCodeFull(DirectoryInfo dir, Encoding correct, Encoding wrong, bool sim2Trad)
+        {
+            // 1. 處理當前目錄下的所有檔案
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                try
+                {
+                    string oldName = file.Name;
+                    string newName = ReCodeString(oldName, correct, wrong);
+                    if (sim2Trad) newName = ConvertSimplifiedToTraditional(newName);
+
+                    if (newName != oldName)
+                    {
+                        string newPath = Path.Combine(dir.FullName, newName);
+                        if (!File.Exists(newPath))
+                        {
+                            file.MoveTo(newPath);
+                        }
+                    }
+                }
+                catch { /* 忽略單一檔案錯誤，繼續處理 */ }
+            }
+
+            // 2. 處理當前目錄下的所有子目錄
+            foreach (DirectoryInfo subDir in dir.GetDirectories())
+            {
+                try
+                {
+                    // 先遞迴處理子目錄內部的內容
+                    ProcessReCodeFull(subDir, correct, wrong, sim2Trad);
+
+                    // 處理子目錄自身的名稱
+                    string oldName = subDir.Name;
+                    string newName = ReCodeString(oldName, correct, wrong);
+                    if (sim2Trad) newName = ConvertSimplifiedToTraditional(newName);
+
+                    if (newName != oldName)
+                    {
+                        string newPath = Path.Combine(dir.FullName, newName);
+                        if (!Directory.Exists(newPath))
+                        {
+                            subDir.MoveTo(newPath);
+                        }
+                    }
+                }
+                catch { /* 忽略單一目錄錯誤，繼續處理 */ }
+            }
+        }
+
+        private string ReCodeString(string input, Encoding correct, Encoding wrong)
+        {
+            try
+            {
+                byte[] bytes = wrong.GetBytes(input);
+                return correct.GetString(bytes);
+            }
+            catch { return input; }
         }
 
         /// <summary>

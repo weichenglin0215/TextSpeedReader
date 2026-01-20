@@ -2367,5 +2367,10 @@ namespace TextSpeedReader
         {
             FolderNameSim2Trad();
         }
+
+        private void toolStripMenuItem_ReCodeFullFoldersFilesName_Click(object sender, EventArgs e)
+        {
+            ReCodeFullFoldersFilesName();
+        }
     }
 }
