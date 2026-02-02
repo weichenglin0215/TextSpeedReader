@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.FileIO;
+using OpenCCNET;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -114,6 +115,9 @@ namespace TextSpeedReader
 
             // 載入應用程式設定
             appSettings.LoadSettings();
+
+            // 初始化 OpenCCNET
+            ZhConverter.Initialize();
 
             // 註冊 TreeView 展開事件
             this.treeViewFolder.BeforeExpand += treeViewFolder_BeforeExpand;
@@ -1029,10 +1033,8 @@ namespace TextSpeedReader
                 int selStart = richTextBoxText.SelectionStart;
                 int selLength = richTextBoxText.SelectionLength;
 
-                // 使用Microsoft.VisualBasic.Strings.StrConv進行繁簡轉換
-                // VbStrConv.SimplifiedChinese: 繁體轉簡體
-                const int SimplifiedChineseLcid = 0x0804; // zh-CN
-                string? simplifiedText = Strings.StrConv(textToConvert, VbStrConv.SimplifiedChinese, SimplifiedChineseLcid);
+                // 使用 OpenCCNET 進行繁簡轉換 (HantToHans: 繁體到簡體)
+                string? simplifiedText = ZhConverter.HantToHans(textToConvert);
                 if (string.IsNullOrEmpty(simplifiedText))
                 {
                     MessageBox.Show("轉換結果為空，請檢查原始文字。", "錯誤");
@@ -1100,14 +1102,8 @@ namespace TextSpeedReader
                 int selStart = richTextBoxText.SelectionStart;
                 int selLength = richTextBoxText.SelectionLength;
 
-                // 使用Microsoft.VisualBasic.Strings.StrConv進行簡繁轉換
-                // 注意：VbStrConv.TraditionalChinese 需要指定正確的 LCID
-                // 對於簡體轉繁體，應該使用 zh-CN LCID，因為源文字是簡體中文
-                const int SimplifiedChineseLcid = 0x0804; // zh-CN
-
-                // 使用 zh-CN LCID 進行簡體到繁體的轉換
-                // 這是關鍵：當源文字是簡體中文時，應該使用簡體中文的 LCID
-                string? traditionalText = Strings.StrConv(textToConvert, VbStrConv.TraditionalChinese, SimplifiedChineseLcid);
+                // 使用 OpenCCNET 進行簡繁轉換 (HansToTW: 簡體到台灣繁體含詞彙)
+                string? traditionalText = ZhConverter.HansToTW(textToConvert, true);
 
                 // 檢查轉換結果
                 if (string.IsNullOrEmpty(traditionalText))

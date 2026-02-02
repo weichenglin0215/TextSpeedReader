@@ -8,6 +8,7 @@ using System.IO;
 using Microsoft.VisualBasic;
 using System.Drawing;
 using Microsoft.VisualBasic.FileIO;
+using OpenCCNET;
 
 namespace TextSpeedReader
 {
@@ -619,10 +620,8 @@ namespace TextSpeedReader
 
             try
             {
-                // 使用Microsoft.VisualBasic.Strings.StrConv進行繁簡轉換
-                // VbStrConv.SimplifiedChinese: 繁體轉簡體
-                const int SimplifiedChineseLcid = 0x0804; // zh-CN
-                string? simplifiedText = Strings.StrConv(traditionalText, VbStrConv.SimplifiedChinese, SimplifiedChineseLcid);
+                // 使用 OpenCCNET 進行繁簡轉換 (HantToHans: 繁體到簡體)
+                string? simplifiedText = ZhConverter.HantToHans(traditionalText);
                 if (string.IsNullOrEmpty(simplifiedText))
                 {
                     MessageBox.Show("轉換結果為空，請檢查原始文字。", "錯誤");
@@ -737,9 +736,8 @@ namespace TextSpeedReader
                         // 空檔案仍然會建立對應簡體檔
                     }
 
-                    // 繁轉簡（指定 zh-CN LCID）
-                    const int SimplifiedChineseLcid = 0x0804; // zh-CN
-                    string? simplifiedText = Strings.StrConv(traditionalText, VbStrConv.SimplifiedChinese, SimplifiedChineseLcid);
+                    // 繁轉簡 (使用 OpenCCNET HantToHans)
+                    string? simplifiedText = ZhConverter.HantToHans(traditionalText);
                     if (string.IsNullOrEmpty(simplifiedText))
                     {
                         simplifiedText = ""; // 空檔案時使用空字串
@@ -814,11 +812,8 @@ namespace TextSpeedReader
                         // 空檔案仍然會建立對應繁體檔
                     }
 
-                    // 轉換為繁體中文
-                    // 關鍵：當源文字是簡體中文時，應該使用 zh-CN LCID 進行轉換
-                    // 這樣才能正確將簡體字符（如"这"）轉換為繁體字符（如"這"）
-                    const int SimplifiedChineseLcid = 0x0804; // zh-CN
-                    string? traditionalText = Strings.StrConv(sourceText, VbStrConv.TraditionalChinese, SimplifiedChineseLcid);
+                    // 轉換為繁體中文 (使用 OpenCCNET HansToTW: 簡體到台灣繁體含詞彙)
+                    string? traditionalText = ZhConverter.HansToTW(sourceText, true);
                     if (string.IsNullOrEmpty(traditionalText))
                     {
                         traditionalText = ""; // 空檔案時使用空字串
@@ -905,8 +900,8 @@ namespace TextSpeedReader
             // 將選取的文字轉換為繁體中文
             try
             {
-                const int SimplifiedChineseLcid = 0x0804; // zh-CN
-                string? traditionalText = Strings.StrConv(selectedText, VbStrConv.TraditionalChinese, SimplifiedChineseLcid);
+                // 使用 OpenCCNET 轉換為繁體中文 (HansToTW, true)
+                string? traditionalText = ZhConverter.HansToTW(selectedText, true);
 
                 if (!string.IsNullOrEmpty(traditionalText))
                 {
@@ -1183,10 +1178,8 @@ namespace TextSpeedReader
         {
             try
             {
-                // 使用 Microsoft.VisualBasic.Strings.StrConv 進行簡繁轉換
-                // 使用 0x0804 (zh-CN) 作為 LCID 確保能正確從簡體字集中辨識並轉換
-                return Microsoft.VisualBasic.Strings.StrConv(simplifiedText,
-                    Microsoft.VisualBasic.VbStrConv.TraditionalChinese, 0x0804);
+                // 使用 OpenCCNET 進行簡繁轉換 (HansToTW: 簡體到台灣繁體含詞彙)
+                return ZhConverter.HansToTW(simplifiedText, true);
             }
             catch
             {
@@ -1478,8 +1471,8 @@ namespace TextSpeedReader
             // 將選取的文字轉換為簡體中文
             try
             {
-                const int SimplifiedChineseLcid = 0x0804; // zh-CN
-                string? simplifiedText = Strings.StrConv(selectedText, VbStrConv.SimplifiedChinese, SimplifiedChineseLcid);
+                // 使用 OpenCCNET 轉換為簡體中文 (HantToHans)
+                string? simplifiedText = ZhConverter.HantToHans(selectedText);
 
                 if (!string.IsNullOrEmpty(simplifiedText))
                 {
