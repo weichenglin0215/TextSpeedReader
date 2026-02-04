@@ -27,6 +27,10 @@ namespace TextSpeedReader
         public string InsertBeginingText { get; set; } = "\""; // 預設為 '"'
         public string InsertEndText { get; set; } = "\", "; // 預設為 '", '
 
+        // 新增：註解開頭/結尾字串的設定
+        public string AnnotationBegin { get; set; } = "/*";
+        public string AnnotationEnd { get; set; } = "*/";
+
         // 歷史紀錄
         public System.Collections.Generic.List<string> HistoryFiles { get; set; } = new System.Collections.Generic.List<string>();
         public System.Collections.Generic.List<string> HistoryDirectories { get; set; } = new System.Collections.Generic.List<string>();
@@ -113,6 +117,12 @@ namespace TextSpeedReader
                                 case "InsertEndText":
                                     InsertEndText = value;
                                     break;
+                                case "AnnotationBegin":
+                                    AnnotationBegin = value;
+                                    break;
+                                case "AnnotationEnd":
+                                    AnnotationEnd = value;
+                                    break;
                                 case "HistoryFiles":
                                     if (!string.IsNullOrEmpty(value))
                                     {
@@ -157,6 +167,8 @@ namespace TextSpeedReader
                     writer.WriteLine($"NewLineEndJudgment={NewLineEndJudgment}");
                     writer.WriteLine($"InsertBeginingText={InsertBeginingText}");
                     writer.WriteLine($"InsertEndText={InsertEndText}");
+                    writer.WriteLine($"AnnotationBegin={AnnotationBegin}");
+                    writer.WriteLine($"AnnotationEnd={AnnotationEnd}");
                     writer.WriteLine($"HistoryFiles={string.Join("|", HistoryFiles)}");
                     writer.WriteLine($"HistoryDirectories={string.Join("|", HistoryDirectories)}");
                 }

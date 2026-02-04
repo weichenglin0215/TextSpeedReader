@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -139,19 +140,19 @@ namespace TextSpeedReader
             if (text.EndsWith("\r\n"))
             {
                 text = text.Substring(0, text.Length - 2);
-                richTextBoxText.SelectionLength = richTextBoxText.SelectionLength - 2;
+                if (!processWholeDocument) richTextBoxText.SelectionLength -= 2;
                 //MessageBox.Show("選取內容最後有斷行與新行符號，已自動去除最後的斷行符號再處理。", "提示");
             }
             else if (text.EndsWith("\n"))
             {
                 text = text.Substring(0, text.Length - 1);
-                if (richTextBoxText.SelectionLength > 0) richTextBoxText.SelectionLength--;
+                if (!processWholeDocument && richTextBoxText.SelectionLength > 0) richTextBoxText.SelectionLength--;
                 //MessageBox.Show("選取內容最後有斷行符號，已自動去除最後的斷行符號再處理。", "提示");
             }
             else if (text.EndsWith("\r"))
             {
                 text = text.Substring(0, text.Length - 1);
-                if (richTextBoxText.SelectionLength > 0) richTextBoxText.SelectionLength--;
+                if (!processWholeDocument && richTextBoxText.SelectionLength > 0) richTextBoxText.SelectionLength--;
                 //MessageBox.Show("選取內容最後有新行符號，已自動去除最後的斷行符號再處理。", "提示");
             }
             int textLength = text.Length;
@@ -209,13 +210,27 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                int originalSelectionStart = richTextBoxText.SelectionStart;
-                richTextBoxText.Text = result.ToString();
-                if (originalSelectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = originalSelectionStart;
-                else
-                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                richTextBoxText.ScrollToCaret();
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -253,17 +268,17 @@ namespace TextSpeedReader
             if (text.EndsWith("\r\n"))
             {
                 text = text.Substring(0, text.Length - 2);
-                richTextBoxText.SelectionLength = richTextBoxText.SelectionLength - 2;
+                if (!processWholeDocument) richTextBoxText.SelectionLength -= 2;
             }
             else if (text.EndsWith("\n"))
             {
                 text = text.Substring(0, text.Length - 1);
-                if (richTextBoxText.SelectionLength > 0) richTextBoxText.SelectionLength--;
+                if (!processWholeDocument && richTextBoxText.SelectionLength > 0) richTextBoxText.SelectionLength--;
             }
             else if (text.EndsWith("\r"))
             {
                 text = text.Substring(0, text.Length - 1);
-                if (richTextBoxText.SelectionLength > 0) richTextBoxText.SelectionLength--;
+                if (!processWholeDocument && richTextBoxText.SelectionLength > 0) richTextBoxText.SelectionLength--;
             }
             int textLength = text.Length;
             int currentPos = 0;
@@ -363,13 +378,27 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                int originalSelectionStart = richTextBoxText.SelectionStart;
-                richTextBoxText.Text = result.ToString();
-                if (originalSelectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = originalSelectionStart;
-                else
-                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                richTextBoxText.ScrollToCaret();
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -497,13 +526,27 @@ namespace TextSpeedReader
             {
                 if (processWholeDocument)
                 {
-                    int originalSelectionStart = richTextBoxText.SelectionStart;
-                    richTextBoxText.Text = result.ToString();
-                    if (originalSelectionStart < richTextBoxText.Text.Length)
-                        richTextBoxText.SelectionStart = originalSelectionStart;
-                    else
-                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                    richTextBoxText.ScrollToCaret();
+                    SuspendDrawing();
+                    richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                    try
+                    {
+                        int originalSelectionStart = richTextBoxText.SelectionStart;
+                        richTextBoxText.SelectAll();
+                        richTextBoxText.SelectedText = result.ToString();
+                        if (originalSelectionStart < richTextBoxText.Text.Length)
+                            richTextBoxText.SelectionStart = originalSelectionStart;
+                        else
+                            richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                        richTextBoxText.ScrollToCaret();
+                    }
+                    finally
+                    {
+                        richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                        richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                        ResumeDrawing();
+                        UpdateStatusLabel();
+                    }
                 }
                 else
                 {
@@ -585,13 +628,27 @@ namespace TextSpeedReader
             {
                 if (processWholeDocument)
                 {
-                    int originalSelectionStart = richTextBoxText.SelectionStart;
-                    richTextBoxText.Text = result.ToString();
-                    if (originalSelectionStart < richTextBoxText.Text.Length)
-                        richTextBoxText.SelectionStart = originalSelectionStart;
-                    else
-                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                    richTextBoxText.ScrollToCaret();
+                    SuspendDrawing();
+                    richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                    try
+                    {
+                        int originalSelectionStart = richTextBoxText.SelectionStart;
+                        richTextBoxText.SelectAll();
+                        richTextBoxText.SelectedText = result.ToString();
+                        if (originalSelectionStart < richTextBoxText.Text.Length)
+                            richTextBoxText.SelectionStart = originalSelectionStart;
+                        else
+                            richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                        richTextBoxText.ScrollToCaret();
+                    }
+                    finally
+                    {
+                        richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                        richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                        ResumeDrawing();
+                        UpdateStatusLabel();
+                    }
                 }
                 else
                 {
@@ -711,13 +768,27 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                int originalSelectionStart = richTextBoxText.SelectionStart;
-                richTextBoxText.Text = result.ToString();
-                if (originalSelectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = originalSelectionStart;
-                else
-                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                richTextBoxText.ScrollToCaret();
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -798,10 +869,24 @@ namespace TextSpeedReader
             // 更新文本
             if (processWholeDocument)
             {
-                // 處理整個文檔
-                richTextBoxText.Text = result.ToString();
-                richTextBoxText.SelectionStart = selectionStart;
-                richTextBoxText.SelectionLength = 0;
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    // 處理整個文檔
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
+                    richTextBoxText.SelectionStart = selectionStart;
+                    richTextBoxText.SelectionLength = 0;
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -886,13 +971,27 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                int originalSelectionStart = richTextBoxText.SelectionStart;
-                richTextBoxText.Text = result.ToString();
-                if (originalSelectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = originalSelectionStart;
-                else
-                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                richTextBoxText.ScrollToCaret();
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -963,16 +1062,30 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                int originalSelectionStart = richTextBoxText.SelectionStart;
-                richTextBoxText.Text = result.ToString();
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
 
-                // 嘗試恢復游標位置
-                if (originalSelectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = originalSelectionStart;
-                else
-                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    // 嘗試恢復游標位置
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
 
-                richTextBoxText.ScrollToCaret();
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -1027,13 +1140,27 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                // 為了避免整份文件重置導致捲動問題，盡量保持體驗
-                richTextBoxText.Text = result;
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    // 為了避免整份文件重置導致捲動問題，盡量保持體驗
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result;
 
-                // 簡單恢復
-                if (selectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = selectionStart;
-                richTextBoxText.ScrollToCaret();
+                    // 簡單恢復
+                    if (selectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = selectionStart;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -1082,11 +1209,25 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                richTextBoxText.Text = result;
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result;
 
-                if (selectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = selectionStart;
-                richTextBoxText.ScrollToCaret();
+                    if (selectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = selectionStart;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -1180,11 +1321,25 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                richTextBoxText.Text = result.ToString();
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
 
-                if (selectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = selectionStart;
-                richTextBoxText.ScrollToCaret();
+                    if (selectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = selectionStart;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -1499,13 +1654,27 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                int originalSelectionStart = richTextBoxText.SelectionStart;
-                richTextBoxText.Text = result.ToString();
-                if (originalSelectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = originalSelectionStart;
-                else
-                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                richTextBoxText.ScrollToCaret();
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -1514,6 +1683,129 @@ namespace TextSpeedReader
                 int newLength = result.Length;
                 richTextBoxText.Select(selStart, newLength);
             }
+        }
+
+        private void InsertAnnotationAndSerialNumber()
+        {
+            string startMark = appSettings.AnnotationBegin;
+            string endMark = appSettings.AnnotationEnd;
+
+            // 1. 處理選取範圍：若未選取文字，則選取全文；若有選取，擴展至完整行
+            bool processWholeDocument = (richTextBoxText.SelectionLength == 0);
+            if (processWholeDocument)
+            {
+                richTextBoxText.SelectAll();
+            }
+            else
+            {
+                // 擴展選取範圍至完整行
+                int selectionStart = richTextBoxText.SelectionStart;
+                int selectionLength = richTextBoxText.SelectionLength;
+                string text = richTextBoxText.Text;
+
+                // 往回找行首
+                int newStart = selectionStart;
+                while (newStart > 0)
+                {
+                    char c = text[newStart - 1];
+                    if (c == '\r' || c == '\n') break;
+                    newStart--;
+                }
+
+                // 往後找行尾
+                int newEnd = selectionStart + selectionLength;
+                while (newEnd < text.Length)
+                {
+                    char c = text[newEnd];
+                    if (c == '\r' || c == '\n')
+                    {
+                        if (c == '\r' && newEnd + 1 < text.Length && text[newEnd + 1] == '\n')
+                            newEnd += 2;
+                        else
+                            newEnd += 1;
+                        break;
+                    }
+                    newEnd++;
+                }
+                richTextBoxText.Select(newStart, newEnd - newStart);
+            }
+
+            int selStart = richTextBoxText.SelectionStart;
+            int startLineIndex = richTextBoxText.GetLineFromCharIndex(selStart);
+            string selectedText = richTextBoxText.SelectedText;
+
+            if (string.IsNullOrEmpty(selectedText)) return;
+
+            // 將選取的文字分割成行 (保留換行符)
+            string[] parts = Regex.Split(selectedText, @"(\r\n|\r|\n)");
+            StringBuilder result = new StringBuilder();
+
+            for (int i = 0; i < parts.Length; i += 2)
+            {
+                string line = parts[i];
+                // 如果是最後一個部分且為空字串，且 selectedText 以換行符結尾，則不處理這一行
+                if (i == parts.Length - 1 && string.IsNullOrEmpty(line) && i > 0)
+                {
+                    break;
+                }
+
+                int absoluteLineNumber = startLineIndex + (i / 2) + 1;
+
+                if (line.StartsWith(startMark))
+                {
+                    // 已有註解開頭，判斷後續是否為數字
+                    string afterStart = line.Substring(startMark.Length);
+                    Match match = Regex.Match(afterStart, @"^(\d+)(.*)$");
+                    if (match.Success)
+                    {
+                        // 規則 3：替換數字
+                        string restOfLine = match.Groups[2].Value;
+                        result.Append(startMark + absoluteLineNumber + restOfLine);
+                    }
+                    else
+                    {
+                        // 規則 4：插入編號
+                        result.Append(startMark + absoluteLineNumber + afterStart);
+                    }
+                }
+                else
+                {
+                    // 規則 2：添加註解開頭、編號與結尾
+                    result.Append(startMark + absoluteLineNumber + endMark + line);
+                }
+
+                // 加上對應的換行符
+                if (i + 1 < parts.Length)
+                {
+                    result.Append(parts[i + 1]);
+                }
+            }
+
+            // 處理 Undo 功能與界面更新
+            SuspendDrawing();
+            richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+            richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+            try
+            {
+                richTextBoxText.SelectedText = result.ToString();
+                // 重新選取處理後的範圍
+                richTextBoxText.Select(selStart, result.Length);
+                richTextBoxText.ScrollToCaret();
+            }
+            finally
+            {
+                richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                ResumeDrawing();
+                UpdateStatusLabel();
+            }
+        }
+
+        private void AutoWordwrap()
+        {
+            richTextBoxText.WordWrap = !richTextBoxText.WordWrap;
+            toolStripButtonAutoWordwrap.Checked = richTextBoxText.WordWrap;
+            toolStripButtonAutoWordwrap.Text = toolStripButtonAutoWordwrap.Checked ? "✔自動換行" : "　自動換行";
         }
     }
 }

@@ -25,6 +25,10 @@ namespace TextSpeedReader
             // 載入插入字串
             textBoxInsertBeginingText.Text = appSettings.InsertBeginingText;
             textBoxInsertEndText.Text = appSettings.InsertEndText;
+
+            // 載入註解字串
+            textBoxAnnotationBegin.Text = appSettings.AnnotationBegin;
+            textBoxAnnotationEnd.Text = appSettings.AnnotationEnd;
         }
 
         private void buttonOK_Click(object sender, EventArgs e)
@@ -41,6 +45,10 @@ namespace TextSpeedReader
             // 保存插入字串
             appSettings.InsertBeginingText = textBoxInsertBeginingText.Text;
             appSettings.InsertEndText = textBoxInsertEndText.Text;
+
+            // 保存註解字串
+            appSettings.AnnotationBegin = textBoxAnnotationBegin.Text;
+            appSettings.AnnotationEnd = textBoxAnnotationEnd.Text;
 
             appSettings.SaveSettings();
 

@@ -39,10 +39,14 @@ namespace TextSpeedReader
             label3 = new Label();
             numericUpDown_AddSpaceChrCount = new NumericUpDown();
             buttonClearHistory = new Button();
-            this.textBoxInsertEndText = new TextBox();
+            textBoxInsertEndText = new TextBox();
             textBoxInsertBeginingText = new TextBox();
             label4 = new Label();
             label5 = new Label();
+            label6 = new Label();
+            label7 = new Label();
+            textBoxAnnotationBegin = new TextBox();
+            textBoxAnnotationEnd = new TextBox();
             ((System.ComponentModel.ISupportInitialize)numericUpDown_AddSpaceChrCount).BeginInit();
             SuspendLayout();
             // 
@@ -61,7 +65,7 @@ namespace TextSpeedReader
             // 
             // buttonOK
             // 
-            buttonOK.Location = new Point(230, 368);
+            buttonOK.Location = new Point(230, 408);
             buttonOK.Margin = new Padding(4);
             buttonOK.Name = "buttonOK";
             buttonOK.Size = new Size(143, 40);
@@ -72,7 +76,7 @@ namespace TextSpeedReader
             // 
             // buttonCancel
             // 
-            buttonCancel.Location = new Point(387, 368);
+            buttonCancel.Location = new Point(387, 408);
             buttonCancel.Margin = new Padding(4);
             buttonCancel.Name = "buttonCancel";
             buttonCancel.Size = new Size(143, 40);
@@ -118,7 +122,7 @@ namespace TextSpeedReader
             textBoxNewLineStartJudgment.Name = "textBoxNewLineStartJudgment";
             textBoxNewLineStartJudgment.Size = new Size(324, 28);
             textBoxNewLineStartJudgment.TabIndex = 6;
-            textBoxNewLineStartJudgment.Text = "/*新咒語開始------------------- */";
+            textBoxNewLineStartJudgment.Text = "/*新咒語開始------*/";
             // 
             // textBoxNewLineEndJudgment
             // 
@@ -126,7 +130,7 @@ namespace TextSpeedReader
             textBoxNewLineEndJudgment.Name = "textBoxNewLineEndJudgment";
             textBoxNewLineEndJudgment.Size = new Size(324, 28);
             textBoxNewLineEndJudgment.TabIndex = 7;
-            textBoxNewLineEndJudgment.Text = "/*新咒語結束-------------------- */";
+            textBoxNewLineEndJudgment.Text = "/*新咒語結束------*/";
             // 
             // label3
             // 
@@ -148,7 +152,7 @@ namespace TextSpeedReader
             // 
             // buttonClearHistory
             // 
-            buttonClearHistory.Location = new Point(29, 368);
+            buttonClearHistory.Location = new Point(29, 408);
             buttonClearHistory.Margin = new Padding(4);
             buttonClearHistory.Name = "buttonClearHistory";
             buttonClearHistory.Size = new Size(180, 40);
@@ -159,15 +163,15 @@ namespace TextSpeedReader
             // 
             // textBoxInsertEndText
             // 
-            this.textBoxInsertEndText.Location = new Point(206, 299);
-            this.textBoxInsertEndText.Name = "textBoxInsertEndText";
-            this.textBoxInsertEndText.Size = new Size(324, 28);
-            this.textBoxInsertEndText.TabIndex = 14;
-            this.textBoxInsertEndText.Text = ", ";
+            textBoxInsertEndText.Location = new Point(206, 279);
+            textBoxInsertEndText.Name = "textBoxInsertEndText";
+            textBoxInsertEndText.Size = new Size(324, 28);
+            textBoxInsertEndText.TabIndex = 14;
+            textBoxInsertEndText.Text = ", ";
             // 
             // textBoxInsertBeginingText
             // 
-            textBoxInsertBeginingText.Location = new Point(206, 261);
+            textBoxInsertBeginingText.Location = new Point(206, 241);
             textBoxInsertBeginingText.Name = "textBoxInsertBeginingText";
             textBoxInsertBeginingText.Size = new Size(324, 28);
             textBoxInsertBeginingText.TabIndex = 13;
@@ -176,7 +180,7 @@ namespace TextSpeedReader
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(29, 302);
+            label4.Location = new Point(29, 282);
             label4.Name = "label4";
             label4.Size = new Size(137, 20);
             label4.TabIndex = 12;
@@ -185,11 +189,45 @@ namespace TextSpeedReader
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(29, 264);
+            label5.Location = new Point(29, 244);
             label5.Name = "label5";
             label5.Size = new Size(137, 20);
             label5.TabIndex = 11;
             label5.Text = "插入每行開頭字串";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(29, 350);
+            label6.Name = "label6";
+            label6.Size = new Size(73, 20);
+            label6.TabIndex = 15;
+            label6.Text = "註解開頭";
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(300, 350);
+            label7.Name = "label7";
+            label7.Size = new Size(73, 20);
+            label7.TabIndex = 16;
+            label7.Text = "註解結尾";
+            // 
+            // textBoxAnnotationBegin
+            // 
+            textBoxAnnotationBegin.Location = new Point(108, 347);
+            textBoxAnnotationBegin.Name = "textBoxAnnotationBegin";
+            textBoxAnnotationBegin.Size = new Size(146, 28);
+            textBoxAnnotationBegin.TabIndex = 17;
+            textBoxAnnotationBegin.Text = "/*";
+            // 
+            // textBoxAnnotationEnd
+            // 
+            textBoxAnnotationEnd.Location = new Point(379, 347);
+            textBoxAnnotationEnd.Name = "textBoxAnnotationEnd";
+            textBoxAnnotationEnd.Size = new Size(151, 28);
+            textBoxAnnotationEnd.TabIndex = 18;
+            textBoxAnnotationEnd.Text = "*/";
             // 
             // FormOptions
             // 
@@ -197,8 +235,12 @@ namespace TextSpeedReader
             AutoScaleDimensions = new SizeF(10F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = buttonCancel;
-            ClientSize = new Size(543, 423);
-            Controls.Add(this.textBoxInsertEndText);
+            ClientSize = new Size(544, 461);
+            Controls.Add(textBoxAnnotationEnd);
+            Controls.Add(textBoxAnnotationBegin);
+            Controls.Add(label7);
+            Controls.Add(label6);
+            Controls.Add(textBoxInsertEndText);
             Controls.Add(textBoxInsertBeginingText);
             Controls.Add(label4);
             Controls.Add(label5);
@@ -239,11 +281,14 @@ namespace TextSpeedReader
         private Label label3;
         private NumericUpDown numericUpDown_AddSpaceChrCount;
         private Button buttonClearHistory;
-        private TextBox textBox1;
+        private TextBox textBoxAnnotationBegin;
         private TextBox textBoxInsertBeginingText;
         private Label label4;
         private Label label5;
         private TextBox textBoxInsertEndText;
+        private Label label6;
+        private Label label7;
+        private TextBox textBoxAnnotationEnd;
     }
 }
 

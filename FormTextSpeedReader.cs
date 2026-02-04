@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Forms.Application;
 using Font = System.Drawing.Font;
@@ -19,6 +20,26 @@ namespace TextSpeedReader
 {
     public partial class FormTextSpeedReader : Form
     {
+        #region Win32 API
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
+
+        private const int WM_SETREDRAW = 0x0b;
+
+        private void SuspendDrawing()
+        {
+            SendMessage(richTextBoxText.Handle, WM_SETREDRAW, (IntPtr)0, IntPtr.Zero);
+        }
+
+        private void ResumeDrawing()
+        {
+            SendMessage(richTextBoxText.Handle, WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
+            richTextBoxText.Invalidate();
+        }
+
+        #endregion
+
         #region 字段定義
 
         // 視窗最小尺寸設定
@@ -1044,10 +1065,25 @@ namespace TextSpeedReader
                 if (processWholeDocument)
                 {
                     // 處理整個文檔
-                    richTextBoxText.Text = simplifiedText;
-                    // 恢復光標位置
-                    richTextBoxText.SelectionStart = selStart;
-                    richTextBoxText.SelectionLength = 0;
+                    SuspendDrawing();
+                    richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                    try
+                    {
+                        richTextBoxText.SelectAll();
+                        richTextBoxText.SelectedText = simplifiedText;
+                        // 恢復光標位置
+                        richTextBoxText.SelectionStart = selStart;
+                        richTextBoxText.SelectionLength = 0;
+                        richTextBoxText.ScrollToCaret();
+                    }
+                    finally
+                    {
+                        richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                        richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                        ResumeDrawing();
+                        UpdateStatusLabel();
+                    }
                 }
                 else
                 {
@@ -1115,10 +1151,25 @@ namespace TextSpeedReader
                 if (processWholeDocument)
                 {
                     // 處理整個文檔
-                    richTextBoxText.Text = traditionalText;
-                    // 恢復光標位置
-                    richTextBoxText.SelectionStart = selStart;
-                    richTextBoxText.SelectionLength = 0;
+                    SuspendDrawing();
+                    richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                    try
+                    {
+                        richTextBoxText.SelectAll();
+                        richTextBoxText.SelectedText = traditionalText;
+                        // 恢復光標位置
+                        richTextBoxText.SelectionStart = selStart;
+                        richTextBoxText.SelectionLength = 0;
+                        richTextBoxText.ScrollToCaret();
+                    }
+                    finally
+                    {
+                        richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                        richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                        ResumeDrawing();
+                        UpdateStatusLabel();
+                    }
                 }
                 else
                 {
@@ -1645,13 +1696,27 @@ namespace TextSpeedReader
             // 套用結果
             if (processWholeDocument)
             {
-                int originalSelectionStart = richTextBoxText.SelectionStart;
-                richTextBoxText.Text = result.ToString();
-                if (originalSelectionStart < richTextBoxText.Text.Length)
-                    richTextBoxText.SelectionStart = originalSelectionStart;
-                else
-                    richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
-                richTextBoxText.ScrollToCaret();
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = result.ToString();
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
             }
             else
             {
@@ -2367,6 +2432,16 @@ namespace TextSpeedReader
         private void toolStripMenuItem_ReCodeFullFoldersFilesName_Click(object sender, EventArgs e)
         {
             ReCodeFullFoldersFilesName();
+        }
+
+        private void toolStripMenuItem_InsertAnnotationAndSerialNumber_Click(object sender, EventArgs e)
+        {
+            InsertAnnotationAndSerialNumber();
+        }
+
+        private void toolStripButtonAutoWordwrap_Click(object sender, EventArgs e)
+        {
+            AutoWordwrap();
         }
     }
 }
