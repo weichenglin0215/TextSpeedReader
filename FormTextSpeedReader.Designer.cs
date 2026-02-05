@@ -188,6 +188,7 @@ namespace TextSpeedReader
             // splitContainerMain
             // 
             splitContainerMain.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            splitContainerMain.FixedPanel = FixedPanel.Panel1;
             splitContainerMain.Location = new Point(0, 32);
             splitContainerMain.Name = "splitContainerMain";
             // 
@@ -235,7 +236,7 @@ namespace TextSpeedReader
             treeViewFolder.Name = "treeViewFolder";
             treeViewFolder.SelectedImageIndex = 0;
             treeViewFolder.Size = new Size(497, 292);
-            treeViewFolder.TabIndex = 0;
+            treeViewFolder.TabIndex = 2;
             treeViewFolder.AfterSelect += treeViewFolder_AfterSelect;
             // 
             // contextMenuStrip_treeViewFolder
@@ -298,15 +299,15 @@ namespace TextSpeedReader
             // 
             // listViewFile
             // 
-            listViewFile.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             listViewFile.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3 });
             listViewFile.ContextMenuStrip = contextMenuStrip_ListViewFile;
+            listViewFile.Dock = DockStyle.Fill;
             listViewFile.GridLines = true;
             listViewFile.Location = new Point(0, 0);
             listViewFile.Name = "listViewFile";
-            listViewFile.Size = new Size(497, 407);
+            listViewFile.Size = new Size(497, 409);
             listViewFile.SmallImageList = imageList1;
-            listViewFile.TabIndex = 0;
+            listViewFile.TabIndex = 3;
             listViewFile.UseCompatibleStateImageBehavior = false;
             listViewFile.View = View.Details;
             listViewFile.ColumnClick += listViewFile_ColumnClick;
@@ -424,7 +425,7 @@ namespace TextSpeedReader
             // 
             listViewRecentFiles.AutoArrange = false;
             listViewRecentFiles.Columns.AddRange(new ColumnHeader[] { columnHeaderFileName, columnHeaderCharCount });
-            listViewRecentFiles.Location = new Point(116, 480);
+            listViewRecentFiles.Location = new Point(173, 525);
             listViewRecentFiles.Name = "listViewRecentFiles";
             listViewRecentFiles.Size = new Size(489, 177);
             listViewRecentFiles.TabIndex = 1;
@@ -444,16 +445,16 @@ namespace TextSpeedReader
             // 
             // richTextBoxText
             // 
-            richTextBoxText.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             richTextBoxText.BackColor = SystemColors.WindowText;
             richTextBoxText.BorderStyle = BorderStyle.None;
             richTextBoxText.ContextMenuStrip = contextMenuStrip_RichTextBox;
+            richTextBoxText.Dock = DockStyle.Fill;
             richTextBoxText.Font = new Font("標楷體", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 136);
             richTextBoxText.ForeColor = SystemColors.Window;
             richTextBoxText.Location = new Point(0, 0);
             richTextBoxText.Name = "richTextBoxText";
-            richTextBoxText.Size = new Size(1075, 700);
-            richTextBoxText.TabIndex = 0;
+            richTextBoxText.Size = new Size(1077, 707);
+            richTextBoxText.TabIndex = 4;
             richTextBoxText.Text = resources.GetString("richTextBoxText.Text");
             // 
             // contextMenuStrip_RichTextBox
@@ -678,7 +679,7 @@ namespace TextSpeedReader
             navigationBar.Name = "navigationBar";
             navigationBar.Size = new Size(1584, 32);
             navigationBar.Stretch = true;
-            navigationBar.TabIndex = 5;
+            navigationBar.TabIndex = 1;
             // 
             // ShowFolderButton
             // 
@@ -912,19 +913,21 @@ namespace TextSpeedReader
             // 
             // statusStrip1
             // 
+            statusStrip1.AutoSize = false;
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabelNews, toolStripStatusLabelFileName, toolStripStatusLabelFixed });
-            statusStrip1.Location = new Point(0, 732);
+            statusStrip1.Location = new Point(0, 737);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(1584, 29);
-            statusStrip1.TabIndex = 6;
+            statusStrip1.Size = new Size(1584, 24);
+            statusStrip1.TabIndex = 5;
             statusStrip1.Text = "statusStrip1";
             // 
             // toolStripStatusLabelNews
             // 
             toolStripStatusLabelNews.AutoSize = false;
+            toolStripStatusLabelNews.Margin = new Padding(0, 1, 0, 1);
             toolStripStatusLabelNews.Name = "toolStripStatusLabelNews";
-            toolStripStatusLabelNews.Size = new Size(600, 24);
+            toolStripStatusLabelNews.Size = new Size(600, 22);
             toolStripStatusLabelNews.Text = "更新訊息";
             toolStripStatusLabelNews.TextAlign = ContentAlignment.MiddleLeft;
             // 
@@ -932,15 +935,17 @@ namespace TextSpeedReader
             // 
             toolStripStatusLabelFileName.AutoSize = false;
             toolStripStatusLabelFileName.BackColor = SystemColors.ControlLight;
+            toolStripStatusLabelFileName.Margin = new Padding(0, 1, 0, 1);
             toolStripStatusLabelFileName.Name = "toolStripStatusLabelFileName";
-            toolStripStatusLabelFileName.Size = new Size(600, 24);
+            toolStripStatusLabelFileName.Size = new Size(600, 22);
             toolStripStatusLabelFileName.Text = "檔名";
             toolStripStatusLabelFileName.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // toolStripStatusLabelFixed
             // 
+            toolStripStatusLabelFixed.Margin = new Padding(0, 1, 0, 1);
             toolStripStatusLabelFixed.Name = "toolStripStatusLabelFixed";
-            toolStripStatusLabelFixed.Size = new Size(73, 24);
+            toolStripStatusLabelFixed.Size = new Size(73, 22);
             toolStripStatusLabelFixed.Text = "狀態訊息";
             toolStripStatusLabelFixed.TextAlign = ContentAlignment.MiddleRight;
             // 
@@ -956,7 +961,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 2.6.0.0  (自動換行、多個AI生圖提示方便編輯功能、優化一簡轉多繁OpenCC.NET，新增批次目錄名稱編碼(亂碼)轉換、檔名編碼(亂碼)轉換、檔名簡轉繁，逐行排序、關鍵字斷行、行首填空)";
+            Text = "TextSpeedReader Ver. 2.6.1.0  (自動換行、多個AI生圖提示方便編輯功能、優化一簡轉多繁OpenCC.NET，新增批次目錄名稱編碼(亂碼)轉換、檔名編碼(亂碼)轉換、檔名簡轉繁，逐行排序、關鍵字斷行、行首填空)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -974,7 +979,6 @@ namespace TextSpeedReader
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
 
         }
 
