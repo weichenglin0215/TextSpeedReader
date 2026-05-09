@@ -238,7 +238,7 @@ namespace TextSpeedReader
                 // 使用 SaveFileDialog 讓使用者輸入檔名
                 using (SaveFileDialog saveFileDialog = new SaveFileDialog())
                 {
-                    saveFileDialog.Filter = "文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                    saveFileDialog.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                     saveFileDialog.FileName = fileNameWithoutExtension + extension;
                     saveFileDialog.InitialDirectory = directory;
                     saveFileDialog.Title = "另存新檔";
@@ -334,7 +334,7 @@ namespace TextSpeedReader
             // 使用 SaveFileDialog 讓使用者確認或修改檔名和位置
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                saveFileDialog.Filter = "文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                saveFileDialog.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                 saveFileDialog.FileName = suggestedFileName;
                 saveFileDialog.InitialDirectory = directory;
                 saveFileDialog.Title = "儲存選取的文字";
@@ -925,7 +925,7 @@ namespace TextSpeedReader
             {
                 using (SaveFileDialog sfd = new SaveFileDialog())
                 {
-                    sfd.Filter = "文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                    sfd.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                     sfd.FileName = "選取文字.txt";
                     if (sfd.ShowDialog() != DialogResult.OK)
                         return;
@@ -956,7 +956,7 @@ namespace TextSpeedReader
                                 // 另存新檔，顯示另存新檔對話框
                                 using (SaveFileDialog sfd = new SaveFileDialog())
                                 {
-                                    sfd.Filter = "文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                                    sfd.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                                     sfd.FileName = Path.GetFileName(targetPath);
                                     string? dir = Path.GetDirectoryName(targetPath);
                                     if (!string.IsNullOrEmpty(dir))
@@ -1855,6 +1855,61 @@ namespace TextSpeedReader
                             catch { }
                         }
                     }));
+                }
+            }
+        }
+        /// <summary>
+        /// 針對文字編碼修正
+        /// </summary>
+        private void ReCodeText()
+        {
+            if (richTextBoxText.TextLength == 0)
+            {
+                MessageBox.Show("沒有文字可以變更編碼。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string sampleText = richTextBoxText.SelectedText;
+            if (string.IsNullOrEmpty(sampleText))
+            {
+                sampleText = richTextBoxText.Text.Substring(0, Math.Min(100, richTextBoxText.TextLength));
+            }
+            else if (sampleText.Length > 100)
+            {
+                sampleText = sampleText.Substring(0, 100);
+            }
+
+            using (FormReCodeFileName recodeDialog = new FormReCodeFileName(sampleText))
+            {
+                recodeDialog.Text = "自選編碼重新命名";
+                if (recodeDialog.ShowDialog(this) == DialogResult.OK &&
+                    recodeDialog.SelectedCorrectEncoding != null &&
+                    recodeDialog.SelectedWrongEncoding != null)
+                {
+                    Encoding correct = recodeDialog.SelectedCorrectEncoding;
+                    Encoding wrong = recodeDialog.SelectedWrongEncoding;
+                    bool sim2Trad = recodeDialog.IsSim2TradChecked;
+
+                    try
+                    {
+                        byte[] bytes = wrong.GetBytes(richTextBoxText.Text);
+                        string newText = correct.GetString(bytes);
+
+                        if (sim2Trad)
+                        {
+                            newText = ConvertSimplifiedToTraditional(newText);
+                        }
+
+                        if (newText != richTextBoxText.Text)
+                        {
+                            richTextBoxText.Text = newText;
+                            toolStripStatusLabelFixed.Text = "文字編碼已修正";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"變更文字編碼失敗：{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }

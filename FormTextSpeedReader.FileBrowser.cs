@@ -298,9 +298,12 @@ namespace TextSpeedReader
 
             // 檢查是否為文字檔案
             Console.WriteLine("this.listViewFile.SelectedItems.Count " + this.listViewFile.SelectedItems.Count);
-            //Console.WriteLine("this.listViewFile.SelectedItems[0].Text " + this.listViewFile.SelectedItems[0].Text);
-            if (this.listViewFile.SelectedItems.Count > 0 && Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower() == ".txt" || Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower() == ".yaml")
+            
+            if (this.listViewFile.SelectedItems.Count > 0)
             {
+                string ext = Path.GetExtension(this.listViewFile.SelectedItems[0].Text).ToLower();
+                if (fileManager.TextExtensions.Contains(ext) && ext != ".html" && ext != ".htm")
+                {
                 string tmpFullFileName = m_TreeViewSelectedNodeText + @"\" + this.listViewFile.SelectedItems[0].Text;
 
                 // 使用編碼檢測讀取檔案內容
@@ -460,6 +463,7 @@ namespace TextSpeedReader
                     string? dir = Path.GetDirectoryName(tmpFullFileName);
                     if (dir != null) appSettings.AddHistoryDirectory(dir);
                     UpdateHistoryMenu();
+                }
                 }
             }
 

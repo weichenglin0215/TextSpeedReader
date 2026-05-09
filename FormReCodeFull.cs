@@ -13,9 +13,13 @@ namespace TextSpeedReader
         public bool IsSim2TradChecked => checkBoxSim2Trad.Checked;
         private string m_OriginalName;
 
-        public FormReCodeFull(string originalName)
+        public FormReCodeFull()
         {
             InitializeComponent();
+        }
+
+        public FormReCodeFull(string originalName) : this()
+        {
             m_OriginalName = originalName;
             labelOriginal.Text = "根目錄名稱: " + originalName;
             PopulatePreviews();
@@ -27,6 +31,7 @@ namespace TextSpeedReader
 
             // 取得常見編碼
             Encoding utf8 = new UTF8Encoding(false);
+            Encoding utf8BOM = new UTF8Encoding(true);
             Encoding gbk = Encoding.GetEncoding(936);
             Encoding big5 = Encoding.GetEncoding(950);
             Encoding unicode = Encoding.Unicode;
@@ -38,12 +43,14 @@ namespace TextSpeedReader
             AddPreview("目前: Big5 -> 轉成: GB18030", gb18030, big5);
             AddPreview("目前: Big5 -> 轉成: GBK", gbk, big5);
             AddPreview("目前: Big5 -> 轉成: UTF-8", utf8, big5);
+            AddPreview("目前: Big5 -> 轉成: UTF-8-BOM", utf8BOM, big5);
             AddPreview("目前: Big5 -> 轉成: Unicode", unicode, big5);
 
             AddPreview("目前: GB18030 -> 轉成: Big5", big5, gb18030);
 
             AddPreview("目前: GBK -> 轉成: Big5", big5, gbk);
             AddPreview("目前: GBK -> 轉成: UTF-8", utf8, gbk);
+            AddPreview("目前: GBK -> 轉成: UTF-8-BOM", utf8BOM, gbk);
             AddPreview("目前: GBK -> 轉成: Unicode", unicode, gbk);
 
             AddPreview("目前: UTF-8 -> 轉成: Big5", big5, utf8);
@@ -51,9 +58,15 @@ namespace TextSpeedReader
             AddPreview("目前: UTF-8 -> 轉成: GB18030", gb18030, utf8);
             AddPreview("目前: UTF-8 -> 轉成: Unicode", unicode, utf8);
 
+            AddPreview("目前: UTF-8-BOM -> 轉成: Big5", big5, utf8BOM);
+            AddPreview("目前: UTF-8-BOM -> 轉成: GBK", gbk, utf8BOM);
+            AddPreview("目前: UTF-8-BOM -> 轉成: GB18030", gb18030, utf8BOM);
+            AddPreview("目前: UTF-8-BOM -> 轉成: Unicode", unicode, utf8BOM);
+
             AddPreview("目前: Unicode -> 轉成: Big5", big5, unicode);
             AddPreview("目前: Unicode -> 轉成: GBK", gbk, unicode);
             AddPreview("目前: Unicode -> 轉成: UTF-8", utf8, unicode);
+            AddPreview("目前: Unicode -> 轉成: UTF-8-BOM", utf8BOM, unicode);
         }
 
         private void AddPreview(string label, Encoding correct, Encoding wrong)

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic;
+using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.FileIO;
 using OpenCCNET;
 using System;
@@ -133,6 +133,12 @@ namespace TextSpeedReader
             toolStripButtonHTMLChangeFontChecker.CheckOnClick = true;
             toolStripButtonHTMLChangeFontChecker.Text = toolStripButtonHTMLChangeFontChecker.Checked ? "✔改變HTML字體底色" : "　改變HTML字體底色";
             toolStripButtonHTMLChangeFontChecker.Click += ToolStripButtonHTMLChangeFontChecker_Click;
+
+            // 防止在設計工具模式下執行這些程式碼導致錯誤
+            if (System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime)
+            {
+                return;
+            }
 
             // 載入應用程式設定
             appSettings.LoadSettings();
@@ -1979,7 +1985,7 @@ namespace TextSpeedReader
             // 使用 SaveFileDialog 讓使用者選擇儲存位置和檔名
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                saveFileDialog.Filter = "文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                saveFileDialog.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                 saveFileDialog.FilterIndex = 1;
                 saveFileDialog.Title = "另存新檔";
                 saveFileDialog.DefaultExt = "txt";
@@ -2442,6 +2448,11 @@ namespace TextSpeedReader
         private void toolStripButtonAutoWordwrap_Click(object sender, EventArgs e)
         {
             AutoWordwrap();
+        }
+
+        private void toolStripMenuItem_ReCodeText_Click(object sender, EventArgs e)
+        {
+            ReCodeText();
         }
     }
 }
