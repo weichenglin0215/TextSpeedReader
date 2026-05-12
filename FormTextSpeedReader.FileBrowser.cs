@@ -12,7 +12,7 @@ namespace TextSpeedReader
 {
     public partial class FormTextSpeedReader
     {
-        // 初始化並填入指定目錄的樹狀檢視資料
+        // 初始化樹狀檢視，以 fileManager.FullPath 為根目錄，僅顯示第一層子目錄（延遲載入）
         private void PopulateTreeView(int subFolderDeepthLimited)
         {
             treeViewFolder.Nodes.Clear();
@@ -38,7 +38,7 @@ namespace TextSpeedReader
             }
         }
 
-        // 初始化並填入所有磁碟機的樹狀檢視資料
+        // 初始化樹狀檢視，掃描 C:～K: 所有磁碟機，若設定了上次目錄則自動展開至該路徑
         private void PopulateTreeViewAll(int subFolderDeepthLimited)
         {
             treeViewFolder.Nodes.Clear();
@@ -647,7 +647,7 @@ namespace TextSpeedReader
             }
         }
 
-        // 比較節點的目前子目錄與實際檔案系統，若不同則重新載入該節點的子目錄
+        // 比較 TreeNode 目前的子節點清單與實際檔案系統，若有差異則重新載入子目錄（用於外部異動偵測）
         private void RefreshChildNodesIfChanged(TreeNode node)
         {
             if (node == null || node.Tag == null || !(node.Tag is DirectoryInfo dirInfo))

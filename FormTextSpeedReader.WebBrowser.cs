@@ -1,64 +1,64 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.IO;
+using System.Windows.Forms;
 
 namespace TextSpeedReader
 {
     public partial class FormTextSpeedReader
     {
-        // 處理網頁導航
+        /// <summary>
+        /// 以 WebBrowser 控制項導航到指定網址。
+        /// 若網址未含通訊協定前綴，自動補上 http://。
+        /// </summary>
+        /// <param name="address">要導航的網址字串。</param>
         private void Navigate(String address)
         {
             if (String.IsNullOrEmpty(address)) return;
             if (address.Equals("about:blank")) return;
 
-            // 確保網址格式正確
-            if (!address.StartsWith("http://") &&
-                !address.StartsWith("https://"))
-            {
+            // 若網址沒有 http:// 或 https:// 前綴，補上 http://
+            if (!address.StartsWith("http://") && !address.StartsWith("https://"))
                 address = "http://" + address;
-            }
+
             try
             {
                 webBrowser1.Navigate(new Uri(address));
             }
             catch (System.UriFormatException)
             {
-                return;
+                // 網址格式不合法，靜默忽略
             }
         }
 
-        // 處理網頁導航完成事件
+        // WebBrowser 導航完成後的事件（目前無需額外處理）
         private void webBrowser1_Navigated(object sender, WebBrowserNavigatedEventArgs e)
         {
-            //toolStripTextBox1.Text = webBrowser1.Url.ToString();
         }
 
-        // 處理 WebBrowser 文檔載入完成事件
+        /// <summary>
+        /// WebBrowser 文件完全載入後的事件處理。
+        /// 套用預設樣式（黑底白字、指定字型），並刪除暫存的 HTML 臨時檔案。
+        /// 臨時檔案延遲 1 秒後刪除，確保 WebBrowser 已完全完成載入。
+        /// </summary>
         private void WebBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
+            // 套用使用者設定的顯示樣式（黑底白字、字型）
             ApplyWebBrowserDefaultStyle();
 
-            // 清理臨時HTML檔案
+            // 清理先前建立的暫存 HTML 檔案
             if (!string.IsNullOrEmpty(m_TempHtmlFilePath) && File.Exists(m_TempHtmlFilePath))
             {
                 try
                 {
-                    // 延遲刪除，確保WebBrowser完全載入
+                    // 延遲 1 秒刪除，避免 WebBrowser 仍在讀取時刪除導致錯誤
                     System.Threading.Timer timer = null;
                     timer = new System.Threading.Timer((state) =>
                     {
                         try
                         {
                             if (File.Exists(m_TempHtmlFilePath))
-                            {
                                 File.Delete(m_TempHtmlFilePath);
-                            }
                             m_TempHtmlFilePath = "";
                         }
                         catch { }
@@ -72,129 +72,82 @@ namespace TextSpeedReader
             }
         }
 
-        // 應用 WebBrowser 預設樣式（背景顏色、字型、字體尺寸）
+        /// <summary>
+        /// 對 WebBrowser 的 body 元素套用預設顯示樣式：
+        /// 縮放比例、字型家族、字型大小、黑色背景、白色文字。
+        /// 僅在「改變HTML字體底色」按鈕被選取時才套用。
+        /// </summary>
         private void ApplyWebBrowserDefaultStyle()
         {
-            if (webBrowser1.Document == null)
-                return;
-
-            if (!toolStripButtonHTMLChangeFontChecker.Checked)
-                return;
+            if (webBrowser1.Document == null) return;
+            if (!toolStripButtonHTMLChangeFontChecker.Checked) return;
 
             try
             {
-                // 獲取當前 richTextBoxText 的字體設定作為參考
-                //Font currentFont = richTextBoxText.Font;
                 Font currentFont = m_Font;
                 string fontFamily = currentFont.FontFamily.Name;
                 float fontSize = currentFont.SizeInPoints;
-
-                // 設定背景顏色（例如：白色 #FFFFFF，或淺灰色 #F5F5F5）
-                // 可以根據需要修改顏色值
-                //string backgroundColor = "#FFFFFF"; // 白色背景
-                string backgroundColor = "#000000"; // 黑色背景
-
-                // 設定字型家族（處理字體名稱中的特殊字符）
+                // 處理字型名稱中的單引號（CSS 需要跳脫）
                 string escapedFontFamily = fontFamily.Replace("'", "\\'");
 
-                // 設定文字顏色
-                string textColor = "#FFFFFF"; // 白色文字
-
-                // 方法1：直接設置 body 樣式（簡單但可能被 HTML 內聯樣式覆蓋）
                 if (webBrowser1.Document.Body != null)
                 {
-                    string style = $"zoom: {m_WebBrowserZoom.ToString()}%; font-family: '{escapedFontFamily}', sans-serif; font-size: {fontSize}pt; background-color: {backgroundColor}; color: {textColor};";
+                    // 組合 CSS 樣式字串，一次設定所有屬性
+                    string style = $"zoom: {m_WebBrowserZoom}%; font-family: '{escapedFontFamily}', sans-serif; font-size: {fontSize}pt; background-color: #000000; color: #FFFFFF;";
                     webBrowser1.Document.Body.Style = style;
                 }
-                /*
-                // 方法2：注入 CSS 樣式到 head（更可靠，優先級更高）
-                HtmlElement? headElement = webBrowser1.Document.GetElementsByTagName("head")[0];
-                if (headElement != null)
-                {
-                    HtmlElement? styleElement = webBrowser1.Document.CreateElement("style");
-                    if (styleElement != null)
-                    {
-                        // 使用 !important 確保樣式優先級
-                        string css = $@"
-                            body {{
-                                font-family: '{escapedFontFamily}', sans-serif !important;
-                                font-size: {fontSize}pt !important;
-                                background-color: {backgroundColor} !important;
-                                color: {textColor} !important;
-                            }}
-                        ";
-                        styleElement.SetAttribute("type", "text/css");
-                        styleElement.InnerHtml = css;
-                        headElement.AppendChild(styleElement);
-                    }
-                }
-                */
             }
             catch (Exception ex)
             {
-                // 如果設置樣式失敗，不影響其他功能
                 Console.WriteLine($"設置 WebBrowser 樣式時發生錯誤: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// 更新 WebBrowser body 元素的樣式，使用指定的縮放比例。
+        /// 其他樣式屬性（字型、顏色）與 ApplyWebBrowserDefaultStyle 相同。
+        /// 僅在「改變HTML字體底色」按鈕被選取時才套用。
+        /// </summary>
+        /// <param name="zoomRate">縮放比例字串（純數字，不含 %）。</param>
         private void ApplyWebBrowserFontStyle(string zoomRate)
         {
-            if (webBrowser1.Document == null)
-                return;
-
-            if (!toolStripButtonHTMLChangeFontChecker.Checked)
-                return;
+            if (webBrowser1.Document == null) return;
+            if (!toolStripButtonHTMLChangeFontChecker.Checked) return;
 
             try
             {
-                // 獲取當前 richTextBoxText 的字體設定作為參考
-                //Font currentFont = richTextBoxText.Font;
                 Font currentFont = m_Font;
                 string fontFamily = currentFont.FontFamily.Name;
                 float fontSize = currentFont.SizeInPoints;
-
-                // 設定背景顏色（例如：白色 #FFFFFF，或淺灰色 #F5F5F5）
-                // 可以根據需要修改顏色值
-                //string backgroundColor = "#FFFFFF"; // 白色背景
-                string backgroundColor = "#000000"; // 黑色背景
-
-                // 設定字型家族（處理字體名稱中的特殊字符）
                 string escapedFontFamily = fontFamily.Replace("'", "\\'");
 
-                // 設定文字顏色
-                string textColor = "#FFFFFF"; // 白色文字
-
-                // 方法1：直接設置 body 樣式（簡單但可能被 HTML 內聯樣式覆蓋）
                 if (webBrowser1.Document.Body != null)
                 {
-                    string style = $"zoom: {zoomRate}%; font-family: '{escapedFontFamily}', sans-serif; font-size: {fontSize}pt; background-color: {backgroundColor}; color: {textColor};";
+                    string style = $"zoom: {zoomRate}%; font-family: '{escapedFontFamily}', sans-serif; font-size: {fontSize}pt; background-color: #000000; color: #FFFFFF;";
                     webBrowser1.Document.Body.Style = style;
                 }
             }
             catch (Exception ex)
             {
-                // 如果設置樣式失敗，不影響其他功能
                 Console.WriteLine($"設置 WebBrowser 樣式時發生錯誤: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// 「改變HTML字體底色」工具列按鈕的點擊事件。
+        /// 選取時套用自訂樣式；取消選取時重新整理頁面以還原原始樣式。
+        /// </summary>
         private void ToolStripButtonHTMLChangeFontChecker_Click(object sender, EventArgs e)
         {
-            toolStripButtonHTMLChangeFontChecker.Text = toolStripButtonHTMLChangeFontChecker.Checked ? "✔改變HTML字體底色" : "　改變HTML字體底色";
-            
-            if (toolStripButtonHTMLChangeFontChecker.Checked)
-            {
-                ApplyWebBrowserDefaultStyle();
-            }
-            else
-            {
-                // 重整以恢復預設樣式
-                if (webBrowser1.Url != null)
-                {
-                    webBrowser1.Refresh();
-                }
-            }
-        }
+            // 更新按鈕文字以反映目前勾選狀態
+            toolStripButtonHTMLChangeFontChecker.Text = toolStripButtonHTMLChangeFontChecker.Checked
+                ? "✔改變HTML字體底色"
+                : "　改變HTML字體底色";
 
+            if (toolStripButtonHTMLChangeFontChecker.Checked)
+                ApplyWebBrowserDefaultStyle();
+            else if (webBrowser1.Url != null)
+                webBrowser1.Refresh(); // 重整以還原 HTML 頁面本身的原始樣式
+        }
     }
 }

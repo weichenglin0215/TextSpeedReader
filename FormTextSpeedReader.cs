@@ -45,13 +45,10 @@ namespace TextSpeedReader
         // 視窗最小尺寸設定
         public override System.Drawing.Size MinimumSize { get; set; }
 
-        // 檔案系統管理器
+        // 檔案系統管理器（目錄瀏覽、最近閱讀清單、檔案刪除）
         public FileSystemManager fileManager = new FileSystemManager();
 
-        // 顯示管理器
-        public DisplayManager displayManager = new DisplayManager();
-
-        // 應用程式設定管理器
+        // 應用程式設定管理器（INI 設定檔讀寫）
         private AppSettings appSettings = new AppSettings();
 
         // 系統字體列表
@@ -216,12 +213,10 @@ namespace TextSpeedReader
 
         #region 初始化與設定
 
-        // 設定視窗大小和位置
+        // 設定視窗大小（略小於螢幕工作區域）並將視窗置中
         private void SetFormSize()
         {
-            // 設定最小視窗大小
             MinimumSize = new Size(1320, 800);
-            // 獲取螞蟻工作區域大小
             Screen? primaryScreen = Screen.PrimaryScreen;
             if (primaryScreen != null)
             {
@@ -284,35 +279,7 @@ namespace TextSpeedReader
 
 
 
-        /*
-        // 遞迴獲取目錄結構，可限制遍歷深度
-        private void GetDirectories(DirectoryInfo[] subDirs, TreeNode nodeToAddTo, int subFolderDeepth, int subFolderDeepthLimited)
-        {
-            TreeNode aNode;
-            DirectoryInfo[] subSubDirs;
-            foreach (DirectoryInfo subDir in subDirs)
-            {
-                aNode = new TreeNode(subDir.Name, 0, 0);
-                aNode.Tag = subDir;
-                aNode.ImageKey = "folder";
-                try
-                {
-                    // 獲取子目錄
-                    subSubDirs = subDir.GetDirectories();
-                    // 如果有子目錄且未達到深度限制，則繼續遞迴
-                    if (subSubDirs.Length != 0 && subFolderDeepth < (subFolderDeepthLimited - 1))
-                    {
-                        GetDirectories(subSubDirs, aNode, subFolderDeepth+1, subFolderDeepthLimited);
-                    }
-                    nodeToAddTo.Nodes.Add(aNode);
-                }
-                catch (Exception exc)
-                {
-                    // 忽略無權限訪問的目錄
-                }
-            }
-        }
-        */
+        // 目錄遞迴載入已移至 FileSystemManager.GetDirectories（）
 
         #endregion
 
@@ -733,80 +700,47 @@ namespace TextSpeedReader
 
         #region UI 控制項事件處理
 
-        // 離開按鈕點擊事件
+        // 離開按鈕點擊事件（保留供 Designer 連結，目前無實作）
         private void QuitButton_Click(object sender, EventArgs e)
         {
-            //SelectFolderPath();
         }
 
-        // 選擇資料夾路徑
-        private void SelectFolderPath()
-        {
-            try
-            {
-                string startupPath = Application.StartupPath;
-                using (FolderBrowserDialog dialog = new FolderBrowserDialog())
-                {
-                    dialog.Description = "請選取目錄";
-                    dialog.ShowNewFolderButton = false;
-                    //dialog.RootFolder = Environment.SpecialFolder.MyComputer; //沒用，.MyComputer只會取得空字串，可以試試MyDocument
-                    dialog.SelectedPath = fileManager.FullPath;
-                    if (dialog.ShowDialog() == DialogResult.OK)
-                    {
-                        fileManager.FullPath = dialog.SelectedPath;
-                        Console.WriteLine("dialog.RootFolder " + dialog.RootFolder);
-                        Console.WriteLine("dialog.SelectedPath " + dialog.SelectedPath);
-                        PopulateTreeView(Regex.Matches(fileManager.FullPath, @"\\").Count);
-                        Console.WriteLine("\\ Count " + Regex.Matches(fileManager.FullPath, @"\\").Count);
-
-                    }
-                }
-            }
-            catch (Exception exc)
-            {
-                MessageBox.Show("Import failed because " + exc.Message + " , please try again later.");
-            }
-        }
-
+        // 資料夾路徑按鈕點擊事件（保留供 Designer 連結，目前無實作）
         private void FolderPathButton_Click(object sender, EventArgs e)
         {
-
         }
 
-        // 顯示資料夾按鈕點擊事件
+        // 顯示/隱藏資料夾瀏覽面板按鈕點擊事件
         private void ShowFolderButton_Click(object sender, EventArgs e)
         {
             ToggleFolderPanel();
         }
 
-        // 切換資料夾瀏覽面板顯示/隱藏
+        // 切換左側資料夾瀏覽面板的顯示/隱藏狀態
         private void ToggleFolderPanel()
         {
             splitContainerMain.Panel1Collapsed = !splitContainerMain.Panel1Collapsed;
         }
 
 
-        // 程式關閉時儲存最近閱讀清單
+        // 程式關閉時：儲存最近閱讀清單到 ini、儲存上次目錄及字型設定
         private void FormTSRClosing(object sender, FormClosingEventArgs e)
         {
+            // 將最近閱讀記錄寫入 TextSpeedReader.ini（每筆兩行：路徑 + 字元位置）
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\TextSpeedReader.ini"))
             {
-                // 將所有最近閱讀記錄寫入設定檔
                 foreach (var item in m_RecentReadList)
                 {
                     file.WriteLine(item.FileFullName);
                     file.WriteLine(item.LastCharCount);
                 }
-                file.Close();
             }
 
-            // 儲存當前目錄到設定檔
+            // 儲存目前瀏覽目錄，下次啟動時可自動展開
             if (!string.IsNullOrEmpty(m_TreeViewSelectedNodeText))
-            {
                 appSettings.LastDirectory = m_TreeViewSelectedNodeText;
-            }
 
-            // 保存字型與大小設定
+            // 若啟用「記住字型」，儲存目前使用中的字型名稱與大小
             if (appSettings.KeepFontSize)
             {
                 appSettings.LastFontFamily = richTextBoxText.Font.FontFamily.Name;

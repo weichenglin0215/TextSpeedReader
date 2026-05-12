@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using Microsoft.VisualBasic;
@@ -14,6 +12,7 @@ namespace TextSpeedReader
 {
     public partial class FormTextSpeedReader
     {
+        // 對 TreeView 中選取的資料夾執行更名操作
         private void RenameDirectory()
         {
             if (treeViewFolder.SelectedNode == null)
@@ -270,6 +269,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 將目前選取的文字另存為新檔案（自動產生不重複的序號檔名）
         private void SelectedTextSaveAsNew()
         {
             // 檢查是否有選中的文字
@@ -362,6 +362,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 將整篇文字切分為每份 3000 字的多個新檔案並依序儲存（超過 4000 字剩餘時合併為最後一個檔案）
         private void WholeTextSaveAsNew()
         {
             // 檢查是否有當前打開的檔案
@@ -856,7 +857,7 @@ namespace TextSpeedReader
                 "批次轉換結果");
         }
 
-        // 複製HTML選取文字並儲存為檔案
+        // 複製 WebBrowser 中選取的文字，轉換為繁體後儲存為 .txt 檔案
         private void CopyHtmlSaveFile()
         {
             if (!webBrowser1.Visible)
@@ -1014,7 +1015,7 @@ namespace TextSpeedReader
 
 
 
-        // 執行檔案編碼轉換
+        // 將 ListView 中選取的檔案重新以指定編碼讀取，可選擇同時轉換為繁體中文，再以 UTF-8 儲存
         private void ConvertFileEncoding(string sourceEncoding, bool convertToTraditional)
         {
             try
@@ -1255,7 +1256,7 @@ namespace TextSpeedReader
         }
 
 
-        // 載入HTML檔案並確保正確編碼顯示
+        // 載入 HTML 檔案到 WebBrowser：自動偵測編碼，如有需要產生帶 UTF-8 charset 宣告的臨時檔案
         private void LoadHtmlFileWithEncoding(string htmlFilePath)
         {
             string tempFilePath = null;
@@ -1410,24 +1411,7 @@ namespace TextSpeedReader
             }
         }
 
-        // 判斷文字是否可能是簡體中文
-        private bool IsLikelySimplifiedChinese(string text)
-        {
-            // 簡化的判斷邏輯：檢查是否包含常見的簡體中文特有字符
-            // 這裡可以根據需要擴展更複雜的判斷邏輯
-            string[] simplifiedIndicators = new string[] { "的", "了", "是", "不", "在", "有", "和", "这", "那", "我", "你", "他" };
-
-            foreach (string indicator in simplifiedIndicators)
-            {
-                if (text.Contains(indicator))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
+        // 複製 WebBrowser 中選取的文字，轉換為簡體後以 GB2312 編碼儲存為 _簡體.txt 檔案
         private void CopyHtmlSaveFileSimplified()
         {
             if (!webBrowser1.Visible)
@@ -1586,6 +1570,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 在 listViewFile 中搜尋檔名關鍵字並選取所有符合的項目
         private void SearchFiles()
         {
             // 顯示輸入對話框
@@ -1650,6 +1635,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 對 ListView 中選取的檔案執行更名；多選時自動加上 -001、-002 ... 序號後綴
         private void RenameFile()
         {
             if (listViewFile.SelectedItems.Count <= 0)
@@ -2129,6 +2115,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 對選取目錄下的所有檔案與子目錄遞迴套用相同的編碼修正（即批量更名）
         private void ReCodeFullFoldersFilesName()
         {
             if (treeViewFolder.SelectedNode == null || treeViewFolder.SelectedNode.Tag is not DirectoryInfo)
@@ -2198,6 +2185,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 遞迴對指定目錄下的所有檔案與子目錄套用編碼修正（後序：先處理子內容再更名目錄自身）
         private void ProcessReCodeFull(DirectoryInfo dir, Encoding correct, Encoding wrong, bool sim2Trad)
         {
             // 1. 處理當前目錄下的所有檔案
@@ -2247,6 +2235,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 將字串以 wrong 編碼取得位元組，再以 correct 解碼；轉換失敗時原樣回傳
         private string ReCodeString(string input, Encoding correct, Encoding wrong)
         {
             try

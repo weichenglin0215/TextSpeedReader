@@ -6,10 +6,18 @@ using System.Windows.Forms;
 
 namespace TextSpeedReader
 {
+    /// <summary>
+    /// 批量編碼修正對話框（目錄全量版）：以目錄名稱為預覽範本，列出各種「錯誤編碼→正確編碼」的轉換結果，
+    /// 供使用者選取後對整個目錄樹下的所有檔案與子目錄套用相同的編碼修正。
+    /// 與 FormReCodeFileName 的差異：此對話框不回傳修正後的名稱，只回傳使用者選定的編碼組合。
+    /// </summary>
     public partial class FormReCodeFull : Form
     {
+        /// <summary>使用者選定的「正確」目標編碼（用來重新解碼原始位元組）。</summary>
         public Encoding? SelectedCorrectEncoding { get; private set; }
+        /// <summary>使用者選定的「錯誤」來源編碼（用來還原出原始位元組）。</summary>
         public Encoding? SelectedWrongEncoding { get; private set; }
+        /// <summary>是否同時執行簡→繁轉換。</summary>
         public bool IsSim2TradChecked => checkBoxSim2Trad.Checked;
         private string m_OriginalName;
 
@@ -18,6 +26,10 @@ namespace TextSpeedReader
             InitializeComponent();
         }
 
+        /// <summary>
+        /// 建構子：傳入根目錄名稱作為預覽範本，並立即產生所有編碼轉換預覽。
+        /// </summary>
+        /// <param name="originalName">根目錄的當前名稱（作為預覽範本，可能含亂碼）。</param>
         public FormReCodeFull(string originalName) : this()
         {
             m_OriginalName = originalName;
@@ -25,6 +37,7 @@ namespace TextSpeedReader
             PopulatePreviews();
         }
 
+        // 列舉所有常見的編碼組合，將轉換結果加入 listBoxPreviews
         private void PopulatePreviews()
         {
             listBoxPreviews.Items.Clear();
@@ -69,13 +82,14 @@ namespace TextSpeedReader
             AddPreview("目前: Unicode -> 轉成: UTF-8-BOM", utf8BOM, unicode);
         }
 
+        // 嘗試一種編碼轉換；結果不同才加入清單
         private void AddPreview(string label, Encoding correct, Encoding wrong)
         {
             try
             {
                 byte[] bytes = wrong.GetBytes(m_OriginalName);
                 string fixedName = correct.GetString(bytes);
-                
+
                 if (fixedName != m_OriginalName)
                 {
                     listBoxPreviews.Items.Add(new PreviewItem(label, fixedName, correct, wrong));
@@ -87,6 +101,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 「確定」按鈕：回傳使用者選取的編碼組合（不回傳修正後的名稱）
         private void buttonOK_Click(object sender, EventArgs e)
         {
             if (listBoxPreviews.SelectedItem is PreviewItem selected)
@@ -102,12 +117,14 @@ namespace TextSpeedReader
             }
         }
 
+        // 「取消」按鈕
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
+        // 雙擊清單項目相當於按下「確定」按鈕
         private void listBoxPreviews_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             int index = listBoxPreviews.IndexFromPoint(e.Location);

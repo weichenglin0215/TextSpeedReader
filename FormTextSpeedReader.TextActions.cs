@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace TextSpeedReader
@@ -410,37 +408,6 @@ namespace TextSpeedReader
             }
         }
 
-        // 自動移除目前文章中多餘的斷行，包含句點與驚嘆號標點符號
-        private void AutoRemoveCRWithDotAndExclamationMark()
-        {
-            string text = richTextBoxText.Text;
-            int length = text.Length;
-            int start = richTextBoxText.SelectionStart;
-            int end = richTextBoxText.SelectionStart + richTextBoxText.SelectionLength;
-            while (end < length)
-            {
-                int lineBreakPos = text.IndexOfAny(new char[] { '\r', '\n' }, end);
-                if (lineBreakPos == -1) lineBreakPos = length;
-                string line = text.Substring(end, lineBreakPos - end);
-                char lastChar = line.Length > 0 ? line[line.Length - 1] : '\0';
-                if (lastChar == '.' || lastChar == '。' || lastChar == '!' || lastChar == '！')
-                {
-                    end = lineBreakPos;
-                }
-                else
-                {
-                    end = lineBreakPos;
-                }
-                end = lineBreakPos;
-                // 跳過 \r\n
-                if (end < length - 1 && text[end] == '\r' && text[end + 1] == '\n') end += 2;
-                else if (text[end] == '\r' || text[end] == '\n') end++;
-            }
-            richTextBoxText.Select(start, Math.Max(0, end - start));
-        }
-
-
-
         // 移除行首和行尾的空白字元
         private void RemoveLeadingAndTrailingSpaces()
         {
@@ -676,6 +643,7 @@ namespace TextSpeedReader
             return line;
         }
 
+        // 確保每兩個非空行之間恰好有一個空白行（過多或過少都會統一為單一空白行）
         private void KeepTwoCRBetweenLines()
         {
             // 取得原始/選取內容和位置
@@ -737,30 +705,11 @@ namespace TextSpeedReader
                     // 添加非空行內容
                     result.Append(lines[lineIndex]);
 
-                    // 如果不是最後一個非空行，檢查與下一個非空行之間的空行數
+                    // 如果不是最後一個非空行，確保兩段非空行之間恰好有一個空白行
                     if (idx < nonEmptyLineIndices.Count - 1)
                     {
-                        int nextLineIndex = nonEmptyLineIndices[idx + 1];
-                        int emptyLinesBetween = nextLineIndex - lineIndex - 1;
-
-                        if (emptyLinesBetween == 0)
-                        {
-                            // 兩行之間沒有空白行，添加一個空白行
-                            result.Append(lineBreak);
-                            result.Append(lineBreak);
-                        }
-                        else if (emptyLinesBetween == 1)
-                        {
-                            // 兩行之間已經有一個空白行，保留它
-                            result.Append(lineBreak);
-                            result.Append(lineBreak);
-                        }
-                        else
-                        {
-                            // 兩行之間有多個空白行，只保留一個
-                            result.Append(lineBreak);
-                            result.Append(lineBreak);
-                        }
+                        result.Append(lineBreak);
+                        result.Append(lineBreak);
                     }
                 }
             }
@@ -800,6 +749,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 對每個非空行末尾補上全形句號（若行尾已是標點符號則略過）
         private void EndingAddDot()
         {
             // 檢查每行結尾不是 "，。！？」… "符號(包括全形與半形字元)，請在行尾加上"。"(全形)
@@ -899,6 +849,7 @@ namespace TextSpeedReader
             // 滾動到游標位置
             richTextBoxText.ScrollToCaret();
         }
+        // 移除所有空白行，使每個非空行之間不含任何空白行（緊密排列）
         private void WithoutCRBetweenLines()
         {
             // 取得原始/選取內容和位置
@@ -1002,6 +953,7 @@ namespace TextSpeedReader
                 richTextBoxText.Select(selStart, newLength);
             }
         }
+        // 對每個非空行行首加上指定數量的半形空格（數量由 AppSettings.AddSpaceChrCount 決定）
         private void AddSpaceAtBegining()
         {
             // 取得原始/選取內容和位置
@@ -1099,6 +1051,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 在每個「新行開頭判定字串」之前插入換行符，使其成為新段落的開頭
         private void SplitBeginingByJudgment()
         {
             // 取得原始/選取內容和位置
@@ -1170,6 +1123,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 在每個「新行結尾判定字串」之後插入換行符，使其成為段落結尾
         private void SplitEndByJudgment()
         {
             // 取得原始/選取內容和位置
@@ -1237,6 +1191,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 在「新行開頭」與「新行結尾」判定字串之間的所有換行符移除（合併為單行）
         private void MergeByJudgment()
         {
             // 取得原始/選取內容和位置
@@ -1348,6 +1303,7 @@ namespace TextSpeedReader
                 richTextBoxText.Select(selStart, result.Length);
             }
         }
+        // 對選取（或全文）的行進行排序；彈出對話框讓使用者選擇正向/反向/保留空白行等模式
         private void SortLines()
         {
             // 1. 處理選取範圍：若未選取文字，則選取全文；若有選取，擴展至完整行
@@ -1546,6 +1502,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 對每個非空行的行首加上 InsertBeginingText、行尾加上 InsertEndText（已存在則略過）
         private void InsertBeginingEndByInsertText()
         {
             // 取得原始/選取內容和位置
@@ -1685,6 +1642,8 @@ namespace TextSpeedReader
             }
         }
 
+        // 在選取（或全文）的每一行行首插入「AnnotationBegin + 絕對行號 + AnnotationEnd」標記；
+        // 若該行已有 AnnotationBegin 開頭，則更新其中的行號數字
         private void InsertAnnotationAndSerialNumber()
         {
             string startMark = appSettings.AnnotationBegin;
@@ -1801,6 +1760,7 @@ namespace TextSpeedReader
             }
         }
 
+        // 切換 RichTextBox 的自動換行模式，並同步更新工具列按鈕的顯示狀態
         private void AutoWordwrap()
         {
             richTextBoxText.WordWrap = !richTextBoxText.WordWrap;
