@@ -238,7 +238,7 @@ namespace TextSpeedReader
                 // 使用 SaveFileDialog 讓使用者輸入檔名
                 using (SaveFileDialog saveFileDialog = new SaveFileDialog())
                 {
-                    saveFileDialog.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
+                    saveFileDialog.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css;*.json|文字檔 (*.txt)|*.txt|JSON 檔 (*.json)|*.json|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                     saveFileDialog.FileName = fileNameWithoutExtension + extension;
                     saveFileDialog.InitialDirectory = directory;
                     saveFileDialog.Title = "另存新檔";
@@ -334,7 +334,7 @@ namespace TextSpeedReader
             // 使用 SaveFileDialog 讓使用者確認或修改檔名和位置
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                saveFileDialog.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
+                saveFileDialog.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css;*.json|文字檔 (*.txt)|*.txt|JSON 檔 (*.json)|*.json|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                 saveFileDialog.FileName = suggestedFileName;
                 saveFileDialog.InitialDirectory = directory;
                 saveFileDialog.Title = "儲存選取的文字";
@@ -603,9 +603,10 @@ namespace TextSpeedReader
             string originalFilePath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
 
             // 檢查是否為文字檔案
-            if (Path.GetExtension(originalFilePath).ToLower() != ".txt")
+            string currentExt = Path.GetExtension(originalFilePath).ToLower();
+            if (currentExt != ".txt" && currentExt != ".json")
             {
-                MessageBox.Show("目前檔案不是.TXT檔案！", "提示");
+                MessageBox.Show("目前檔案不是 .TXT 或 .JSON 檔案！", "提示");
                 return;
             }
 
@@ -716,8 +717,9 @@ namespace TextSpeedReader
                     string fileName = item.Text;
                     string fullPath = Path.Combine(m_TreeViewSelectedNodeText, fileName);
 
-                    // 僅處理 .txt
-                    if (Path.GetExtension(fullPath).ToLower() != ".txt")
+                    // 僅處理 .txt 與 .json
+                    string fileExt = Path.GetExtension(fullPath).ToLower();
+                    if (fileExt != ".txt" && fileExt != ".json")
                     {
                         skipCount++;
                         continue;
@@ -792,8 +794,9 @@ namespace TextSpeedReader
                     string fileName = item.Text;
                     string fullPath = Path.Combine(m_TreeViewSelectedNodeText, fileName);
 
-                    // 僅處理 .txt
-                    if (Path.GetExtension(fullPath).ToLower() != ".txt")
+                    // 僅處理 .txt 與 .json
+                    string fileExt = Path.GetExtension(fullPath).ToLower();
+                    if (fileExt != ".txt" && fileExt != ".json")
                     {
                         skipCount++;
                         continue;
@@ -925,7 +928,7 @@ namespace TextSpeedReader
             {
                 using (SaveFileDialog sfd = new SaveFileDialog())
                 {
-                    sfd.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
+                    sfd.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css;*.json|文字檔 (*.txt)|*.txt|JSON 檔 (*.json)|*.json|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                     sfd.FileName = "選取文字.txt";
                     if (sfd.ShowDialog() != DialogResult.OK)
                         return;
@@ -956,7 +959,7 @@ namespace TextSpeedReader
                                 // 另存新檔，顯示另存新檔對話框
                                 using (SaveFileDialog sfd = new SaveFileDialog())
                                 {
-                                    sfd.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css|文字檔 (*.txt)|*.txt|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
+                                    sfd.Filter = "支援的文字檔|*.txt;*.cs;*.yaml;*.js;*.py;*.md;*.css;*.json|文字檔 (*.txt)|*.txt|JSON 檔 (*.json)|*.json|C# 程式檔 (*.cs)|*.cs|YAML 檔 (*.yaml)|*.yaml|JavaScript (*.js)|*.js|Python (*.py)|*.py|Markdown (*.md)|*.md|CSS (*.css)|*.css|所有檔案 (*.*)|*.*";
                                     sfd.FileName = Path.GetFileName(targetPath);
                                     string? dir = Path.GetDirectoryName(targetPath);
                                     if (!string.IsNullOrEmpty(dir))
@@ -1499,7 +1502,7 @@ namespace TextSpeedReader
             {
                 using (SaveFileDialog sfd = new SaveFileDialog())
                 {
-                    sfd.Filter = "簡體文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                    sfd.Filter = "JSON 檔 (*.json)|*.json|簡體文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
                     sfd.FileName = "選取文字_簡體.txt";
                     if (sfd.ShowDialog() != DialogResult.OK)
                         return;
@@ -1530,7 +1533,7 @@ namespace TextSpeedReader
                                 // 另存新檔，顯示另存新檔對話框
                                 using (SaveFileDialog sfd = new SaveFileDialog())
                                 {
-                                    sfd.Filter = "簡體文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
+                                    sfd.Filter = "JSON 檔 (*.json)|*.json|簡體文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*";
                                     sfd.FileName = Path.GetFileName(targetPath);
                                     string? dir = Path.GetDirectoryName(targetPath);
                                     if (!string.IsNullOrEmpty(dir))
