@@ -94,6 +94,9 @@ namespace TextSpeedReader
 
         // 標記當前檔案是否被修改過（文件載入後是否有編輯）
         private bool m_IsCurrentFileModified = false;
+
+        // 拖曳 listViewFile → treeViewFolder 時，記錄正在高亮的目標節點
+        private TreeNode? m_DragOverNode = null;
         // 標記是否正在載入檔案（用於避免載入時觸發 TextChanged 事件設置修改標誌）
         private bool m_IsLoadingFile = false;
 
@@ -1753,6 +1756,7 @@ namespace TextSpeedReader
             toolStripMenuItem_RenameDirectory.Enabled = hasFolderSelected;
             toolStripMenuItem_DeleteDirectory.Enabled = hasFolderSelected;
             toolStripMenuItem_OpenFileManager.Enabled = hasFolderSelected;
+            toolStripMenuItem_CreateSubDirectory.Enabled = hasFolderSelected;
             toolStripMenuItem_FolderNameSim2Trad.Enabled = hasFolderSelected;
         }
 

@@ -99,6 +99,76 @@ namespace TextSpeedReader
             }
         }
 
+        private void toolStripMenuItem_CreateSubDirectory_Click(object sender, EventArgs e)
+        {
+            CreateSubDirectory();
+        }
+
+        // 在 TreeView 選取的目錄下建立子資料夾
+        private void CreateSubDirectory()
+        {
+            if (treeViewFolder.SelectedNode == null)
+            {
+                MessageBox.Show("請先選擇要在其下新增資料夾的目錄。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            TreeNode parentNode = treeViewFolder.SelectedNode;
+            DirectoryInfo? parentDirInfo = parentNode.Tag as DirectoryInfo;
+            if (parentDirInfo == null) return;
+
+            FormRenameInput inputDialog = new FormRenameInput(
+                "請輸入新資料夾名稱：",
+                "新增資料夾",
+                "",
+                false);
+
+            if (inputDialog.ShowDialog(this) != DialogResult.OK) return;
+
+            string newName = inputDialog.InputText.Trim();
+            if (string.IsNullOrWhiteSpace(newName)) return;
+
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+            if (newName.IndexOfAny(invalidChars) >= 0)
+            {
+                MessageBox.Show("名稱包含無效字元。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string newPath = Path.Combine(parentDirInfo.FullName, newName);
+            if (Directory.Exists(newPath))
+            {
+                MessageBox.Show("該名稱的資料夾已存在。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(newPath);
+
+                // 若父節點已展開，直接插入新子節點；否則確保有 Dummy 以顯示展開箭頭
+                if (parentNode.IsExpanded)
+                {
+                    TreeNode newNode = new TreeNode(newName);
+                    newNode.Tag = new DirectoryInfo(newPath);
+                    newNode.ImageKey = "folder";
+                    parentNode.Nodes.Add(newNode);
+                    treeViewFolder.SelectedNode = newNode;
+                    newNode.EnsureVisible();
+                }
+                else
+                {
+                    // 父節點未展開：確保有 Dummy 讓使用者可以展開
+                    if (parentNode.Nodes.Count == 0)
+                        parentNode.Nodes.Add("Dummy");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"建立資料夾失敗：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void DeleteDirectory()
         {
             // 刪除該目錄，並重新整理跟該目錄相關的treeViewFolder的樹狀結構項目。
