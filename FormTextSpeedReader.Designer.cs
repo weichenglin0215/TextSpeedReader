@@ -35,7 +35,7 @@ namespace TextSpeedReader
             toolStripDropDownButtonArrange = new ToolStripDropDownButton();
             toolStripMenuItem_RemoveLeadingAndTrailingSpaces = new ToolStripMenuItem();
             toolStripMenuItem_AutoRemoveCRButton = new ToolStripMenuItem();
-            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark = new ToolStripMenuItem();
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD = new ToolStripMenuItem();
             toolStripMenuItem_RemoveMoreThan120Char = new ToolStripMenuItem();
             splitContainerMain = new SplitContainer();
             splitContainerFolder = new SplitContainer();
@@ -77,6 +77,7 @@ namespace TextSpeedReader
             toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR = new ToolStripMenuItem();
             toolStripMenuItem_RemoveCR = new ToolStripMenuItem();
             toolStripMenuItem_AutoRemoveCRButton2 = new ToolStripMenuItem();
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark = new ToolStripMenuItem();
             toolStripSeparator19 = new ToolStripSeparator();
             toolStripMenuItem_AddSpaceAtBegining = new ToolStripMenuItem();
             toolStripMenuItem_RemoveMoreThan120CharB = new ToolStripMenuItem();
@@ -152,12 +153,14 @@ namespace TextSpeedReader
             // toolStripDropDownButtonArrange
             // 
             toolStripDropDownButtonArrange.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripDropDownButtonArrange.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_RemoveLeadingAndTrailingSpaces, toolStripMenuItem_AutoRemoveCRButton, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripMenuItem_RemoveMoreThan120Char });
+            toolStripDropDownButtonArrange.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_RemoveLeadingAndTrailingSpaces, toolStripMenuItem_AutoRemoveCRButton, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD, toolStripMenuItem_RemoveMoreThan120Char });
+            toolStripDropDownButtonArrange.Enabled = false;
             toolStripDropDownButtonArrange.Image = (Image)resources.GetObject("toolStripDropDownButtonArrange.Image");
             toolStripDropDownButtonArrange.ImageTransparentColor = Color.Magenta;
             toolStripDropDownButtonArrange.Name = "toolStripDropDownButtonArrange";
             toolStripDropDownButtonArrange.Size = new Size(118, 24);
             toolStripDropDownButtonArrange.Text = "整理編排段落";
+            toolStripDropDownButtonArrange.Visible = false;
             // 
             // toolStripMenuItem_RemoveLeadingAndTrailingSpaces
             // 
@@ -173,12 +176,12 @@ namespace TextSpeedReader
             toolStripMenuItem_AutoRemoveCRButton.Text = "移除選取的文字斷行Ｘ》＼ｎ，保留空白行";
             toolStripMenuItem_AutoRemoveCRButton.Click += toolStripMenuItem_AutoRemoveCRButton_Click;
             // 
-            // toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark
+            // toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD
             // 
-            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Name = "toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark";
-            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Size = new Size(425, 24);
-            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Text = "自動移除多餘的斷行，跳過行尾句點或驚嘆號";
-            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Click += toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark_Click;
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD.Name = "toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD";
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD.Size = new Size(425, 24);
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD.Text = "自動移除多餘的斷行，跳過行尾句點或驚嘆號";
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD.Click += toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark_Click;
             // 
             // toolStripMenuItem_RemoveMoreThan120Char
             // 
@@ -475,9 +478,9 @@ namespace TextSpeedReader
             // contextMenuStrip_RichTextBox
             // 
             contextMenuStrip_RichTextBox.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripSeparator19, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_EndingAddDot, toolStripMenuItem_MergeNoneSpace, toolStripSeparator20, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripMenuItem_InsertBeginingEndByInsertText, toolStripMenuItem_InsertAnnotationAndSerialNumber, toolStripSeparator10, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripMenuItem_ReCodeText, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines });
+            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripSeparator19, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_EndingAddDot, toolStripMenuItem_MergeNoneSpace, toolStripSeparator20, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripMenuItem_InsertBeginingEndByInsertText, toolStripMenuItem_InsertAnnotationAndSerialNumber, toolStripSeparator10, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripMenuItem_ReCodeText, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines });
             contextMenuStrip_RichTextBox.Name = "contextMenuStrip_RichTextBox";
-            contextMenuStrip_RichTextBox.Size = new Size(537, 580);
+            contextMenuStrip_RichTextBox.Size = new Size(537, 604);
             // 
             // toolStripSeparator11
             // 
@@ -527,6 +530,13 @@ namespace TextSpeedReader
             toolStripMenuItem_AutoRemoveCRButton2.Size = new Size(536, 24);
             toolStripMenuItem_AutoRemoveCRButton2.Text = "移除選取的文字斷行Ｘ》＼ｎ，保留空白行";
             toolStripMenuItem_AutoRemoveCRButton2.Click += toolStripMenuItem_AutoRemoveCRButton2_Click;
+            // 
+            // toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark
+            // 
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Name = "toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark";
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Size = new Size(536, 24);
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Text = "自動移除多餘的斷行，跳過行尾句點或驚嘆號";
+            toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Click += toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark_Click;
             // 
             // toolStripSeparator19
             // 
@@ -983,7 +993,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 2.9.0.0  (檔案拖曳移動複製、變更編碼、自動換行、多個AI生圖提示方便編輯功能、優化一簡轉多繁OpenCC.NET，新增批次目錄名稱編碼(亂碼)轉換、檔名編碼(亂碼)轉換、檔名簡轉繁，逐行排序、關鍵字斷行、行首填空)";
+            Text = "TextSpeedReader Ver. 2.10.0.0  (檔案拖曳移動複製、變更編碼、自動換行、多個AI生圖提示方便編輯功能、優化一簡轉多繁OpenCC.NET，新增批次目錄名稱編碼(亂碼)轉換、檔名編碼(亂碼)轉換、檔名簡轉繁，逐行排序、關鍵字斷行、行首填空)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -1105,6 +1115,7 @@ namespace TextSpeedReader
         private ToolStripMenuItem toolStripMenuItem_FileNameSim2Trad;
         private ToolStripMenuItem toolStripMenuItem_ReCodeFullFoldersFilesName;
         private ToolStripMenuItem toolStripMenuItem_InsertAnnotationAndSerialNumber;
+        private ToolStripMenuItem toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD;
         private ToolStripMenuItem toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark;
         private ToolStripButton toolStripButtonAutoWordwrap;
         private ToolStripMenuItem toolStripMenuItem_ReCodeText;
