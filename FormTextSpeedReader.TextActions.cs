@@ -318,11 +318,12 @@ namespace TextSpeedReader
                         int lineBreakPos = paragraph.IndexOfAny(new char[] { '\r', '\n' }, lineStart);
                         if (lineBreakPos == -1) lineBreakPos = paragraph.Length;
                         string line = paragraph.Substring(lineStart, lineBreakPos - lineStart);
-                        // 檢查該行最後一個字是否為句點或驚嘆號
-                        char lastChar = line.Length > 0 ? line[line.Length - 1] : '\0';
+                        // 先移除行尾的半形空格、TAB、全形空白（U+3000），再判斷結尾標點符號
+                        string lineTrimmed = line.TrimEnd(' ', '\t', '　');
+                        char lastChar = lineTrimmed.Length > 0 ? lineTrimmed[lineTrimmed.Length - 1] : '\0';
                         bool shouldKeepLineBreak = (lastChar == '.' || lastChar == '。' || lastChar == '!' || lastChar == '！' || lastChar == '?' || lastChar == '？');
-                        // 移除行內的斷行符號，但保留行內容
-                        string lineWithoutBreaks = line.Replace("\r", "").Replace("\n", "");
+                        // 以去除行尾空白後的內容加入結果（移除殘餘斷行符號）
+                        string lineWithoutBreaks = lineTrimmed.Replace("\r", "").Replace("\n", "");
                         mergedParagraph.Append(lineWithoutBreaks);
                         // 如果該行以句點或驚嘆號結尾，保留斷行符號
                         if (shouldKeepLineBreak && lineBreakPos < paragraph.Length)
@@ -976,9 +977,12 @@ namespace TextSpeedReader
             if (string.IsNullOrEmpty(text))
                 return;
 
-            // 取得要添加的空白數量
+            // 取得要添加的空白數量與字元類型（全形或半形）
             int spaceCount = appSettings.AddSpaceChrCount;
-            string spacePrefix = new string(' ', spaceCount);
+            // 全形空白字元（U+3000）在中文排版中等同一個中文字寬
+            string spacePrefix = appSettings.AddSpaceUseFullWidth
+                ? new string('　', spaceCount)
+                : new string(' ', spaceCount);
 
             // 分割成行並處理每一行 (統一使用 \r\n 斷行)
             // 注意：Split如果不移除空元素，會保留原有的空行邏輯
@@ -1757,6 +1761,94 @@ namespace TextSpeedReader
                 richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
                 ResumeDrawing();
                 UpdateStatusLabel();
+            }
+        }
+
+        // 將選取範圍（或全文）中的半形標點符號轉換為對應的全形標點符號
+        private void ConvertHalfWidthPunctuationToFullWidth()
+        {
+            string text;
+            bool processWholeDocument;
+            int selectionStart = richTextBoxText.SelectionStart;
+            int selectionLength = richTextBoxText.SelectionLength;
+
+            if (selectionLength > 0)
+            {
+                text = richTextBoxText.SelectedText;
+                processWholeDocument = false;
+            }
+            else
+            {
+                text = richTextBoxText.Text;
+                processWholeDocument = true;
+            }
+
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            // 半形→全形標點對照表（僅轉換一般文章常見的標點，不轉換引號/括號以避免破壞程式碼）
+            (char from, char to)[] map = new (char, char)[]
+            {
+                (',', '，'),
+                ('.', '。'),
+                ('!', '！'),
+                ('?', '？'),
+                (':', '：'),
+                (';', '；'),
+                ('(', '（'),
+                (')', '）'),
+            };
+
+            StringBuilder result = new StringBuilder(text.Length);
+            foreach (char c in text)
+            {
+                bool converted = false;
+                foreach (var (from, to) in map)
+                {
+                    if (c == from)
+                    {
+                        result.Append(to);
+                        converted = true;
+                        break;
+                    }
+                }
+                if (!converted)
+                    result.Append(c);
+            }
+
+            string newText = result.ToString();
+            if (newText == text)
+                return; // 無任何變化，不觸發修改事件
+
+            if (processWholeDocument)
+            {
+                SuspendDrawing();
+                richTextBoxText.TextChanged -= RichTextBoxText_TextChanged;
+                richTextBoxText.SelectionChanged -= RichTextBoxText_SelectionChanged;
+                try
+                {
+                    int originalSelectionStart = richTextBoxText.SelectionStart;
+                    richTextBoxText.SelectAll();
+                    richTextBoxText.SelectedText = newText;
+                    if (originalSelectionStart < richTextBoxText.Text.Length)
+                        richTextBoxText.SelectionStart = originalSelectionStart;
+                    else
+                        richTextBoxText.SelectionStart = richTextBoxText.Text.Length;
+                    richTextBoxText.ScrollToCaret();
+                }
+                finally
+                {
+                    richTextBoxText.TextChanged += RichTextBoxText_TextChanged;
+                    richTextBoxText.SelectionChanged += RichTextBoxText_SelectionChanged;
+                    ResumeDrawing();
+                    UpdateStatusLabel();
+                }
+            }
+            else
+            {
+                int selStart = richTextBoxText.SelectionStart;
+                richTextBoxText.SelectedText = newText;
+                richTextBoxText.Select(selStart, newText.Length);
             }
         }
 

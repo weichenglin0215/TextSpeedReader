@@ -961,6 +961,12 @@ namespace TextSpeedReader
 
         #region 繁簡轉換功能
 
+        // 將半形標點符號改成全形（右鍵選單）
+        private void toolStripMenuItem_HalfToFullWidthPunctuation_Click(object sender, EventArgs e)
+        {
+            ConvertHalfWidthPunctuationToFullWidth();
+        }
+
         // 編輯文字轉換為簡體（右鍵選單）
         private void toolStripMenuItem_EditTextCovertSimplified_Click(object sender, EventArgs e)
         {
@@ -1328,10 +1334,24 @@ namespace TextSpeedReader
             return false;
         }
 
-        // 移除超過120字元的行
+        // 超過指定字數時，於下一個句點/驚嘆號/問號處斷行（先由使用者輸入閾值，預設 120）
         private void RemoveMoreThan120Char()
         {
-            //超過100個字元時，尋找下一個句點、驚嘆號、問號，將該行截成兩行
+            // 彈出輸入對話框，讓使用者指定每行最大字數
+            string userInput = Microsoft.VisualBasic.Interaction.InputBox(
+                "請輸入每行最長字數限制（超過此數後將在下一個。！？標點符號處斷行）：",
+                "設定最大行長",
+                "120");
+
+            if (string.IsNullOrWhiteSpace(userInput))
+                return; // 使用者取消
+
+            if (!int.TryParse(userInput.Trim(), out int maxLineLength) || maxLineLength < 10)
+            {
+                MessageBox.Show("請輸入有效的整數數字（不少於 10）。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             // 取得原始/選取內容和位置
             string text;
             bool processWholeDocument;
@@ -1349,8 +1369,6 @@ namespace TextSpeedReader
             }
             if (string.IsNullOrEmpty(text))
                 return;
-
-            const int maxLineLength = 100; // 最大行長度
             // 標點符號：句點、驚嘆號、問號（全形和半形）
             char[] punctuationMarks = { '.', '。', '!', '！', '?', '？' };
 

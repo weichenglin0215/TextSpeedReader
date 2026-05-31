@@ -38,6 +38,9 @@ namespace TextSpeedReader
         /// <summary>「增加行首空白」功能每行開頭插入的空白字元數。</summary>
         public int AddSpaceChrCount { get; set; } = 4;
 
+        /// <summary>「增加行首空白」是否使用全形空白字元（U+3000，即「　」）；false 時使用半形空格。</summary>
+        public bool AddSpaceUseFullWidth { get; set; } = true;
+
         /// <summary>識別新段落開始的判定字串（用於特殊格式處理）。</summary>
         public string NewLineStartJudgment { get; set; } = "/*新咒語開始------------------- */";
 
@@ -135,6 +138,10 @@ namespace TextSpeedReader
                                     if (int.TryParse(value, out int spaceCount))
                                         AddSpaceChrCount = spaceCount;
                                     break;
+                                case "AddSpaceUseFullWidth":
+                                    if (bool.TryParse(value, out bool fullWidth))
+                                        AddSpaceUseFullWidth = fullWidth;
+                                    break;
                                 case "NewLineStartJudgment":
                                     NewLineStartJudgment = value;
                                     break;
@@ -192,6 +199,7 @@ namespace TextSpeedReader
                     writer.WriteLine($"LastFontFamily={LastFontFamily}");
                     writer.WriteLine($"LastFontSize={LastFontSize}");
                     writer.WriteLine($"AddSpaceChrCount={AddSpaceChrCount}");
+                    writer.WriteLine($"AddSpaceUseFullWidth={AddSpaceUseFullWidth}");
                     writer.WriteLine($"NewLineStartJudgment={NewLineStartJudgment}");
                     writer.WriteLine($"NewLineEndJudgment={NewLineEndJudgment}");
                     writer.WriteLine($"InsertBeginingText={InsertBeginingText}");

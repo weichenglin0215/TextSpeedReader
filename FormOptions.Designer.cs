@@ -32,6 +32,7 @@ namespace TextSpeedReader
             buttonOK = new Button();
             buttonCancel = new Button();
             checkBoxKeepFontSize = new CheckBox();
+            checkBoxUseFullWidthSpace = new CheckBox();
             label1 = new Label();
             label2 = new Label();
             textBoxNewLineStartJudgment = new TextBox();
@@ -55,20 +56,20 @@ namespace TextSpeedReader
             checkBoxAutoOpenLastDirectory.AutoSize = true;
             checkBoxAutoOpenLastDirectory.Checked = true;
             checkBoxAutoOpenLastDirectory.CheckState = CheckState.Checked;
-            checkBoxAutoOpenLastDirectory.Location = new Point(29, 27);
-            checkBoxAutoOpenLastDirectory.Margin = new Padding(4);
+            checkBoxAutoOpenLastDirectory.Location = new Point(32, 31);
+            checkBoxAutoOpenLastDirectory.Margin = new Padding(4, 5, 4, 5);
             checkBoxAutoOpenLastDirectory.Name = "checkBoxAutoOpenLastDirectory";
-            checkBoxAutoOpenLastDirectory.Size = new Size(268, 24);
+            checkBoxAutoOpenLastDirectory.Size = new Size(302, 27);
             checkBoxAutoOpenLastDirectory.TabIndex = 0;
             checkBoxAutoOpenLastDirectory.Text = "啟動程式時自動開啟上次的目錄。";
             checkBoxAutoOpenLastDirectory.UseVisualStyleBackColor = true;
             // 
             // buttonOK
             // 
-            buttonOK.Location = new Point(230, 408);
-            buttonOK.Margin = new Padding(4);
+            buttonOK.Location = new Point(253, 469);
+            buttonOK.Margin = new Padding(4, 5, 4, 5);
             buttonOK.Name = "buttonOK";
-            buttonOK.Size = new Size(143, 40);
+            buttonOK.Size = new Size(157, 46);
             buttonOK.TabIndex = 1;
             buttonOK.Text = "確定(&O)";
             buttonOK.UseVisualStyleBackColor = true;
@@ -76,10 +77,10 @@ namespace TextSpeedReader
             // 
             // buttonCancel
             // 
-            buttonCancel.Location = new Point(387, 408);
-            buttonCancel.Margin = new Padding(4);
+            buttonCancel.Location = new Point(426, 469);
+            buttonCancel.Margin = new Padding(4, 5, 4, 5);
             buttonCancel.Name = "buttonCancel";
-            buttonCancel.Size = new Size(143, 40);
+            buttonCancel.Size = new Size(157, 46);
             buttonCancel.TabIndex = 2;
             buttonCancel.Text = "取消(&C)";
             buttonCancel.UseVisualStyleBackColor = true;
@@ -90,72 +91,84 @@ namespace TextSpeedReader
             checkBoxKeepFontSize.AutoSize = true;
             checkBoxKeepFontSize.Checked = true;
             checkBoxKeepFontSize.CheckState = CheckState.Checked;
-            checkBoxKeepFontSize.Location = new Point(29, 59);
-            checkBoxKeepFontSize.Margin = new Padding(4);
+            checkBoxKeepFontSize.Location = new Point(32, 68);
+            checkBoxKeepFontSize.Margin = new Padding(4, 5, 4, 5);
             checkBoxKeepFontSize.Name = "checkBoxKeepFontSize";
-            checkBoxKeepFontSize.Size = new Size(156, 24);
+            checkBoxKeepFontSize.Size = new Size(176, 27);
             checkBoxKeepFontSize.TabIndex = 3;
             checkBoxKeepFontSize.Text = "保留字型與大小。";
             checkBoxKeepFontSize.UseVisualStyleBackColor = true;
             // 
+            // checkBoxUseFullWidthSpace
+            // 
+            checkBoxUseFullWidthSpace.AutoSize = true;
+            checkBoxUseFullWidthSpace.Checked = true;
+            checkBoxUseFullWidthSpace.CheckState = CheckState.Checked;
+            checkBoxUseFullWidthSpace.Location = new Point(412, 205);
+            checkBoxUseFullWidthSpace.Name = "checkBoxUseFullWidthSpace";
+            checkBoxUseFullWidthSpace.Size = new Size(140, 27);
+            checkBoxUseFullWidthSpace.TabIndex = 19;
+            checkBoxUseFullWidthSpace.Text = "全形空白字元";
+            checkBoxUseFullWidthSpace.UseVisualStyleBackColor = true;
+            // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(29, 97);
+            label1.Location = new Point(32, 112);
             label1.Name = "label1";
-            label1.Size = new Size(153, 20);
+            label1.Size = new Size(172, 23);
             label1.TabIndex = 4;
             label1.Text = "新行開頭的判定字串";
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(29, 135);
+            label2.Location = new Point(32, 155);
             label2.Name = "label2";
-            label2.Size = new Size(153, 20);
+            label2.Size = new Size(172, 23);
             label2.TabIndex = 5;
             label2.Text = "新行結尾的判定字串";
             // 
             // textBoxNewLineStartJudgment
             // 
-            textBoxNewLineStartJudgment.Location = new Point(206, 94);
+            textBoxNewLineStartJudgment.Location = new Point(227, 108);
             textBoxNewLineStartJudgment.Name = "textBoxNewLineStartJudgment";
-            textBoxNewLineStartJudgment.Size = new Size(324, 28);
+            textBoxNewLineStartJudgment.Size = new Size(356, 30);
             textBoxNewLineStartJudgment.TabIndex = 6;
             textBoxNewLineStartJudgment.Text = "/*新咒語開始------*/";
             // 
             // textBoxNewLineEndJudgment
             // 
-            textBoxNewLineEndJudgment.Location = new Point(206, 132);
+            textBoxNewLineEndJudgment.Location = new Point(227, 152);
             textBoxNewLineEndJudgment.Name = "textBoxNewLineEndJudgment";
-            textBoxNewLineEndJudgment.Size = new Size(324, 28);
+            textBoxNewLineEndJudgment.Size = new Size(356, 30);
             textBoxNewLineEndJudgment.TabIndex = 7;
             textBoxNewLineEndJudgment.Text = "/*新咒語結束------*/";
             // 
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(29, 178);
+            label3.Location = new Point(32, 205);
             label3.Name = "label3";
-            label3.Size = new Size(185, 20);
+            label3.Size = new Size(208, 23);
             label3.TabIndex = 8;
             label3.Text = "每行行首增加空白字元數";
             // 
             // numericUpDown_AddSpaceChrCount
             // 
-            numericUpDown_AddSpaceChrCount.Location = new Point(240, 176);
+            numericUpDown_AddSpaceChrCount.Location = new Point(264, 202);
             numericUpDown_AddSpaceChrCount.Name = "numericUpDown_AddSpaceChrCount";
-            numericUpDown_AddSpaceChrCount.Size = new Size(120, 28);
+            numericUpDown_AddSpaceChrCount.Size = new Size(132, 30);
             numericUpDown_AddSpaceChrCount.TabIndex = 9;
             numericUpDown_AddSpaceChrCount.TextAlign = HorizontalAlignment.Center;
-            numericUpDown_AddSpaceChrCount.Value = new decimal(new int[] { 4, 0, 0, 0 });
+            numericUpDown_AddSpaceChrCount.Value = new decimal(new int[] { 2, 0, 0, 0 });
             // 
             // buttonClearHistory
             // 
-            buttonClearHistory.Location = new Point(29, 408);
-            buttonClearHistory.Margin = new Padding(4);
+            buttonClearHistory.Location = new Point(32, 469);
+            buttonClearHistory.Margin = new Padding(4, 5, 4, 5);
             buttonClearHistory.Name = "buttonClearHistory";
-            buttonClearHistory.Size = new Size(180, 40);
+            buttonClearHistory.Size = new Size(198, 46);
             buttonClearHistory.TabIndex = 10;
             buttonClearHistory.Text = "清除歷史紀錄";
             buttonClearHistory.UseVisualStyleBackColor = true;
@@ -163,79 +176,79 @@ namespace TextSpeedReader
             // 
             // textBoxInsertEndText
             // 
-            textBoxInsertEndText.Location = new Point(206, 279);
+            textBoxInsertEndText.Location = new Point(227, 321);
             textBoxInsertEndText.Name = "textBoxInsertEndText";
-            textBoxInsertEndText.Size = new Size(324, 28);
+            textBoxInsertEndText.Size = new Size(356, 30);
             textBoxInsertEndText.TabIndex = 14;
             textBoxInsertEndText.Text = ", ";
             // 
             // textBoxInsertBeginingText
             // 
-            textBoxInsertBeginingText.Location = new Point(206, 241);
+            textBoxInsertBeginingText.Location = new Point(227, 277);
             textBoxInsertBeginingText.Name = "textBoxInsertBeginingText";
-            textBoxInsertBeginingText.Size = new Size(324, 28);
+            textBoxInsertBeginingText.Size = new Size(356, 30);
             textBoxInsertBeginingText.TabIndex = 13;
             textBoxInsertBeginingText.Text = "\"";
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(29, 282);
+            label4.Location = new Point(32, 324);
             label4.Name = "label4";
-            label4.Size = new Size(137, 20);
+            label4.Size = new Size(154, 23);
             label4.TabIndex = 12;
             label4.Text = "插入每行結尾字串";
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(29, 244);
+            label5.Location = new Point(32, 281);
             label5.Name = "label5";
-            label5.Size = new Size(137, 20);
+            label5.Size = new Size(154, 23);
             label5.TabIndex = 11;
             label5.Text = "插入每行開頭字串";
             // 
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(29, 350);
+            label6.Location = new Point(32, 402);
             label6.Name = "label6";
-            label6.Size = new Size(73, 20);
+            label6.Size = new Size(82, 23);
             label6.TabIndex = 15;
             label6.Text = "註解開頭";
             // 
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(300, 350);
+            label7.Location = new Point(330, 402);
             label7.Name = "label7";
-            label7.Size = new Size(73, 20);
+            label7.Size = new Size(82, 23);
             label7.TabIndex = 16;
             label7.Text = "註解結尾";
             // 
             // textBoxAnnotationBegin
             // 
-            textBoxAnnotationBegin.Location = new Point(108, 347);
+            textBoxAnnotationBegin.Location = new Point(119, 399);
             textBoxAnnotationBegin.Name = "textBoxAnnotationBegin";
-            textBoxAnnotationBegin.Size = new Size(146, 28);
+            textBoxAnnotationBegin.Size = new Size(160, 30);
             textBoxAnnotationBegin.TabIndex = 17;
             textBoxAnnotationBegin.Text = "/*";
             // 
             // textBoxAnnotationEnd
             // 
-            textBoxAnnotationEnd.Location = new Point(379, 347);
+            textBoxAnnotationEnd.Location = new Point(417, 399);
             textBoxAnnotationEnd.Name = "textBoxAnnotationEnd";
-            textBoxAnnotationEnd.Size = new Size(151, 28);
+            textBoxAnnotationEnd.Size = new Size(166, 30);
             textBoxAnnotationEnd.TabIndex = 18;
             textBoxAnnotationEnd.Text = "*/";
             // 
             // FormOptions
             // 
             AcceptButton = buttonOK;
-            AutoScaleDimensions = new SizeF(10F, 20F);
+            AutoScaleDimensions = new SizeF(11F, 23F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = buttonCancel;
-            ClientSize = new Size(544, 461);
+            ClientSize = new Size(616, 530);
             Controls.Add(textBoxAnnotationEnd);
             Controls.Add(textBoxAnnotationBegin);
             Controls.Add(label7);
@@ -244,6 +257,7 @@ namespace TextSpeedReader
             Controls.Add(textBoxInsertBeginingText);
             Controls.Add(label4);
             Controls.Add(label5);
+            Controls.Add(checkBoxUseFullWidthSpace);
             Controls.Add(numericUpDown_AddSpaceChrCount);
             Controls.Add(buttonClearHistory);
             Controls.Add(label3);
@@ -256,7 +270,7 @@ namespace TextSpeedReader
             Controls.Add(buttonOK);
             Controls.Add(checkBoxAutoOpenLastDirectory);
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Margin = new Padding(4);
+            Margin = new Padding(4, 5, 4, 5);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FormOptions";
@@ -280,6 +294,7 @@ namespace TextSpeedReader
         private TextBox textBoxNewLineEndJudgment;
         private Label label3;
         private NumericUpDown numericUpDown_AddSpaceChrCount;
+        private CheckBox checkBoxUseFullWidthSpace;
         private Button buttonClearHistory;
         private TextBox textBoxAnnotationBegin;
         private TextBox textBoxInsertBeginingText;
