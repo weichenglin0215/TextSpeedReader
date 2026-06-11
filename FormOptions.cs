@@ -28,6 +28,7 @@ namespace TextSpeedReader
             textBoxNewLineStartJudgment.Text = appSettings.NewLineStartJudgment;
             textBoxNewLineEndJudgment.Text = appSettings.NewLineEndJudgment;
             numericUpDown_AddSpaceChrCount.Value = appSettings.AddSpaceChrCount;
+            checkBoxUseFullWidthSpace.Checked = appSettings.AddSpaceUseFullWidth;
             textBoxInsertBeginingText.Text = appSettings.InsertBeginingText;
             textBoxInsertEndText.Text = appSettings.InsertEndText;
             textBoxAnnotationBegin.Text = appSettings.AnnotationBegin;
@@ -40,6 +41,7 @@ namespace TextSpeedReader
             appSettings.AutoOpenLastDirectory = checkBoxAutoOpenLastDirectory.Checked;
             appSettings.KeepFontSize = checkBoxKeepFontSize.Checked;
             appSettings.AddSpaceChrCount = (int)numericUpDown_AddSpaceChrCount.Value;
+            appSettings.AddSpaceUseFullWidth = checkBoxUseFullWidthSpace.Checked;
             appSettings.NewLineStartJudgment = textBoxNewLineStartJudgment.Text;
             appSettings.NewLineEndJudgment = textBoxNewLineEndJudgment.Text;
             appSettings.InsertBeginingText = textBoxInsertBeginingText.Text;
