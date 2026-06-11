@@ -35,6 +35,7 @@ namespace TextSpeedReader
             this.checkBoxMatchCase = new System.Windows.Forms.CheckBox();
             this.checkBoxWholeWord = new System.Windows.Forms.CheckBox();
             this.buttonFindNext = new System.Windows.Forms.Button();
+            this.buttonFindPrevious = new System.Windows.Forms.Button();
             this.buttonReplace = new System.Windows.Forms.Button();
             this.buttonReplaceAll = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
@@ -53,7 +54,7 @@ namespace TextSpeedReader
             // 
             this.textBoxFind.Location = new System.Drawing.Point(80, 12);
             this.textBoxFind.Name = "textBoxFind";
-            this.textBoxFind.Size = new System.Drawing.Size(300, 23);
+            this.textBoxFind.Size = new System.Drawing.Size(200, 23);
             this.textBoxFind.TabIndex = 1;
             this.textBoxFind.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxFind_KeyDown);
             // 
@@ -70,7 +71,7 @@ namespace TextSpeedReader
             // 
             this.textBoxReplace.Location = new System.Drawing.Point(80, 42);
             this.textBoxReplace.Name = "textBoxReplace";
-            this.textBoxReplace.Size = new System.Drawing.Size(300, 23);
+            this.textBoxReplace.Size = new System.Drawing.Size(200, 23);
             this.textBoxReplace.TabIndex = 3;
             this.textBoxReplace.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxReplace_KeyDown);
             // 
@@ -93,9 +94,9 @@ namespace TextSpeedReader
             this.checkBoxWholeWord.TabIndex = 5;
             this.checkBoxWholeWord.Text = "全字(&W)";
             this.checkBoxWholeWord.UseVisualStyleBackColor = true;
-            // 
+            //
             // buttonFindNext
-            // 
+            //
             this.buttonFindNext.Location = new System.Drawing.Point(400, 10);
             this.buttonFindNext.Name = "buttonFindNext";
             this.buttonFindNext.Size = new System.Drawing.Size(100, 25);
@@ -103,9 +104,19 @@ namespace TextSpeedReader
             this.buttonFindNext.Text = "尋找下一個(&F)";
             this.buttonFindNext.UseVisualStyleBackColor = true;
             this.buttonFindNext.Click += new System.EventHandler(this.buttonFindNext_Click);
-            // 
+            //
+            // buttonFindPrevious
+            //
+            this.buttonFindPrevious.Location = new System.Drawing.Point(294, 10);
+            this.buttonFindPrevious.Name = "buttonFindPrevious";
+            this.buttonFindPrevious.Size = new System.Drawing.Size(100, 25);
+            this.buttonFindPrevious.TabIndex = 10;
+            this.buttonFindPrevious.Text = "尋找上一個(&P)";
+            this.buttonFindPrevious.UseVisualStyleBackColor = true;
+            this.buttonFindPrevious.Click += new System.EventHandler(this.buttonFindPrevious_Click);
+            //
             // buttonReplace
-            // 
+            //
             this.buttonReplace.Location = new System.Drawing.Point(400, 40);
             this.buttonReplace.Name = "buttonReplace";
             this.buttonReplace.Size = new System.Drawing.Size(100, 25);
@@ -143,6 +154,7 @@ namespace TextSpeedReader
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonReplaceAll);
             this.Controls.Add(this.buttonReplace);
+            this.Controls.Add(this.buttonFindPrevious);
             this.Controls.Add(this.buttonFindNext);
             this.Controls.Add(this.checkBoxWholeWord);
             this.Controls.Add(this.checkBoxMatchCase);
@@ -171,6 +183,7 @@ namespace TextSpeedReader
         private System.Windows.Forms.CheckBox checkBoxMatchCase;
         private System.Windows.Forms.CheckBox checkBoxWholeWord;
         public System.Windows.Forms.Button buttonFindNext;
+        public System.Windows.Forms.Button buttonFindPrevious;
         public System.Windows.Forms.Button buttonReplace;
         public System.Windows.Forms.Button buttonReplaceAll;
         private System.Windows.Forms.Button buttonCancel;

@@ -140,6 +140,14 @@ namespace TextSpeedReader
                 return;
             }
 
+            // 啟用拖曳 listViewFile → treeViewFolder 功能 (放在執行階段設定，避免 VS Designer 載入錯誤)
+            treeViewFolder.AllowDrop = true;
+            treeViewFolder.DragEnter += treeViewFolder_DragEnter_FromListView;
+            treeViewFolder.DragOver += treeViewFolder_DragOver_FromListView;
+            treeViewFolder.DragLeave += treeViewFolder_DragLeave_FromListView;
+            treeViewFolder.DragDrop += treeViewFolder_DragDrop_FromListView;
+            listViewFile.ItemDrag += listViewFile_ItemDrag;
+
             // 載入應用程式設定
             appSettings.LoadSettings();
 
@@ -729,6 +737,42 @@ namespace TextSpeedReader
         // 程式關閉時：儲存最近閱讀清單到 ini、儲存上次目錄及字型設定
         private void FormTSRClosing(object sender, FormClosingEventArgs e)
         {
+            // 若目前編輯中的檔案有未儲存的修改，詢問使用者是否儲存後再關閉，避免遺失編輯內容
+            if (m_IsCurrentFileModified
+                && m_RecentReadListIndex >= 0
+                && m_RecentReadListIndex < m_RecentReadList.Count)
+            {
+                string currentFilePath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
+
+                using (FormSaveConfirm saveConfirmDialog = new FormSaveConfirm(Path.GetFileName(currentFilePath)))
+                {
+                    saveConfirmDialog.Owner = this;
+                    if (saveConfirmDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        switch (saveConfirmDialog.SelectedOption)
+                        {
+                            case FormSaveConfirm.SaveOption.No:
+                                // 不儲存，繼續關閉
+                                break;
+
+                            case FormSaveConfirm.SaveOption.SaveAs:
+                                SaveCurrentFileAs();
+                                break;
+
+                            case FormSaveConfirm.SaveOption.Save:
+                                SaveCurrentFile(false);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // 使用者取消對話框 → 取消關閉
+                        e.Cancel = true;
+                        return;
+                    }
+                }
+            }
+
             // 將最近閱讀記錄寫入 TextSpeedReader.ini（每筆兩行：路徑 + 字元位置）
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\TextSpeedReader.ini"))
             {

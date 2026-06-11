@@ -1699,6 +1699,12 @@ namespace TextSpeedReader
             string[] parts = Regex.Split(selectedText, @"(\r\n|\r|\n)");
             StringBuilder result = new StringBuilder();
 
+            // 標記目前是否在 JSON 風格的 { ... } 複合區塊內 (區塊內的行不另外編號，且不消耗編號)
+            bool insideJsonBlock = false;
+
+            // 單位序號計數器：每個單位 (一般行 或 整個 { ... } 區塊) 佔用一個編號
+            int unitNumber = 0;
+
             for (int i = 0; i < parts.Length; i += 2)
             {
                 string line = parts[i];
@@ -1708,29 +1714,73 @@ namespace TextSpeedReader
                     break;
                 }
 
-                int absoluteLineNumber = startLineIndex + (i / 2) + 1;
-
-                if (line.StartsWith(startMark))
+                if (insideJsonBlock)
                 {
-                    // 已有註解開頭，判斷後續是否為數字
-                    string afterStart = line.Substring(startMark.Length);
-                    Match match = Regex.Match(afterStart, @"^(\d+)(.*)$");
-                    if (match.Success)
+                    // 區塊內：原樣輸出，不編號；遇到以 '}' 開頭的行則結束區塊
+                    result.Append(line);
+                    if (line.StartsWith("}"))
+                        insideJsonBlock = false;
+                }
+                else if (line.StartsWith("{"))
+                {
+                    // 規則 1: 以 "{" 為行首，整個 { ... } 區塊視為一個單位 (佔用一個編號)
+                    unitNumber++;
+                    string numberStr = unitNumber.ToString("D4");
+                    string afterBrace = line.Substring(1);
+
+                    if (afterBrace.StartsWith(startMark))
                     {
-                        // 規則 3：替換數字
-                        string restOfLine = match.Groups[2].Value;
-                        result.Append(startMark + absoluteLineNumber + restOfLine);
+                        // 規則 2: "{" 之後接 "/*" — 依原有規則處理 "/*" 後的編號
+                        string afterStart = afterBrace.Substring(startMark.Length);
+                        Match match = Regex.Match(afterStart, @"^(\d+)(.*)$");
+                        if (match.Success)
+                        {
+                            string restOfLine = match.Groups[2].Value;
+                            result.Append("{" + startMark + numberStr + restOfLine);
+                        }
+                        else
+                        {
+                            result.Append("{" + startMark + numberStr + afterStart);
+                        }
                     }
                     else
                     {
-                        // 規則 4：插入編號
-                        result.Append(startMark + absoluteLineNumber + afterStart);
+                        // 規則 3: "{" 之後沒有 "/*" — 在 "{" 後添加 "/*編號*/"
+                        result.Append("{" + startMark + numberStr + endMark + afterBrace);
                     }
+
+                    // 檢查同一行是否已含結尾 '}' (單行 JSON 區塊不進入區塊狀態)
+                    if (!afterBrace.Contains("}"))
+                        insideJsonBlock = true;
                 }
                 else
                 {
-                    // 規則 2：添加註解開頭、編號與結尾
-                    result.Append(startMark + absoluteLineNumber + endMark + line);
+                    // 一般行：每行佔用一個編號
+                    unitNumber++;
+                    string numberStr = unitNumber.ToString("D4"); // 規則 4：四位數零填補
+
+                    if (line.StartsWith(startMark))
+                    {
+                        // 已有註解開頭，判斷後續是否為數字
+                        string afterStart = line.Substring(startMark.Length);
+                        Match match = Regex.Match(afterStart, @"^(\d+)(.*)$");
+                        if (match.Success)
+                        {
+                            // 替換數字
+                            string restOfLine = match.Groups[2].Value;
+                            result.Append(startMark + numberStr + restOfLine);
+                        }
+                        else
+                        {
+                            // 插入編號
+                            result.Append(startMark + numberStr + afterStart);
+                        }
+                    }
+                    else
+                    {
+                        // 添加註解開頭、編號與結尾
+                        result.Append(startMark + numberStr + endMark + line);
+                    }
                 }
 
                 // 加上對應的換行符

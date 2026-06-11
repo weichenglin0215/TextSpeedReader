@@ -76,6 +76,11 @@ namespace TextSpeedReader
             FindNext();
         }
 
+        private void buttonFindPrevious_Click(object sender, EventArgs e)
+        {
+            FindPrevious();
+        }
+
         private void buttonReplace_Click(object sender, EventArgs e)
         {
             Replace();
@@ -180,6 +185,76 @@ namespace TextSpeedReader
                 MessageBox.Show($"找不到「{searchText}」。", "尋找", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 lastSearchPosition = 0;
             }
+        }
+
+        /// <summary>
+        /// 從目前選取位置往前 (向文件開頭方向) 查找上一個符合的文字。
+        /// 若到達開頭未找到，會從結尾再查找一次 (循環查找)。
+        /// </summary>
+        private void FindPrevious()
+        {
+            if (string.IsNullOrEmpty(textBoxFind.Text))
+            {
+                MessageBox.Show("請輸入要尋找的文字。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                textBoxFind.Focus();
+                return;
+            }
+
+            string searchText = textBoxFind.Text;
+            bool matchCase = checkBoxMatchCase.Checked;
+            bool wholeWord = checkBoxWholeWord.Checked;
+            StringComparison comparison = matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+            string text = targetRichTextBox.Text;
+            // 由目前選取範圍的開頭往前查找，避免重複找到同一個
+            int startPos = targetRichTextBox.SelectionStart - 1;
+            if (startPos < 0) startPos = text.Length - 1;
+
+            int foundPos;
+            if (wholeWord)
+            {
+                foundPos = FindWholeWordReverse(text, searchText, startPos, comparison, searchText.Length);
+                if (foundPos == -1 && startPos < text.Length - 1)
+                    foundPos = FindWholeWordReverse(text, searchText, text.Length - 1, comparison, searchText.Length);
+            }
+            else
+            {
+                foundPos = text.LastIndexOf(searchText, startPos, comparison);
+                if (foundPos == -1 && startPos < text.Length - 1)
+                    foundPos = text.LastIndexOf(searchText, text.Length - 1, comparison);
+            }
+
+            if (foundPos >= 0)
+            {
+                targetRichTextBox.SelectionStart = foundPos;
+                targetRichTextBox.SelectionLength = searchText.Length;
+                targetRichTextBox.ScrollToCaret();
+                targetRichTextBox.Focus();
+                lastSearchPosition = foundPos;
+            }
+            else
+            {
+                MessageBox.Show($"找不到「{searchText}」。", "尋找", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                lastSearchPosition = 0;
+            }
+        }
+
+        // 從指定位置往前查找全字邊界匹配的位置
+        private int FindWholeWordReverse(string text, string searchText, int startPos, StringComparison comparison, int searchLength)
+        {
+            if (searchLength == 0) return -1;
+            for (int i = Math.Min(startPos, text.Length - searchLength); i >= 0; i--)
+            {
+                if (string.Compare(text.Substring(i, searchLength), searchText, comparison) != 0)
+                    continue;
+
+                bool frontBoundary = (i == 0) || !(char.IsLetterOrDigit(text[i - 1]) || text[i - 1] == '_');
+                bool backBoundary = (i + searchLength >= text.Length) || !(char.IsLetterOrDigit(text[i + searchLength]) || text[i + searchLength] == '_');
+
+                if (frontBoundary && backBoundary)
+                    return i;
+            }
+            return -1;
         }
 
         // 在文字中從指定位置開始，以全字匹配方式查找第一個符合的位置

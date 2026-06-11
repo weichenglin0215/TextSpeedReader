@@ -232,7 +232,6 @@ namespace TextSpeedReader
             // 
             // treeViewFolder
             // 
-            treeViewFolder.AllowDrop = true;
             treeViewFolder.ContextMenuStrip = contextMenuStrip_treeViewFolder;
             treeViewFolder.Dock = DockStyle.Fill;
             treeViewFolder.FullRowSelect = true;
@@ -244,10 +243,6 @@ namespace TextSpeedReader
             treeViewFolder.Size = new Size(497, 292);
             treeViewFolder.TabIndex = 2;
             treeViewFolder.AfterSelect += treeViewFolder_AfterSelect;
-            treeViewFolder.DragDrop += treeViewFolder_DragDrop_FromListView;
-            treeViewFolder.DragEnter += treeViewFolder_DragEnter_FromListView;
-            treeViewFolder.DragOver += treeViewFolder_DragOver_FromListView;
-            treeViewFolder.DragLeave += treeViewFolder_DragLeave_FromListView;
             // 
             // contextMenuStrip_treeViewFolder
             // 
@@ -328,7 +323,6 @@ namespace TextSpeedReader
             listViewFile.UseCompatibleStateImageBehavior = false;
             listViewFile.View = View.Details;
             listViewFile.ColumnClick += listViewFile_ColumnClick;
-            listViewFile.ItemDrag += listViewFile_ItemDrag;
             listViewFile.SelectedIndexChanged += ListViewFile_SelectedIndexChanged;
             listViewFile.KeyDown += listViewFile_KeyDown;
             listViewFile.MouseClick += ListViewFile_MouseClick;
@@ -993,7 +987,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 2.10.0.0  (檔案拖曳移動複製、變更編碼、自動換行、多個AI生圖提示方便編輯功能、優化一簡轉多繁OpenCC.NET，新增批次目錄名稱編碼(亂碼)轉換、檔名編碼(亂碼)轉換、檔名簡轉繁，逐行排序、關鍵字斷行、行首填空)";
+            Text = "TextSpeedReader Ver. 2.11.0.0  (檔案拖曳移動複製、變更編碼、自動換行、多個AI生圖提示方便編輯功能、優化一簡轉多繁OpenCC.NET，新增批次目錄名稱編碼(亂碼)轉換、檔名編碼(亂碼)轉換、檔名簡轉繁，逐行排序、關鍵字斷行、行首填空)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
