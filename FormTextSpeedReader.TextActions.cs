@@ -1703,8 +1703,11 @@ namespace TextSpeedReader
             string[] parts = Regex.Split(selectedText, @"(\r\n|\r|\n)");
             StringBuilder result = new StringBuilder();
 
-            // 標記目前是否在 JSON 風格的 { ... } 複合區塊內 (區塊內的行不另外編號，且不消耗編號)
-            bool insideJsonBlock = false;
+            // 巢狀大括號區塊狀態：
+            //   braceDepth > 0 表示目前位於 { ... } 區塊內 (含巢狀)；
+            //   只有「{ 在行首」會 +1，只有「} 在行尾」會 -1；
+            //   區塊內所有行原樣輸出、不再消耗編號；整個區塊只佔一個編號。
+            int braceDepth = 0;
 
             // 單位序號計數器：每個單位 (一般行 或 整個 { ... } 區塊) 佔用一個編號
             int unitNumber = 0;
@@ -1718,50 +1721,48 @@ namespace TextSpeedReader
                     break;
                 }
 
-                if (insideJsonBlock)
+                bool startsWithBrace = line.StartsWith("{");
+                bool endsWithBrace = line.EndsWith("}");
+
+                if (braceDepth > 0)
                 {
-                    // 區塊內：原樣輸出，不編號；遇到以 '}' 開頭的行則結束區塊
+                    // 已在大括號區塊內：原樣輸出，僅追蹤巢狀深度
                     result.Append(line);
-                    if (line.StartsWith("}"))
-                        insideJsonBlock = false;
+                    if (startsWithBrace) braceDepth++;
+                    if (endsWithBrace) braceDepth--;
+                    if (braceDepth < 0) braceDepth = 0;
                 }
-                else if (line.StartsWith("{"))
+                else if (startsWithBrace)
                 {
-                    // 規則 1: 以 "{" 為行首，整個 { ... } 區塊視為一個單位 (佔用一個編號)
+                    // 規則 1: 行首為 "{" — 整個 { ... } 區塊 (含巢狀) 視為單一單位，只佔一個編號
                     unitNumber++;
                     string numberStr = unitNumber.ToString("D4");
                     string afterBrace = line.Substring(1);
 
                     if (afterBrace.StartsWith(startMark))
                     {
-                        // 規則 2: "{" 之後接 "/*" — 依原有規則處理 "/*" 後的編號
+                        // "{" 後緊接 startMark：將編號插在 startMark 之後
+                        // 若原本就有數字 → 替換之；否則 → 直接插入 (不重複加 endMark)
                         string afterStart = afterBrace.Substring(startMark.Length);
                         Match match = Regex.Match(afterStart, @"^(\d+)(.*)$");
-                        if (match.Success)
-                        {
-                            string restOfLine = match.Groups[2].Value;
-                            result.Append("{" + startMark + numberStr + restOfLine);
-                        }
-                        else
-                        {
-                            result.Append("{" + startMark + numberStr + afterStart);
-                        }
+                        string tail = match.Success ? match.Groups[2].Value : afterStart;
+                        result.Append("{" + startMark + numberStr + tail);
                     }
                     else
                     {
-                        // 規則 3: "{" 之後沒有 "/*" — 在 "{" 後添加 "/*編號*/"
+                        // "{" 後沒有 startMark — 在 "{" 後插入 "startMark + 編號 + endMark"
                         result.Append("{" + startMark + numberStr + endMark + afterBrace);
                     }
 
-                    // 檢查同一行是否已含結尾 '}' (單行 JSON 區塊不進入區塊狀態)
-                    if (!afterBrace.Contains("}"))
-                        insideJsonBlock = true;
+                    // 更新巢狀深度：本行 { 起始 → +1；若同行行尾為 } 則 -1 (可能為單行 {...})
+                    braceDepth = 1;
+                    if (endsWithBrace) braceDepth--;
                 }
                 else
                 {
-                    // 一般行：每行佔用一個編號
+                    // 一般行 (不在區塊內，且非區塊開頭)：每行佔用一個編號
                     unitNumber++;
-                    string numberStr = unitNumber.ToString("D4"); // 規則 4：四位數零填補
+                    string numberStr = unitNumber.ToString("D4"); // 四位數零填補
 
                     if (line.StartsWith(startMark))
                     {
@@ -1770,19 +1771,16 @@ namespace TextSpeedReader
                         Match match = Regex.Match(afterStart, @"^(\d+)(.*)$");
                         if (match.Success)
                         {
-                            // 替換數字
                             string restOfLine = match.Groups[2].Value;
                             result.Append(startMark + numberStr + restOfLine);
                         }
                         else
                         {
-                            // 插入編號
                             result.Append(startMark + numberStr + afterStart);
                         }
                     }
                     else
                     {
-                        // 添加註解開頭、編號與結尾
                         result.Append(startMark + numberStr + endMark + line);
                     }
                 }

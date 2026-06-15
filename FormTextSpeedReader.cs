@@ -281,6 +281,159 @@ namespace TextSpeedReader
             }
         }
 
+        // ProcessCmdKey 在所有控制項接收按鍵前就會觸發，可確保 Ctrl+Shift+F 不會被
+        // RichTextBox / ListView / TreeView 等子控制項攔截。
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.Shift | Keys.F))
+            {
+                System.Diagnostics.Debug.WriteLine("[SearchInFiles] Ctrl+Shift+F triggered");
+                ShowSearchInFilesDialog();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        // 模仿 IDE 的「在檔案中搜尋」功能視窗 (單例)
+        private FormSearchInFiles? m_SearchInFilesDialog = null;
+
+        // 顯示「搜尋檔案列表中的文字」彈窗 (Ctrl+Shift+F)
+        private void ShowSearchInFilesDialog()
+        {
+            // 收集目前 listViewFile 顯示的所有檔案完整路徑 (僅文字類型，不含子目錄)
+            // 採用與 SaveCurrentFile / FileBrowser 一致的路徑組合方式：currentDir + "\" + filename
+            List<string> filePaths = new List<string>();
+            string currentDir = m_TreeViewSelectedNodeText ?? string.Empty;
+            int skippedExt = 0, skippedMissing = 0;
+
+            System.Diagnostics.Debug.WriteLine($"[SearchInFiles] currentDir = '{currentDir}'");
+            System.Diagnostics.Debug.WriteLine($"[SearchInFiles] listViewFile.Items.Count = {listViewFile.Items.Count}");
+
+            foreach (ListViewItem item in listViewFile.Items)
+            {
+                string fileName = item.Text;
+                string ext = Path.GetExtension(fileName).ToLower();
+                if (!fileManager.TextExtensions.Contains(ext) || ext == ".html" || ext == ".htm")
+                {
+                    skippedExt++;
+                    System.Diagnostics.Debug.WriteLine($"[SearchInFiles] SKIP (ext='{ext}') {fileName}");
+                    continue;
+                }
+                string fullPath = string.IsNullOrEmpty(currentDir)
+                    ? fileName : currentDir + @"\" + fileName;
+                bool exists = File.Exists(fullPath);
+                System.Diagnostics.Debug.WriteLine($"[SearchInFiles] {(exists ? "OK  " : "MISS")} {fullPath}");
+                if (exists) filePaths.Add(fullPath);
+                else skippedMissing++;
+            }
+            System.Diagnostics.Debug.WriteLine($"[SearchInFiles] collected={filePaths.Count}, skippedExt={skippedExt}, skippedMissing={skippedMissing}");
+
+            if (m_SearchInFilesDialog == null || m_SearchInFilesDialog.IsDisposed)
+            {
+                m_SearchInFilesDialog = new FormSearchInFiles(this);
+                m_SearchInFilesDialog.Owner = this;
+            }
+
+            m_SearchInFilesDialog.SetSearchScope(filePaths);
+            m_SearchInFilesDialog.Show();
+            m_SearchInFilesDialog.Activate();
+        }
+
+        // 供 FormSearchInFiles 呼叫：開啟指定檔案並捲動至指定行 (0-based)，
+        // 若提供 matchStart/matchLength (相對該行的字元位置) 則只反白該段文字，
+        // 否則反白整行 (向下相容)。
+        public void OpenFileAtLine(string fullFilePath, int lineIndex, int matchStart = -1, int matchLength = 0)
+        {
+            if (string.IsNullOrEmpty(fullFilePath) || !File.Exists(fullFilePath)) return;
+
+            string fileName = Path.GetFileName(fullFilePath);
+
+            // 嘗試在 listViewFile 中找到該檔案並選取 (觸發既有的載入流程)
+            ListViewItem? target = null;
+            foreach (ListViewItem item in listViewFile.Items)
+            {
+                if (string.Equals(item.Text, fileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    target = item; break;
+                }
+            }
+
+            if (target != null)
+            {
+                // 若該檔案非目前選取，則選取它 (會觸發 ListViewFile_SelectedIndexChanged 載入檔案)
+                bool alreadySelected = target.Selected && listViewFile.SelectedItems.Count == 1;
+                if (!alreadySelected)
+                {
+                    listViewFile.SelectedItems.Clear();
+                    target.Selected = true;
+                    target.EnsureVisible();
+                    // 載入流程是同步的 (走到 ReadFileWithEncodingDetection 後設定 richTextBoxText.Text)
+                }
+            }
+
+            // 捲動 RichTextBox 到指定行
+            if (!richTextBoxText.Visible) return;
+            if (lineIndex < 0) lineIndex = 0;
+            int charIdx = richTextBoxText.GetFirstCharIndexFromLine(lineIndex);
+            if (charIdx < 0)
+            {
+                // 行號超出檔案範圍，捲動到最末
+                charIdx = Math.Max(0, richTextBoxText.TextLength - 1);
+            }
+            int selStart;
+            int selLen;
+            if (matchStart >= 0 && matchLength > 0)
+            {
+                // 精確反白該行中的比對字 (符合搜尋字將以「被選取」狀態顯示)
+                selStart = charIdx + matchStart;
+                selLen = matchLength;
+                // 防呆：避免超出 RichTextBox 內容範圍
+                int textLen = richTextBoxText.TextLength;
+                if (selStart > textLen) selStart = textLen;
+                if (selStart + selLen > textLen) selLen = Math.Max(0, textLen - selStart);
+            }
+            else
+            {
+                // 退回反白整行 (不含行尾換行符)
+                int nextLineStart = (lineIndex + 1 < richTextBoxText.Lines.Length)
+                    ? richTextBoxText.GetFirstCharIndexFromLine(lineIndex + 1)
+                    : richTextBoxText.TextLength;
+                selLen = Math.Max(0, nextLineStart - charIdx);
+                string raw = richTextBoxText.Text;
+                while (selLen > 0 && charIdx + selLen - 1 < raw.Length &&
+                       (raw[charIdx + selLen - 1] == '\r' || raw[charIdx + selLen - 1] == '\n'))
+                {
+                    selLen--;
+                }
+                selStart = charIdx;
+            }
+            // 預設 RichTextBox.HideSelection = true：失焦後選取會隱藏；
+            // 我們稍後會把焦點搶回搜尋彈窗，因此設為 false 才能持續看到藍底白字反白
+            richTextBoxText.HideSelection = false;
+            richTextBoxText.Focus();
+            richTextBoxText.Select(selStart, selLen);
+            richTextBoxText.ScrollToCaret();
+            // 焦點回到搜尋對話框，方便繼續操作
+            if (m_SearchInFilesDialog != null && !m_SearchInFilesDialog.IsDisposed)
+                m_SearchInFilesDialog.Activate();
+        }
+
+        // 供 FormSearchInFiles 呼叫：以自動編碼偵測讀取檔案內容 (不彈出簡繁轉換提示)
+        // 使用 JTextFileLib.DetectEncoding (UDE)，可正確處理 Big5 / GBK / UTF-8 等；
+        // 表單內 DetectFileEncoding 不認 Big5，會把繁中檔誤判為 UTF-8 導致搜尋結果亂碼。
+        public string ReadFileContentForSearch(string fullFilePath)
+        {
+            try
+            {
+                Encoding enc = JTextFileLib.DetectEncoding(fullFilePath);
+                return File.ReadAllText(fullFilePath, enc);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
 
 
 
@@ -2118,7 +2271,8 @@ namespace TextSpeedReader
             {
                 if (Directory.Exists(directoryInfo.FullName))
                 {
-                    System.Diagnostics.Process.Start("explorer.exe", directoryInfo.FullName);
+                    // explorer.exe 會以「,」作為命令列引數分隔符；含逗號或空白的路徑必須加引號
+                    System.Diagnostics.Process.Start("explorer.exe", $"\"{directoryInfo.FullName}\"");
                 }
                 else
                 {

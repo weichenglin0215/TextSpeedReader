@@ -25,6 +25,9 @@
     <Compile Update="FormSaveConfirm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="FormSearchInFiles.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="FormTextSpeedReader.cs">
       <SubType>Form</SubType>
     </Compile>
