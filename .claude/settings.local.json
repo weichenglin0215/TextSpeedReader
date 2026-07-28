@@ -4,7 +4,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\3D_prj\\\\VS_2022_prj\\\\TextSpeedReader\" -Recurse -File)",
       "Bash(Select-Object FullName)",
       "Bash(Select-Object -ExpandProperty Name)",
-      "Bash(dotnet build *)"
+      "Bash(dotnet build *)",
+      "PowerShell(dotnet build \"C:\\\\3D_prj\\\\VS_2022_prj\\\\TextSpeedReader\\\\TextSpeedReader.csproj\" -nologo -clp:NoSummary 2>&1)"
     ]
   }
 }

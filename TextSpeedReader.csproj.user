@@ -4,10 +4,16 @@
     <_LastSelectedProfileId>C:\3D_prj\VS_2022_prj\TextSpeedReader\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Update="FormAIAnalyze.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="FormFileOverwriteConfirm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="FormFindReplace.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormMarkdownEditor.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="FormOptions.cs">

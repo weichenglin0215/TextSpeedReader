@@ -7,13 +7,20 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>TextSpeedReaderIcon256.ico</ApplicationIcon>
-    <AssemblyVersion>2.7.0.0</AssemblyVersion>
-    <FileVersion>2.7.0.0</FileVersion>
+    <AssemblyVersion>3.1.0.0</AssemblyVersion>
+    <FileVersion>3.1.0.0</FileVersion>
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
     <Content Include="TextSpeedReaderIcon256.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- AI 分析用的提示詞：建置時將 Prompt\*.md 複製到輸出目錄 (執行檔旁) -->
+    <Content Include="Prompt\**\*.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

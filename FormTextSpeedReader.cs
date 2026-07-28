@@ -297,6 +297,9 @@ namespace TextSpeedReader
         // 模仿 IDE 的「在檔案中搜尋」功能視窗 (單例)
         private FormSearchInFiles? m_SearchInFilesDialog = null;
 
+        // 「AI 分析文章選項」視窗 (單例，非模態，可與主介面同時操作)
+        private FormAIAnalyze? m_AIAnalyzeDialog = null;
+
         // 顯示「搜尋檔案列表中的文字」彈窗 (Ctrl+Shift+F)
         private void ShowSearchInFilesDialog()
         {
@@ -337,6 +340,45 @@ namespace TextSpeedReader
             m_SearchInFilesDialog.SetSearchScope(filePaths);
             m_SearchInFilesDialog.Show();
             m_SearchInFilesDialog.Activate();
+        }
+
+        // 「AI分析文章」按鈕：收集 listViewFile 目前顯示的所有文字檔案，開啟 AI 分析選項彈窗。
+        private void toolStripButton_AIAnalyze_Click(object sender, EventArgs e)
+        {
+            // 收集檔案清單 (沿用與 ShowSearchInFilesDialog 一致的路徑組合方式)
+            List<string> filePaths = new List<string>();
+            string currentDir = m_TreeViewSelectedNodeText ?? string.Empty;
+
+            foreach (ListViewItem item in listViewFile.Items)
+            {
+                string fileName = item.Text;
+                string ext = Path.GetExtension(fileName).ToLower();
+                if (!fileManager.TextExtensions.Contains(ext)) continue;
+
+                string fullPath = string.IsNullOrEmpty(currentDir)
+                    ? fileName : currentDir + @"\" + fileName;
+                if (File.Exists(fullPath)) filePaths.Add(fullPath);
+            }
+
+            if (filePaths.Count == 0)
+            {
+                MessageBox.Show("目前檔案清單中沒有可分析的文字檔案。", "AI 分析文章",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // 若視窗已開啟則帶到前景 (保留其執行中的分析狀態)，否則以非模態方式開啟。
+            // 非模態 (Show) 讓「AI分析文章選項」可獨立執行，不阻擋主介面操作。
+            if (m_AIAnalyzeDialog != null && !m_AIAnalyzeDialog.IsDisposed)
+            {
+                if (m_AIAnalyzeDialog.WindowState == FormWindowState.Minimized)
+                    m_AIAnalyzeDialog.WindowState = FormWindowState.Normal;
+                m_AIAnalyzeDialog.Activate();
+                return;
+            }
+
+            m_AIAnalyzeDialog = new FormAIAnalyze(filePaths);
+            m_AIAnalyzeDialog.Show(this);
         }
 
         // 供 FormSearchInFiles 呼叫：開啟指定檔案並捲動至指定行 (0-based)，
