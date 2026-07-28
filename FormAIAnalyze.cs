@@ -132,16 +132,18 @@ namespace TextSpeedReader
             // name, stream, temperature, num_predict, num_ctx, repeat_penalty, top_k, top_p
             string[] rows =
             {
-                "LLM大模型參數表-16384-標準,true,0.9,8192,16384,1.1,40,0.9",
-                "LLM大模型參數表-16384-熱情,true,1.2,8192,16384,1.1,80,1",
-                "LLM大模型參數表-32768-低溫純分析,true,0.4,16384,32768,1.1,40,0.9",
-                "LLM大模型參數表-32768-標準,true,0.9,16384,32768,1.1,40,0.9",
-                "LLM大模型參數表-32768-熱情,true,1.2,16384,32768,1.1,80,1",
-                "LLM大模型參數表-65536-低溫,true,0.4,16384,65536,1.1,40,0.9",
-                "LLM大模型參數表-65536-標準,true,0.9,16384,65536,1.1,40,0.9",
-                "LLM大模型參數表-65536-熱情,true,1.2,16384,65536,1.1,80,1",
+                "LLM大模型參數表-8192-低溫純分析,true,0.4,2048,8192,1.1,40,0.9",
                 "LLM大模型參數表-8192-標準,true,0.9,2048,8192,1.1,40,0.9",
                 "LLM大模型參數表-8192-熱情,true,1.2,2048,8192,1.2,80,1",
+                "LLM大模型參數表-16384-低溫純分析,true,0.4,4096,16384,1.1,40,0.9",
+                "LLM大模型參數表-16384-標準,true,0.9,4096,16384,1.1,40,0.9",
+                "LLM大模型參數表-16384-熱情,true,1.2,4096,16384,1.1,80,1",
+                "LLM大模型參數表-32768-低溫純分析,true,0.4,4096,32768,1.1,40,0.9",
+                "LLM大模型參數表-32768-標準,true,0.9,4096,32768,1.1,40,0.9",
+                "LLM大模型參數表-32768-熱情,true,1.2,4096,32768,1.1,80,1",
+                "LLM大模型參數表-65536-低溫純分析,true,0.4,4096,65536,1.1,40,0.9",
+                "LLM大模型參數表-65536-標準,true,0.9,4096,65536,1.1,40,0.9",
+                "LLM大模型參數表-65536-熱情,true,1.2,4096,65536,1.1,80,1",
             };
 
             var list = new List<ParamPreset>();
@@ -261,6 +263,17 @@ namespace TextSpeedReader
             }
         }
 
+        // 「🗑清除」：清空 LOG 文字框
+        private void buttonClearLog_Click(object? sender, EventArgs e)
+        {
+            // 連同尚未刷新的緩衝區一起清掉，避免清除後又被下一次 FlushLog 補寫回來
+            lock (_logLock)
+            {
+                _logBuffer.Clear();
+            }
+            textBoxLog.Clear();
+        }
+
         // 「全選」
         private void buttonSelectAll_Click(object? sender, EventArgs e) => SetAllChecked(true);
 
@@ -378,24 +391,25 @@ namespace TextSpeedReader
             List<string> articles, string model, ParamPreset preset, string promptTypeContent,
             string userInstruction, CancellationToken cancel)
         {
-            var options = new OllamaClient.GenerateOptions
-            {
-                Stream = preset.Stream,
-                Temperature = preset.Temperature,
-                NumPredict = preset.NumPredict,
-                NumCtx = preset.NumCtx,
-                RepeatPenalty = preset.RepeatPenalty,
-                TopK = preset.TopK,
-                TopP = preset.TopP,
-                KeepAlive = "10m",
-                Think = checkBoxThink.Checked  // 由使用者勾選決定是否啟用思考
-            };
-
             int index = 0;
             foreach (string articlePath in articles)
             {
                 cancel.ThrowIfCancellationRequested();
                 index++;
+
+                // 每篇都重新建立參數物件，避免上一篇的自動調整 (例如下修 num_predict) 影響本篇
+                var options = new OllamaClient.GenerateOptions
+                {
+                    Stream = preset.Stream,
+                    Temperature = preset.Temperature,
+                    NumPredict = preset.NumPredict,
+                    NumCtx = preset.NumCtx,
+                    RepeatPenalty = preset.RepeatPenalty,
+                    TopK = preset.TopK,
+                    TopP = preset.TopP,
+                    KeepAlive = "10m",
+                    Think = checkBoxThink.Checked  // 由使用者勾選決定是否啟用思考
+                };
 
                 string fileName = Path.GetFileName(articlePath);
                 AppendLog("==================================================");
@@ -428,6 +442,48 @@ namespace TextSpeedReader
                 string prompt = sb.ToString();
 
                 int seed = _rnd.Next(1, int.MaxValue);
+
+                // === 每篇獨立：先卸載模型，清空 KV cache 與前綴快取 ===
+                // Ollama 會沿用上一次請求的 KV cache 做前綴比對 (本功能每篇的提示詞範本前綴完全相同)，
+                // 卸載模型是唯一能保證下一篇「從完全空白開始」的作法。
+                if (checkBoxFreshContext.Checked)
+                {
+                    try
+                    {
+                        AppendLog(">> 正在清除模型記憶 (卸載模型以確保本篇獨立分析)...");
+                        await OllamaClient.UnloadModelAsync(model, cancel);
+                        await Task.Delay(300, cancel);   // 給伺服器一點時間完成釋放
+                        AppendLog(">> 模型記憶已清除，本篇將從全新狀態開始分析。");
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendLog($">> [警告] 清除模型記憶失敗 (不影響繼續執行)：{ex.Message}");
+                    }
+                }
+
+                // === 上下文預算檢查 ===
+                // 提示詞 token + 生成 token 若超過 num_ctx，llama.cpp 會啟動 context shifting，
+                // 把最舊的 token (也就是你的分析指令與輸出格式要求) 丟棄，
+                // 造成格式錯亂、重複輸出、內容失控。這裡先估算並在必要時自動下修 num_predict。
+                int estPromptTokens = EstimateTokens(prompt);
+                int budget = options.NumCtx - estPromptTokens - 256;  // 保留 256 緩衝
+                if (budget < options.NumPredict)
+                {
+                    int original = options.NumPredict;
+                    if (budget < 512)
+                    {
+                        AppendLog($">> [警告] 提示詞估計約 {estPromptTokens} tokens，已接近或超出上下文視窗 " +
+                                  $"({options.NumCtx})，本篇極可能發生格式錯亂或內容重複。" +
+                                  "建議改用 num_ctx 更大的參數預設，或縮短文章。");
+                    }
+                    else
+                    {
+                        options.NumPredict = budget;
+                        AppendLog($">> [自動調整] 提示詞估計約 {estPromptTokens} tokens，" +
+                                  $"為避免超出上下文視窗 ({options.NumCtx}) 導致格式錯亂，" +
+                                  $"num_predict 由 {original} 下修為 {options.NumPredict}。");
+                    }
+                }
 
                 // 印出參數資訊 (仿需求 LOG 範例格式)
                 AppendLog(">> 正在呼叫 Ollama 產生分析結果 (請稍候)...");
@@ -517,6 +573,26 @@ namespace TextSpeedReader
         }
 
         /// <summary>
+        /// 粗略估算文字的 token 數量 (用於上下文預算檢查，非精確值)。
+        /// 中日韓字元約 1 字 ≒ 1 token；其餘 (英數、標點) 約 4 字元 ≒ 1 token。
+        /// </summary>
+        private static int EstimateTokens(string text)
+        {
+            int cjk = 0, other = 0;
+            foreach (char c in text)
+            {
+                // CJK 統一表意文字、擴充區、日文假名、全形標點
+                if ((c >= 0x4E00 && c <= 0x9FFF) || (c >= 0x3400 && c <= 0x4DBF) ||
+                    (c >= 0x3040 && c <= 0x30FF) || (c >= 0xFF00 && c <= 0xFFEF) ||
+                    (c >= 0x3000 && c <= 0x303F))
+                    cjk++;
+                else
+                    other++;
+            }
+            return cjk + (other / 4);
+        }
+
+        /// <summary>
         /// 產生輸出檔名：原檔名 + "_AI分析.txt"，若已存在則加 "_01"、"_02"...
         /// </summary>
         private static string BuildOutputPath(string articlePath)
@@ -591,6 +667,7 @@ namespace TextSpeedReader
             buttonClearSelection.Enabled = !running;
             buttonInvertSelection.Enabled = !running;
             checkBoxThink.Enabled = !running;
+            checkBoxFreshContext.Enabled = !running;
             buttonCancel.Text = running ? "取消(&C)" : "關閉(&C)";
             if (!running) UpdateStatus("就緒");
         }

@@ -40,6 +40,8 @@ namespace TextSpeedReader
             textBoxUserInstruction = new TextBox();
             labelLog = new Label();
             checkBoxThink = new CheckBox();
+            checkBoxFreshContext = new CheckBox();
+            buttonClearLog = new Button();
             textBoxLog = new TextBox();
             labelFileListTitle = new Label();
             buttonSelectAll = new Button();
@@ -78,6 +80,8 @@ namespace TextSpeedReader
             splitMain.Panel1.Controls.Add(textBoxUserInstruction);
             splitMain.Panel1.Controls.Add(labelLog);
             splitMain.Panel1.Controls.Add(checkBoxThink);
+            splitMain.Panel1.Controls.Add(checkBoxFreshContext);
+            splitMain.Panel1.Controls.Add(buttonClearLog);
             splitMain.Panel1.Controls.Add(textBoxLog);
             splitMain.Panel1MinSize = 480;
             // 
@@ -209,6 +213,28 @@ namespace TextSpeedReader
             checkBoxThink.Text = "深度思考模式 (開啟思考模式會增長分析時間)";
             checkBoxThink.UseVisualStyleBackColor = true;
             // 
+            // checkBoxFreshContext
+            // 
+            checkBoxFreshContext.AutoSize = true;
+            checkBoxFreshContext.Checked = true;
+            checkBoxFreshContext.CheckState = CheckState.Checked;
+            checkBoxFreshContext.Location = new Point(515, 249);
+            checkBoxFreshContext.Name = "checkBoxFreshContext";
+            checkBoxFreshContext.Size = new Size(282, 24);
+            checkBoxFreshContext.TabIndex = 13;
+            checkBoxFreshContext.Text = "每篇獨立分析 (分析前清除模型記憶)";
+            checkBoxFreshContext.UseVisualStyleBackColor = true;
+            // 
+            // buttonClearLog
+            // 
+            buttonClearLog.Location = new Point(813, 244);
+            buttonClearLog.Name = "buttonClearLog";
+            buttonClearLog.Size = new Size(92, 30);
+            buttonClearLog.TabIndex = 14;
+            buttonClearLog.Text = "🗑清除";
+            buttonClearLog.UseVisualStyleBackColor = true;
+            buttonClearLog.Click += buttonClearLog_Click;
+            // 
             // textBoxLog
             // 
             textBoxLog.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -265,7 +291,7 @@ namespace TextSpeedReader
             // labelFileCount
             // 
             labelFileCount.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            labelFileCount.Location = new Point(302, 47);
+            labelFileCount.Location = new Point(301, 47);
             labelFileCount.Name = "labelFileCount";
             labelFileCount.Size = new Size(287, 21);
             labelFileCount.TabIndex = 4;
@@ -281,7 +307,7 @@ namespace TextSpeedReader
             checkedListBoxFiles.IntegralHeight = false;
             checkedListBoxFiles.Location = new Point(11, 80);
             checkedListBoxFiles.Name = "checkedListBoxFiles";
-            checkedListBoxFiles.Size = new Size(579, 526);
+            checkedListBoxFiles.Size = new Size(578, 526);
             checkedListBoxFiles.TabIndex = 5;
             checkedListBoxFiles.ItemCheck += checkedListBoxFiles_ItemCheck;
             // 
@@ -365,6 +391,8 @@ namespace TextSpeedReader
         private TextBox textBoxUserInstruction;
         private Label labelLog;
         private CheckBox checkBoxThink;
+        private CheckBox checkBoxFreshContext;
+        private Button buttonClearLog;
         private TextBox textBoxLog;
         private Label labelFileListTitle;
         private Button buttonSelectAll;

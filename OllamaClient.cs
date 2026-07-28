@@ -210,6 +210,29 @@ namespace TextSpeedReader
         }
 
         /// <summary>
+        /// 卸載指定模型 (POST /api/generate 且 keep_alive=0、prompt 為空)。
+        /// 模型卸載時其 KV cache (含上一次請求殘留的前綴快取) 會一併釋放，
+        /// 因此可用來確保下一篇分析從「完全空白」的狀態重新開始。
+        /// </summary>
+        public static async Task UnloadModelAsync(string model, CancellationToken cancel = default)
+        {
+            var payload = new Dictionary<string, object?>
+            {
+                ["model"] = model,
+                ["prompt"] = "",
+                ["stream"] = false,
+                ["keep_alive"] = 0
+            };
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/generate")
+            {
+                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+            };
+            using var resp = await _http.SendAsync(req, cancel).ConfigureAwait(false);
+            resp.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
         /// /api/generate 完成時回傳的計時統計 (單位：奈秒 ns)。用來精確定位效能瓶頸。
         /// </summary>
         public class GenerateResult
