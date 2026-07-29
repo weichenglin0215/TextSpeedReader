@@ -48,7 +48,10 @@ namespace TextSpeedReader
             buttonClearSelection = new Button();
             buttonInvertSelection = new Button();
             labelFileCount = new Label();
+            splitFileList = new SplitContainer();
             checkedListBoxFiles = new CheckedListBox();
+            textBoxFilePreview = new TextBox();
+            labelFilePreview = new Label();
             panelBottom = new Panel();
             labelStatus = new Label();
             buttonRun = new Button();
@@ -57,6 +60,10 @@ namespace TextSpeedReader
             splitMain.Panel1.SuspendLayout();
             splitMain.Panel2.SuspendLayout();
             splitMain.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitFileList).BeginInit();
+            splitFileList.Panel1.SuspendLayout();
+            splitFileList.Panel2.SuspendLayout();
+            splitFileList.SuspendLayout();
             panelBottom.SuspendLayout();
             SuspendLayout();
             // 
@@ -92,7 +99,7 @@ namespace TextSpeedReader
             splitMain.Panel2.Controls.Add(buttonClearSelection);
             splitMain.Panel2.Controls.Add(buttonInvertSelection);
             splitMain.Panel2.Controls.Add(labelFileCount);
-            splitMain.Panel2.Controls.Add(checkedListBoxFiles);
+            splitMain.Panel2.Controls.Add(splitFileList);
             splitMain.Panel2MinSize = 320;
             splitMain.Size = new Size(1636, 616);
             splitMain.SplitterDistance = 1018;
@@ -291,25 +298,70 @@ namespace TextSpeedReader
             // labelFileCount
             // 
             labelFileCount.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            labelFileCount.Location = new Point(301, 47);
+            labelFileCount.Location = new Point(298, 47);
             labelFileCount.Name = "labelFileCount";
             labelFileCount.Size = new Size(287, 21);
             labelFileCount.TabIndex = 4;
             labelFileCount.Text = "已勾選 0 / 0";
             labelFileCount.TextAlign = ContentAlignment.MiddleRight;
             // 
+            // splitFileList
+            // 
+            splitFileList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            splitFileList.Location = new Point(11, 80);
+            splitFileList.Name = "splitFileList";
+            splitFileList.Orientation = Orientation.Horizontal;
+            // 
+            // splitFileList.Panel1
+            // 
+            splitFileList.Panel1.Controls.Add(checkedListBoxFiles);
+            splitFileList.Panel1MinSize = 100;
+            // 
+            // splitFileList.Panel2
+            // 
+            splitFileList.Panel2.Controls.Add(textBoxFilePreview);
+            splitFileList.Panel2.Controls.Add(labelFilePreview);
+            splitFileList.Panel2MinSize = 80;
+            splitFileList.Size = new Size(575, 526);
+            splitFileList.SplitterDistance = 350;
+            splitFileList.SplitterWidth = 5;
+            splitFileList.TabIndex = 5;
+            // 
             // checkedListBoxFiles
             // 
-            checkedListBoxFiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             checkedListBoxFiles.CheckOnClick = true;
+            checkedListBoxFiles.Dock = DockStyle.Fill;
             checkedListBoxFiles.FormattingEnabled = true;
             checkedListBoxFiles.HorizontalScrollbar = true;
             checkedListBoxFiles.IntegralHeight = false;
-            checkedListBoxFiles.Location = new Point(11, 80);
+            checkedListBoxFiles.Location = new Point(0, 0);
             checkedListBoxFiles.Name = "checkedListBoxFiles";
-            checkedListBoxFiles.Size = new Size(578, 526);
-            checkedListBoxFiles.TabIndex = 5;
+            checkedListBoxFiles.Size = new Size(575, 350);
+            checkedListBoxFiles.TabIndex = 0;
             checkedListBoxFiles.ItemCheck += checkedListBoxFiles_ItemCheck;
+            checkedListBoxFiles.SelectedIndexChanged += checkedListBoxFiles_SelectedIndexChanged;
+            // 
+            // textBoxFilePreview
+            // 
+            textBoxFilePreview.BackColor = Color.White;
+            textBoxFilePreview.Dock = DockStyle.Fill;
+            textBoxFilePreview.Location = new Point(0, 20);
+            textBoxFilePreview.Multiline = true;
+            textBoxFilePreview.Name = "textBoxFilePreview";
+            textBoxFilePreview.ReadOnly = true;
+            textBoxFilePreview.ScrollBars = ScrollBars.Both;
+            textBoxFilePreview.Size = new Size(575, 151);
+            textBoxFilePreview.TabIndex = 1;
+            // 
+            // labelFilePreview
+            // 
+            labelFilePreview.AutoSize = true;
+            labelFilePreview.Dock = DockStyle.Top;
+            labelFilePreview.Location = new Point(0, 0);
+            labelFilePreview.Name = "labelFilePreview";
+            labelFilePreview.Size = new Size(105, 20);
+            labelFilePreview.TabIndex = 0;
+            labelFilePreview.Text = "預覽文章檔案";
             // 
             // panelBottom
             // 
@@ -372,6 +424,11 @@ namespace TextSpeedReader
             splitMain.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitMain).EndInit();
             splitMain.ResumeLayout(false);
+            splitFileList.Panel1.ResumeLayout(false);
+            splitFileList.Panel2.ResumeLayout(false);
+            splitFileList.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitFileList).EndInit();
+            splitFileList.ResumeLayout(false);
             panelBottom.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -399,7 +456,10 @@ namespace TextSpeedReader
         private Button buttonClearSelection;
         private Button buttonInvertSelection;
         private Label labelFileCount;
+        private SplitContainer splitFileList;
         private CheckedListBox checkedListBoxFiles;
+        private Label labelFilePreview;
+        private TextBox textBoxFilePreview;
         private Panel panelBottom;
         private Label labelStatus;
         private Button buttonRun;

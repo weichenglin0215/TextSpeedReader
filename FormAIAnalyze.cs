@@ -87,7 +87,11 @@ namespace TextSpeedReader
             {
                 _logTimer?.Stop();
                 _cts?.Cancel();
+                SaveDialogSettings();
             };
+
+            // 載入上次記憶的參數 (AI大模型/AI參數/文章類型/使用者指令)
+            AIAnalyzeSettings.Load();
 
             // 高度設為螢幕工作區的 90% (寬度沿用設計時的 200% 版面)；調整後重新置中
             Rectangle wa = (Screen.FromControl(this) ?? Screen.PrimaryScreen!).WorkingArea;
@@ -106,13 +110,32 @@ namespace TextSpeedReader
             _suppressItemCheck = false;
             UpdateFileCount();
 
-            // 填入 AI 參數下拉選單
+            // 填入 AI 參數下拉選單，並還原上次選擇的預設
             comboBoxParams.Items.Clear();
             foreach (var p in _paramPresets) comboBoxParams.Items.Add(p);
-            if (comboBoxParams.Items.Count > 0) comboBoxParams.SelectedIndex = 0;
+            if (comboBoxParams.Items.Count > 0)
+            {
+                int savedParamIdx = 0;
+                if (!string.IsNullOrEmpty(AIAnalyzeSettings.LastParamPresetName))
+                {
+                    for (int i = 0; i < comboBoxParams.Items.Count; i++)
+                    {
+                        if (comboBoxParams.Items[i] is ParamPreset pp &&
+                            pp.Name == AIAnalyzeSettings.LastParamPresetName)
+                        {
+                            savedParamIdx = i;
+                            break;
+                        }
+                    }
+                }
+                comboBoxParams.SelectedIndex = savedParamIdx;
+            }
 
-            // 填入文章類型下拉選單 (掃描 Prompt\*.md)
-            LoadPromptTypes(null);
+            // 填入文章類型下拉選單 (掃描 Prompt\*.md)，並還原上次選擇的文章類型
+            LoadPromptTypes(AIAnalyzeSettings.LastPromptType);
+
+            // 還原上次輸入的使用者指令
+            textBoxUserInstruction.Text = AIAnalyzeSettings.LastUserInstruction;
 
             AppendLog($"待分析文章數量：{_articles.Count} 篇");
             AppendLog($"Prompt 目錄：{_promptDir}");
@@ -122,8 +145,20 @@ namespace TextSpeedReader
                 AppendLog("未偵測到系統變數 OLLAMA_HOST，使用預設位址。");
             AppendLog($"Ollama 位址：{OllamaClient.BaseUrl}");
 
-            // 載入 Ollama 已下載的模型
-            await RefreshModelsAsync();
+            // 載入 Ollama 已下載的模型，並嘗試還原上次選擇的模型
+            await RefreshModelsAsync(AIAnalyzeSettings.LastModel);
+        }
+
+        // 記錄目前的選擇到設定檔，供下次開啟彈窗時自動還原
+        private void SaveDialogSettings()
+        {
+            AIAnalyzeSettings.LastModel = comboBoxModel.SelectedItem as string ?? AIAnalyzeSettings.LastModel;
+            if (comboBoxParams.SelectedItem is ParamPreset preset)
+                AIAnalyzeSettings.LastParamPresetName = preset.Name;
+            if (comboBoxPromptType.SelectedItem is string promptType)
+                AIAnalyzeSettings.LastPromptType = promptType;
+            AIAnalyzeSettings.LastUserInstruction = textBoxUserInstruction.Text;
+            AIAnalyzeSettings.Save();
         }
 
         // 依需求提供的參數表建立預設清單
@@ -203,7 +238,8 @@ namespace TextSpeedReader
             await RefreshModelsAsync();
         }
 
-        private async Task RefreshModelsAsync()
+        // preferredModel：僅在目前尚未有任何選擇時 (例如彈窗剛開啟) 嘗試還原成上次記憶的模型
+        private async Task RefreshModelsAsync(string? preferredModel = null)
         {
             buttonRefreshModels.Enabled = false;
             try
@@ -215,7 +251,8 @@ namespace TextSpeedReader
                 if (OllamaClient.FellBackToDefault)
                     AppendLog($">> 系統變數位址無法連線，已改用預設位址：{OllamaClient.BaseUrl}");
 
-                string? previous = comboBoxModel.SelectedItem as string;
+                string? previous = comboBoxModel.SelectedItem as string ??
+                    (string.IsNullOrEmpty(preferredModel) ? null : preferredModel);
                 comboBoxModel.Items.Clear();
                 foreach (string m in models) comboBoxModel.Items.Add(m);
 
@@ -309,6 +346,47 @@ namespace TextSpeedReader
         private void UpdateFileCount()
         {
             labelFileCount.Text = $"已勾選 {checkedListBoxFiles.CheckedItems.Count} / {checkedListBoxFiles.Items.Count}";
+        }
+
+        // 用來避免使用者快速切換選取項目時，較舊的非同步讀檔結果覆蓋較新的預覽內容
+        private int _previewRequestToken;
+
+        // 使用者點選檔案列表中的項目 → 在下方「預覽文章檔案」顯示該檔案內容
+        private async void checkedListBoxFiles_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            int myToken = ++_previewRequestToken;
+
+            if (checkedListBoxFiles.SelectedItem is not FileItem item)
+            {
+                textBoxFilePreview.Text = "";
+                return;
+            }
+
+            textBoxFilePreview.Text = "讀取中...";
+
+            const int PreviewMaxChars = 200_000;  // 避免超大檔案拖慢預覽/UI
+            string content;
+            try
+            {
+                content = await Task.Run(() =>
+                {
+                    Encoding enc = JTextFileLib.DetectEncoding(item.FullPath);
+                    using var reader = new StreamReader(item.FullPath, enc);
+                    var buffer = new char[PreviewMaxChars];
+                    int read = reader.Read(buffer, 0, buffer.Length);
+                    string text = new string(buffer, 0, read);
+                    if (!reader.EndOfStream) text += "\n\n...(檔案過長，僅預覽前段內容)...";
+                    return text;
+                });
+            }
+            catch (Exception ex)
+            {
+                content = $"[無法預覽此檔案：{ex.Message}]";
+            }
+
+            // 若這段等待期間使用者已切換到別的檔案，捨棄這次結果，避免顯示錯誤的預覽內容
+            if (myToken != _previewRequestToken) return;
+            textBoxFilePreview.Text = content;
         }
 
         // 「執行AI分析」
@@ -559,10 +637,15 @@ namespace TextSpeedReader
                 AppendLog("--------------------------------------");
 
                 // 儲存分析結果
+                // Ollama 回傳的換行是單獨的 \n (Unix 風格)，Windows 記事本等傳統編輯器
+                // 只認得 \r\n，若原樣寫入會導致整篇文字擠成一行、看不出段落。
+                // 這裡先統一成 \n 再轉成 \r\n，避免因原始文字已混雜 \r\n 而重複轉換出多餘空行。
+                string normalizedResult = result.Replace("\r\n", "\n").Replace("\n", "\r\n");
+
                 string savePath = BuildOutputPath(articlePath);
                 try
                 {
-                    await Task.Run(() => File.WriteAllText(savePath, result, new UTF8Encoding(false)), cancel);
+                    await Task.Run(() => File.WriteAllText(savePath, normalizedResult, new UTF8Encoding(false)), cancel);
                     AppendLog($">>  [{Now()}] 儲存「{Path.GetFileName(savePath)}」");
                 }
                 catch (Exception ex)
@@ -704,7 +787,63 @@ namespace TextSpeedReader
             // TextBox (Multiline) 只認得 CRLF，AI 回傳多為單獨的 LF，
             // 需正規化成 \r\n 才會換行顯示 (否則整段擠成一行)。
             pending = pending.Replace("\r\n", "\n").Replace("\n", "\r\n");
+
+            // 若使用者目前正往上捲動查看先前內容，新增文字後不應打斷閱讀、強制跳到最後一行；
+            // 只有原本就停留在最底端 (跟隨最新輸出) 時，才在新增後自動捲到底。
+            bool wasAtBottom = IsScrolledToBottom(textBoxLog);
+            int firstVisibleBefore = GetFirstVisibleLine(textBoxLog);
+            int selStart = textBoxLog.SelectionStart;
+            int selLength = textBoxLog.SelectionLength;
+
             textBoxLog.AppendText(pending);
+
+            if (wasAtBottom)
+            {
+                textBoxLog.SelectionStart = textBoxLog.TextLength;
+                textBoxLog.SelectionLength = 0;
+                textBoxLog.ScrollToCaret();
+            }
+            else
+            {
+                // 還原插入點，並把畫面捲回原本的位置 (AppendText 會把捲動位置帶到文字結尾)
+                textBoxLog.SelectionStart = Math.Min(selStart, textBoxLog.TextLength);
+                textBoxLog.SelectionLength = selLength;
+                int firstVisibleAfter = GetFirstVisibleLine(textBoxLog);
+                int delta = firstVisibleAfter - firstVisibleBefore;
+                if (delta != 0) ScrollLines(textBoxLog, -delta);
+            }
+        }
+
+        // ─── LOG 捲動位置偵測輔助 (Win32 EM_* 訊息) ───────────────────
+
+        private const int EM_GETFIRSTVISIBLELINE = 0x0CE;
+        private const int EM_LINESCROLL = 0x00B6;
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        private static int GetFirstVisibleLine(TextBox tb)
+            => (int)SendMessage(tb.Handle, EM_GETFIRSTVISIBLELINE, IntPtr.Zero, IntPtr.Zero);
+
+        private static void ScrollLines(TextBox tb, int lineDelta)
+            => SendMessage(tb.Handle, EM_LINESCROLL, IntPtr.Zero, (IntPtr)lineDelta);
+
+        // 估算目前可見的行數 (WordWrap=false，顯示行與文字行一一對應)
+        private static int GetVisibleLineCount(TextBox tb)
+        {
+            int lineHeight = TextRenderer.MeasureText("Wg", tb.Font).Height;
+            if (lineHeight <= 0) lineHeight = Math.Max(1, tb.Font.Height);
+            return Math.Max(1, tb.ClientSize.Height / lineHeight);
+        }
+
+        // 判斷目前畫面是否已捲到 (或接近) 最底端一行
+        private static bool IsScrolledToBottom(TextBox tb)
+        {
+            if (!tb.IsHandleCreated) return true;
+            int totalLines = tb.Lines.Length;
+            int firstVisible = GetFirstVisibleLine(tb);
+            int visibleCount = GetVisibleLineCount(tb);
+            return firstVisible + visibleCount >= totalLines;
         }
 
         private void UpdateStatus(string text)
