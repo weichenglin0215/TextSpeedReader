@@ -298,7 +298,7 @@ namespace TextSpeedReader
             // labelFileCount
             // 
             labelFileCount.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            labelFileCount.Location = new Point(298, 47);
+            labelFileCount.Location = new Point(296, 47);
             labelFileCount.Name = "labelFileCount";
             labelFileCount.Size = new Size(287, 21);
             labelFileCount.TabIndex = 4;
@@ -322,7 +322,7 @@ namespace TextSpeedReader
             splitFileList.Panel2.Controls.Add(textBoxFilePreview);
             splitFileList.Panel2.Controls.Add(labelFilePreview);
             splitFileList.Panel2MinSize = 80;
-            splitFileList.Size = new Size(575, 526);
+            splitFileList.Size = new Size(573, 526);
             splitFileList.SplitterDistance = 350;
             splitFileList.SplitterWidth = 5;
             splitFileList.TabIndex = 5;
@@ -336,7 +336,7 @@ namespace TextSpeedReader
             checkedListBoxFiles.IntegralHeight = false;
             checkedListBoxFiles.Location = new Point(0, 0);
             checkedListBoxFiles.Name = "checkedListBoxFiles";
-            checkedListBoxFiles.Size = new Size(575, 350);
+            checkedListBoxFiles.Size = new Size(573, 350);
             checkedListBoxFiles.TabIndex = 0;
             checkedListBoxFiles.ItemCheck += checkedListBoxFiles_ItemCheck;
             checkedListBoxFiles.SelectedIndexChanged += checkedListBoxFiles_SelectedIndexChanged;
@@ -350,7 +350,7 @@ namespace TextSpeedReader
             textBoxFilePreview.Name = "textBoxFilePreview";
             textBoxFilePreview.ReadOnly = true;
             textBoxFilePreview.ScrollBars = ScrollBars.Both;
-            textBoxFilePreview.Size = new Size(575, 151);
+            textBoxFilePreview.Size = new Size(573, 151);
             textBoxFilePreview.TabIndex = 1;
             // 
             // labelFilePreview
