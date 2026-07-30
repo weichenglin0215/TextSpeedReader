@@ -33,10 +33,10 @@ namespace TextSpeedReader
             textBoxEditor = new TextBox();
             labelEditor = new Label();
             panelBottom = new Panel();
-            labelFileName = new Label();
             buttonSave = new Button();
             buttonSaveAs = new Button();
             buttonCancel = new Button();
+            labelFileName = new Label();
             ((System.ComponentModel.ISupportInitialize)splitContainerMd).BeginInit();
             splitContainerMd.Panel1.SuspendLayout();
             splitContainerMd.Panel2.SuspendLayout();
@@ -61,8 +61,8 @@ namespace TextSpeedReader
             splitContainerMd.Panel2.Controls.Add(textBoxEditor);
             splitContainerMd.Panel2.Controls.Add(labelEditor);
             splitContainerMd.Panel2.Padding = new Padding(7);
-            splitContainerMd.Size = new Size(1091, 608);
-            splitContainerMd.SplitterDistance = 545;
+            splitContainerMd.Size = new Size(1384, 605);
+            splitContainerMd.SplitterDistance = 691;
             splitContainerMd.SplitterWidth = 5;
             splitContainerMd.TabIndex = 0;
             // 
@@ -75,9 +75,9 @@ namespace TextSpeedReader
             richTextBoxPreview.Location = new Point(7, 31);
             richTextBoxPreview.Name = "richTextBoxPreview";
             richTextBoxPreview.ReadOnly = true;
-            richTextBoxPreview.TabStop = false;
-            richTextBoxPreview.Size = new Size(531, 570);
+            richTextBoxPreview.Size = new Size(677, 567);
             richTextBoxPreview.TabIndex = 1;
+            richTextBoxPreview.TabStop = false;
             richTextBoxPreview.Text = "";
             // 
             // labelPreview
@@ -86,7 +86,7 @@ namespace TextSpeedReader
             labelPreview.Font = new Font("Microsoft JhengHei UI", 11F, FontStyle.Bold);
             labelPreview.Location = new Point(7, 7);
             labelPreview.Name = "labelPreview";
-            labelPreview.Size = new Size(531, 24);
+            labelPreview.Size = new Size(677, 24);
             labelPreview.TabIndex = 0;
             labelPreview.Text = "Markdown 預覽";
             // 
@@ -103,7 +103,7 @@ namespace TextSpeedReader
             textBoxEditor.Multiline = true;
             textBoxEditor.Name = "textBoxEditor";
             textBoxEditor.ScrollBars = ScrollBars.Both;
-            textBoxEditor.Size = new Size(527, 570);
+            textBoxEditor.Size = new Size(674, 567);
             textBoxEditor.TabIndex = 1;
             textBoxEditor.TextChanged += textBoxEditor_TextChanged;
             // 
@@ -113,37 +113,26 @@ namespace TextSpeedReader
             labelEditor.Font = new Font("Microsoft JhengHei UI", 11F, FontStyle.Bold);
             labelEditor.Location = new Point(7, 7);
             labelEditor.Name = "labelEditor";
-            labelEditor.Size = new Size(527, 24);
+            labelEditor.Size = new Size(674, 24);
             labelEditor.TabIndex = 0;
             labelEditor.Text = "Markdown 編輯";
             // 
             // panelBottom
             // 
-            panelBottom.Controls.Add(labelFileName);
             panelBottom.Controls.Add(buttonSave);
             panelBottom.Controls.Add(buttonSaveAs);
             panelBottom.Controls.Add(buttonCancel);
+            panelBottom.Controls.Add(labelFileName);
             panelBottom.Dock = DockStyle.Bottom;
-            panelBottom.Location = new Point(0, 608);
+            panelBottom.Location = new Point(0, 605);
             panelBottom.Name = "panelBottom";
-            panelBottom.Size = new Size(1091, 56);
+            panelBottom.Size = new Size(1384, 56);
             panelBottom.TabIndex = 1;
-            // 
-            // labelFileName
-            // 
-            labelFileName.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            labelFileName.AutoEllipsis = true;
-            labelFileName.Font = new Font("Microsoft JhengHei UI", 10F);
-            labelFileName.Location = new Point(11, 17);
-            labelFileName.Name = "labelFileName";
-            labelFileName.Size = new Size(738, 24);
-            labelFileName.TabIndex = 3;
-            labelFileName.Text = "檔案：";
             // 
             // buttonSave
             // 
             buttonSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            buttonSave.Location = new Point(975, 10);
+            buttonSave.Location = new Point(1268, 10);
             buttonSave.Name = "buttonSave";
             buttonSave.Size = new Size(104, 35);
             buttonSave.TabIndex = 2;
@@ -154,7 +143,7 @@ namespace TextSpeedReader
             // buttonSaveAs
             // 
             buttonSaveAs.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            buttonSaveAs.Location = new Point(865, 10);
+            buttonSaveAs.Location = new Point(1158, 10);
             buttonSaveAs.Name = "buttonSaveAs";
             buttonSaveAs.Size = new Size(104, 35);
             buttonSaveAs.TabIndex = 1;
@@ -165,7 +154,7 @@ namespace TextSpeedReader
             // buttonCancel
             // 
             buttonCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            buttonCancel.Location = new Point(755, 10);
+            buttonCancel.Location = new Point(1048, 10);
             buttonCancel.Name = "buttonCancel";
             buttonCancel.Size = new Size(104, 35);
             buttonCancel.TabIndex = 0;
@@ -173,12 +162,23 @@ namespace TextSpeedReader
             buttonCancel.UseVisualStyleBackColor = true;
             buttonCancel.Click += buttonCancel_Click;
             // 
+            // labelFileName
+            // 
+            labelFileName.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelFileName.AutoEllipsis = true;
+            labelFileName.Font = new Font("Microsoft JhengHei UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            labelFileName.Location = new Point(11, 17);
+            labelFileName.Name = "labelFileName";
+            labelFileName.Size = new Size(1361, 24);
+            labelFileName.TabIndex = 3;
+            labelFileName.Text = "檔案：";
+            // 
             // FormMarkdownEditor
             // 
             AutoScaleDimensions = new SizeF(10F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = buttonCancel;
-            ClientSize = new Size(1091, 664);
+            ClientSize = new Size(1384, 661);
             Controls.Add(splitContainerMd);
             Controls.Add(panelBottom);
             Name = "FormMarkdownEditor";

@@ -111,17 +111,17 @@ namespace TextSpeedReader
             labelModel.AutoSize = true;
             labelModel.Location = new Point(11, 16);
             labelModel.Name = "labelModel";
-            labelModel.Size = new Size(77, 20);
+            labelModel.Size = new Size(93, 20);
             labelModel.TabIndex = 0;
-            labelModel.Text = "AI 大模型";
+            labelModel.Text = "AI 大模型：";
             // 
             // comboBoxModel
             // 
             comboBoxModel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             comboBoxModel.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBoxModel.Location = new Point(100, 13);
+            comboBoxModel.Location = new Point(125, 13);
             comboBoxModel.Name = "comboBoxModel";
-            comboBoxModel.Size = new Size(789, 28);
+            comboBoxModel.Size = new Size(764, 28);
             comboBoxModel.TabIndex = 1;
             // 
             // buttonRefreshModels
@@ -140,17 +140,17 @@ namespace TextSpeedReader
             labelParams.AutoSize = true;
             labelParams.Location = new Point(11, 53);
             labelParams.Name = "labelParams";
-            labelParams.Size = new Size(61, 20);
+            labelParams.Size = new Size(77, 20);
             labelParams.TabIndex = 3;
-            labelParams.Text = "AI 參數";
+            labelParams.Text = "AI 參數：";
             // 
             // comboBoxParams
             // 
             comboBoxParams.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             comboBoxParams.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBoxParams.Location = new Point(100, 50);
+            comboBoxParams.Location = new Point(125, 50);
             comboBoxParams.Name = "comboBoxParams";
-            comboBoxParams.Size = new Size(908, 28);
+            comboBoxParams.Size = new Size(883, 28);
             comboBoxParams.TabIndex = 4;
             // 
             // labelPromptType
@@ -158,17 +158,17 @@ namespace TextSpeedReader
             labelPromptType.AutoSize = true;
             labelPromptType.Location = new Point(11, 90);
             labelPromptType.Name = "labelPromptType";
-            labelPromptType.Size = new Size(73, 20);
+            labelPromptType.Size = new Size(105, 20);
             labelPromptType.TabIndex = 5;
-            labelPromptType.Text = "文章類型";
+            labelPromptType.Text = "提示詞範本：";
             // 
             // comboBoxPromptType
             // 
             comboBoxPromptType.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             comboBoxPromptType.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBoxPromptType.Location = new Point(100, 88);
+            comboBoxPromptType.Location = new Point(125, 88);
             comboBoxPromptType.Name = "comboBoxPromptType";
-            comboBoxPromptType.Size = new Size(789, 28);
+            comboBoxPromptType.Size = new Size(764, 28);
             comboBoxPromptType.TabIndex = 6;
             // 
             // buttonEditPrompt
@@ -187,9 +187,9 @@ namespace TextSpeedReader
             labelUserInstruction.AutoSize = true;
             labelUserInstruction.Location = new Point(11, 126);
             labelUserInstruction.Name = "labelUserInstruction";
-            labelUserInstruction.Size = new Size(89, 20);
+            labelUserInstruction.Size = new Size(391, 20);
             labelUserInstruction.TabIndex = 8;
-            labelUserInstruction.Text = "使用者指令";
+            labelUserInstruction.Text = "使用者指令 (可額外提供提示詞，與上述範本合併使用)";
             // 
             // textBoxUserInstruction
             // 
@@ -298,7 +298,7 @@ namespace TextSpeedReader
             // labelFileCount
             // 
             labelFileCount.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            labelFileCount.Location = new Point(296, 47);
+            labelFileCount.Location = new Point(293, 47);
             labelFileCount.Name = "labelFileCount";
             labelFileCount.Size = new Size(287, 21);
             labelFileCount.TabIndex = 4;
@@ -322,7 +322,7 @@ namespace TextSpeedReader
             splitFileList.Panel2.Controls.Add(textBoxFilePreview);
             splitFileList.Panel2.Controls.Add(labelFilePreview);
             splitFileList.Panel2MinSize = 80;
-            splitFileList.Size = new Size(573, 526);
+            splitFileList.Size = new Size(570, 526);
             splitFileList.SplitterDistance = 350;
             splitFileList.SplitterWidth = 5;
             splitFileList.TabIndex = 5;
@@ -336,7 +336,7 @@ namespace TextSpeedReader
             checkedListBoxFiles.IntegralHeight = false;
             checkedListBoxFiles.Location = new Point(0, 0);
             checkedListBoxFiles.Name = "checkedListBoxFiles";
-            checkedListBoxFiles.Size = new Size(573, 350);
+            checkedListBoxFiles.Size = new Size(570, 350);
             checkedListBoxFiles.TabIndex = 0;
             checkedListBoxFiles.ItemCheck += checkedListBoxFiles_ItemCheck;
             checkedListBoxFiles.SelectedIndexChanged += checkedListBoxFiles_SelectedIndexChanged;
@@ -350,7 +350,7 @@ namespace TextSpeedReader
             textBoxFilePreview.Name = "textBoxFilePreview";
             textBoxFilePreview.ReadOnly = true;
             textBoxFilePreview.ScrollBars = ScrollBars.Both;
-            textBoxFilePreview.Size = new Size(573, 151);
+            textBoxFilePreview.Size = new Size(570, 151);
             textBoxFilePreview.TabIndex = 1;
             // 
             // labelFilePreview
@@ -359,9 +359,9 @@ namespace TextSpeedReader
             labelFilePreview.Dock = DockStyle.Top;
             labelFilePreview.Location = new Point(0, 0);
             labelFilePreview.Name = "labelFilePreview";
-            labelFilePreview.Size = new Size(105, 20);
+            labelFilePreview.Size = new Size(153, 20);
             labelFilePreview.TabIndex = 0;
-            labelFilePreview.Text = "預覽文章檔案";
+            labelFilePreview.Text = "預覽檔案列表的內容";
             // 
             // panelBottom
             // 

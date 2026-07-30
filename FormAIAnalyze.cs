@@ -280,6 +280,9 @@ namespace TextSpeedReader
             }
         }
 
+        // 「Markdown 檔案編輯」視窗 (單例，非模態，不阻擋「AI分析文章選項」或主介面操作)
+        private FormMarkdownEditor? m_MarkdownEditorDialog;
+
         // 「編輯」文章類型 .md
         private void buttonEditPrompt_Click(object? sender, EventArgs e)
         {
@@ -290,14 +293,31 @@ namespace TextSpeedReader
                 return;
             }
 
-            string path = Path.Combine(_promptDir, name + ".md");
-            using var editor = new FormMarkdownEditor(path, _promptDir);
-            if (editor.ShowDialog(this) == DialogResult.OK && editor.SavedFilePath != null)
+            // 若編輯視窗已開啟則帶到前景，不重開新的一個
+            if (m_MarkdownEditorDialog != null && !m_MarkdownEditorDialog.IsDisposed)
             {
-                string savedName = Path.GetFileNameWithoutExtension(editor.SavedFilePath);
-                LoadPromptTypes(savedName);
-                AppendLog($">> 已儲存提示詞：{editor.SavedFilePath}");
+                if (m_MarkdownEditorDialog.WindowState == FormWindowState.Minimized)
+                    m_MarkdownEditorDialog.WindowState = FormWindowState.Normal;
+                m_MarkdownEditorDialog.Activate();
+                return;
             }
+
+            string path = Path.Combine(_promptDir, name + ".md");
+            var editor = new FormMarkdownEditor(path, _promptDir);
+            editor.FormClosed += (s, ev) =>
+            {
+                if (editor.DialogResult == DialogResult.OK && editor.SavedFilePath != null)
+                {
+                    string savedName = Path.GetFileNameWithoutExtension(editor.SavedFilePath);
+                    LoadPromptTypes(savedName);
+                    AppendLog($">> 已儲存提示詞：{editor.SavedFilePath}");
+                }
+                editor.Dispose();
+            };
+            m_MarkdownEditorDialog = editor;
+
+            // 非模態顯示：不阻擋「AI分析文章選項」視窗或主介面的操作
+            editor.Show(this);
         }
 
         // 「🗑清除」：清空 LOG 文字框

@@ -110,6 +110,8 @@ TextSpeedReader 是一款基於 .NET Windows Forms 開發的多功能文字閱�
 | AI 分析 | 本機 Ollama REST API（`HttpClient` + `System.Text.Json`，NDJSON 流式解析） |
 
 ## 更新紀錄
+### V3.3.3.0 - 2026-07-30
+- 優化"markdown 檔案編輯"視窗 成為獨立的，避免一開啟就造成其他視窗無法工作。新增多個 AI提示詞範本。
 ### V3.3.1.0 - 2026-07-29
 - 更新主介面版本編號
 ### V3.3.0.0 - 2026-07-29

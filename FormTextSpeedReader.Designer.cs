@@ -857,8 +857,8 @@ namespace TextSpeedReader
             toolStripButton_AIAnalyze.Image = (Image)resources.GetObject("toolStripButton_AIAnalyze.Image");
             toolStripButton_AIAnalyze.ImageTransparentColor = Color.Magenta;
             toolStripButton_AIAnalyze.Name = "toolStripButton_AIAnalyze";
-            toolStripButton_AIAnalyze.Size = new Size(93, 24);
-            toolStripButton_AIAnalyze.Text = "AI分析文章";
+            toolStripButton_AIAnalyze.Size = new Size(113, 24);
+            toolStripButton_AIAnalyze.Text = "✨ AI分析文章";
             toolStripButton_AIAnalyze.Click += toolStripButton_AIAnalyze_Click;
             // 
             // toolStripButton_Option
@@ -867,8 +867,8 @@ namespace TextSpeedReader
             toolStripButton_Option.Image = (Image)resources.GetObject("toolStripButton_Option.Image");
             toolStripButton_Option.ImageTransparentColor = Color.Magenta;
             toolStripButton_Option.Name = "toolStripButton_Option";
-            toolStripButton_Option.Size = new Size(45, 24);
-            toolStripButton_Option.Text = "選項";
+            toolStripButton_Option.Size = new Size(97, 24);
+            toolStripButton_Option.Text = "　⚙ 選項　";
             toolStripButton_Option.ToolTipText = "選項";
             toolStripButton_Option.Click += toolStripButton_Option_Click;
             // 
@@ -1033,7 +1033,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 3.3.0.0  (AI分析文章)";
+            Text = "TextSpeedReader Ver. 3.3.2.0  (AI分析文章)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
