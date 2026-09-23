@@ -95,6 +95,11 @@ namespace TextSpeedReader
         // 標記當前檔案是否被修改過（文件載入後是否有編輯）
         private bool m_IsCurrentFileModified = false;
 
+        // 目前開啟檔案的「編碼」與「換行符號格式」。
+        // 載入檔案時偵測並記錄，存檔時據此還原原檔格式
+        //（RichTextBox.Text 只會回傳 \n，不記錄下來就會把 CRLF 檔案存成 LF）。
+        private TextFileFormat? m_CurrentFileFormat = null;
+
         // 拖曳 listViewFile → treeViewFolder 時，記錄正在高亮的目標節點
         private TreeNode? m_DragOverNode = null;
         // 標記是否正在載入檔案（用於避免載入時觸發 TextChanged 事件設置修改標誌）
@@ -955,7 +960,12 @@ namespace TextSpeedReader
                                 break;
 
                             case FormSaveConfirm.SaveOption.Save:
-                                SaveCurrentFile(false);
+                                // 存檔格式確認視窗被取消時，也取消關閉程式，避免編輯內容遺失
+                                if (!SaveCurrentFile(false))
+                                {
+                                    e.Cancel = true;
+                                    return;
+                                }
                                 break;
                         }
                     }
@@ -1972,6 +1982,42 @@ namespace TextSpeedReader
 
             // 更新總字數、選取字數和目前行數到 toolStripStatusLabelFixed
             toolStripStatusLabelFixed.Text = $"總字數: {totalChars:N0} | 選取字數: {selectedChars:N0} | 目前行數: {currentLine:N0}";
+
+            // 更新狀態列最右邊的「換行符號格式」與「檔案編碼」
+            UpdateFormatStatusLabels();
+        }
+
+        /// <summary>
+        /// 更新狀態列最右側的「換行符號格式」與「檔案編碼」兩個欄位。
+        /// 不是標準的 UTF-8 + Windows CRLF 時以紅字標示，提醒使用者。
+        /// </summary>
+        private void UpdateFormatStatusLabels()
+        {
+            TextFileFormat? fmt = m_CurrentFileFormat;
+
+            if (fmt == null)
+            {
+                toolStripStatusLabelLineEnding.Text = "換行: －";
+                toolStripStatusLabelEncoding.Text = "編碼: －";
+                toolStripStatusLabelLineEnding.ForeColor = SystemColors.ControlText;
+                toolStripStatusLabelEncoding.ForeColor = SystemColors.ControlText;
+                return;
+            }
+
+            toolStripStatusLabelLineEnding.Text = "換行: " + fmt.LineEndingDisplayName;
+            toolStripStatusLabelEncoding.Text = "編碼: " + fmt.EncodingDisplayName;
+
+            toolStripStatusLabelLineEnding.ForeColor = fmt.IsWindowsCrLf ? SystemColors.ControlText : Color.Firebrick;
+            toolStripStatusLabelEncoding.ForeColor = fmt.IsUtf8Compatible ? SystemColors.ControlText : Color.Firebrick;
+        }
+
+        /// <summary>
+        /// 右鍵選單「變更成 UTF-8 + WINDOWS CRLF 格式」：
+        /// 把目前開啟的檔案轉存成 UTF-8 (不含 BOM) 編碼 + Windows CRLF 換行。
+        /// </summary>
+        private void toolStripMenuItem_ConvertToUtf8Crlf_Click(object sender, EventArgs e)
+        {
+            ConvertCurrentFileToUtf8CrLf();
         }
 
         // 更新菜單項的啟用/禁用狀態
@@ -1986,6 +2032,7 @@ namespace TextSpeedReader
             toolStripMenuItem_ConvertToSimplified.Enabled = hasTxtFileOpen;
             toolStripMenuItem_SaveTxtFile.Enabled = hasTxtFileOpen;
             toolStripMenuItem_SaveTxtAsNewFile.Enabled = hasTxtFileOpen;
+            toolStripMenuItem_ConvertToUtf8Crlf.Enabled = hasTxtFileOpen;
 
             // 檢查是否開啟HTML檔案（webBrowser1 可見）
             bool hasHtmlFileOpen = webBrowser1.Visible;
@@ -2229,8 +2276,14 @@ namespace TextSpeedReader
                 {
                     try
                     {
-                        // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
-                        File.WriteAllText(saveFileDialog.FileName, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                        // 另存新檔一律建立標準格式：UTF-8 (不含 BOM) + Windows CRLF
+                        SaveFormatResult prepared = TextFileFormat.PrepareContentForSave(
+                            this, Path.GetFileName(saveFileDialog.FileName),
+                            content, TextFileFormat.CreateUtf8CrLf());
+                        if (!prepared.Proceed)
+                            return;
+
+                        File.WriteAllText(saveFileDialog.FileName, prepared.Content, prepared.Encoding);
 
                         MessageBox.Show($"已成功儲存至：\n{saveFileDialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
 

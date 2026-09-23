@@ -237,13 +237,14 @@ namespace TextSpeedReader
                 MessageBox.Show($"刪除失敗：\n{ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void SaveCurrentFile()
+        private bool SaveCurrentFile()
         {
-            SaveCurrentFile(true);
+            return SaveCurrentFile(true);
         }
 
         // 儲存目前檔案（可選擇是否顯示訊息）
-        private void SaveCurrentFile(bool showMessage)
+        // 回傳值：true = 已寫入檔案；false = 寫入失敗或使用者在格式確認視窗按了取消
+        private bool SaveCurrentFile(bool showMessage)
         {
             if (m_RecentReadListIndex >= 0)
             {
@@ -262,11 +263,21 @@ namespace TextSpeedReader
                     currentSelectedFileName = Path.GetFileName(filePath);
                 }
                 
-                bool result = JTextFileLib.Instance().SaveTxtFile(filePath, content, false);
+                // 存檔前先檢查格式：不是「UTF-8 + Windows CRLF」時詢問使用者要不要轉換。
+                // 同時把 RichTextBox 取回的純 \n 還原成原檔的換行符號，避免 CRLF 被改成 LF。
+                SaveFormatResult prepared = TextFileFormat.PrepareContentForSave(
+                    this, Path.GetFileName(filePath), content, m_CurrentFileFormat);
+                if (!prepared.Proceed)
+                    return false; // 使用者取消存檔
+
+                bool result = JTextFileLib.Instance().SaveTxtFile(
+                    filePath, prepared.Content, false, prepared.Encoding);
                 if (result)
                 {
-                    // 儲存成功，重置修改標誌
+                    // 儲存成功，重置修改標誌並更新記錄的檔案格式
                     m_IsCurrentFileModified = false;
+                    m_CurrentFileFormat = prepared.Format;
+                    UpdateFormatStatusLabels();
 
                     // 重新載入目前資料夾檔案列表，並保持當前選中位置
                     if (treeViewFolder.SelectedNode != null)
@@ -277,6 +288,7 @@ namespace TextSpeedReader
                     {
                         MessageBox.Show("儲存成功！", "提示");
                     }
+                    return true;
                 }
                 else
                 {
@@ -284,8 +296,74 @@ namespace TextSpeedReader
                     {
                         MessageBox.Show("儲存失敗！", "錯誤");
                     }
+                    return false;
                 }
             }
+            return false;
+        }
+
+        /// <summary>
+        /// 把目前開啟的文字檔轉存成「UTF-8 (不含 BOM) + Windows CRLF」格式。
+        /// 供右鍵選單「變更成 UTF-8 + WINDOWS CRLF 格式」使用。
+        /// </summary>
+        private void ConvertCurrentFileToUtf8CrLf()
+        {
+            if (!richTextBoxText.Visible || m_RecentReadListIndex < 0 || m_RecentReadListIndex >= m_RecentReadList.Count)
+            {
+                MessageBox.Show("目前沒有開啟文字檔案。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string filePath = m_RecentReadList[m_RecentReadListIndex].FileFullName;
+            string fileName = Path.GetFileName(filePath);
+            TextFileFormat current = m_CurrentFileFormat ?? TextFileFormat.CreateUtf8CrLf();
+
+            // 已經是「UTF-8 無 BOM + CRLF」而且沒有未存檔的修改，就不用重寫檔案。
+            // 注意：帶 BOM 的 UTF-8 檔會走到下面，由這個功能把 BOM 拿掉——
+            // 平常按 Ctrl+S 存檔則會沿用原檔的 BOM 狀態，不會自作主張。
+            if (current.IsStandard && !current.HasBom && !m_IsCurrentFileModified)
+            {
+                MessageBox.Show($"檔案「{fileName}」已經是 UTF-8 (不含 BOM) + Windows CRLF 格式，不需要轉換。",
+                    "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string confirm =
+                $"要將檔案「{fileName}」轉存成下列格式嗎？\r\n\r\n" +
+                $"　　編碼：{current.EncodingDisplayName}　→　UTF-8 (不含 BOM)\r\n" +
+                $"　　換行：{current.LineEndingDisplayName}　→　Windows (CRLF)\r\n\r\n" +
+                "（會直接覆寫原檔案。）";
+            if (MessageBox.Show(this, confirm, "變更檔案格式",
+                    MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK)
+                return;
+
+            // 記錄當前選中的檔案名稱，轉換後要保持選取位置
+            string? currentSelectedFileName = listViewFile.SelectedItems.Count > 0
+                ? listViewFile.SelectedItems[0].Text
+                : fileName;
+
+            TextFileFormat target = TextFileFormat.CreateUtf8CrLf();
+            string content = TextFileFormat.ToCrLf(richTextBoxText.Text);
+
+            if (!JTextFileLib.Instance().SaveTxtFile(filePath, content, false, target.GetWriteEncoding()))
+            {
+                MessageBox.Show("轉換失敗，檔案無法寫入。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            m_IsCurrentFileModified = false;
+            m_CurrentFileFormat = new TextFileFormat(target.Encoding, target.HasBom,
+                TextFileFormat.DetectLineEnding(content));
+            UpdateFormatStatusLabels();
+
+            // 重新載入目前資料夾檔案列表，並保持當前選中位置（更新檔案大小等資訊）
+            if (treeViewFolder.SelectedNode != null)
+            {
+                treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(treeViewFolder.SelectedNode), currentSelectedFileName);
+            }
+
+            MessageBox.Show($"檔案「{fileName}」已轉存為 UTF-8 + Windows CRLF 格式。",
+                "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         // 另存新檔
@@ -316,10 +394,19 @@ namespace TextSpeedReader
                     {
                         try
                         {
-                            // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
-                            File.WriteAllText(saveFileDialog.FileName, richTextBoxText.Text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                            // 另存新檔一律建立標準格式：UTF-8 (不含 BOM) + Windows CRLF。
+                            // 走共用檢查以符合「任何存檔前都先判斷格式」的規則
+                            //（目標已是標準格式，所以不會跳出提醒視窗）。
+                            SaveFormatResult prepared = TextFileFormat.PrepareContentForSave(
+                                this, Path.GetFileName(saveFileDialog.FileName),
+                                richTextBoxText.Text, TextFileFormat.CreateUtf8CrLf());
+                            if (!prepared.Proceed)
+                                return;
+
+                            File.WriteAllText(saveFileDialog.FileName, prepared.Content, prepared.Encoding);
 
                             // 另存新檔成功，重置修改標誌
+                            //（目前開啟的仍是原檔案，狀態列顯示的格式不變）
                             m_IsCurrentFileModified = false;
 
                             MessageBox.Show($"已成功儲存至：\n{saveFileDialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -413,8 +500,14 @@ namespace TextSpeedReader
                 {
                     try
                     {
-                        // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
-                        File.WriteAllText(saveFileDialog.FileName, selectedText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                        // 新檔案一律建立標準格式：UTF-8 (不含 BOM) + Windows CRLF
+                        SaveFormatResult prepared = TextFileFormat.PrepareContentForSave(
+                            this, Path.GetFileName(saveFileDialog.FileName),
+                            selectedText, TextFileFormat.CreateUtf8CrLf());
+                        if (!prepared.Proceed)
+                            return;
+
+                        File.WriteAllText(saveFileDialog.FileName, prepared.Content, prepared.Encoding);
 
                         MessageBox.Show($"已成功儲存至：\n{saveFileDialog.FileName}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -519,7 +612,7 @@ namespace TextSpeedReader
                     try
                     {
                         // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
-                        File.WriteAllText(newFilePath, fileContent.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                        File.WriteAllText(newFilePath, TextFileFormat.ToCrLf(fileContent.ToString()), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                         successCount++;
                     }
                     catch (Exception ex)
@@ -617,7 +710,7 @@ namespace TextSpeedReader
                     try
                     {
                         // 儲存檔案，使用 UTF-8 編碼以避免中文亂碼
-                        File.WriteAllText(newFilePath, fileContent.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                        File.WriteAllText(newFilePath, TextFileFormat.ToCrLf(fileContent.ToString()), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                         successCount++;
                     }
                     catch (Exception ex)
@@ -721,11 +814,11 @@ namespace TextSpeedReader
                     }
                 }
 
-                // 儲存簡體中文檔案，強制使用 UTF-8 以避免簡體中文字元被轉成問號
+                // 儲存簡體中文檔案，強制使用 UTF-8 (不含 BOM) 以避免簡體中文字元被轉成問號
                 bool saveResult;
                 try
                 {
-                    File.WriteAllText(newFilePath, simplifiedText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                    File.WriteAllText(newFilePath, TextFileFormat.ToCrLf(simplifiedText), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                     saveResult = true;
                 }
                 catch
@@ -822,8 +915,8 @@ namespace TextSpeedReader
                     //後面添加的簡體1只是為了在ComfyUI的LoadPromptsFromDir避開錯誤。將來可能需要修改。
                     string newPath = Path.Combine(dir ?? "", nameNoExt + "_簡體1.txt");
 
-                    // 寫入 UTF-8 (BOM) 以避免 ? 字元
-                    File.WriteAllText(newPath, simplifiedText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                    // 寫入 UTF-8 (不含 BOM) 以避免 ? 字元
+                    File.WriteAllText(newPath, TextFileFormat.ToCrLf(simplifiedText), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                     successCount++;
                 }
                 catch (Exception)
@@ -900,7 +993,7 @@ namespace TextSpeedReader
 
                     // 儲存繁體中文檔案，強制使用 UTF-8 (BOM) 以避免繁體中文字元被轉成問號
                     // 使用與簡體轉換相同的編碼方式
-                    File.WriteAllText(newPath, traditionalText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                    File.WriteAllText(newPath, TextFileFormat.ToCrLf(traditionalText), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                     successCount++;
                 }
                 catch (Exception)
@@ -1054,7 +1147,13 @@ namespace TextSpeedReader
 
             try
             {
-                File.WriteAllText(targetPath, selectedText, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                // 存檔前先判斷格式（目標為標準的 UTF-8 (不含 BOM) + Windows CRLF）
+                SaveFormatResult prepared = TextFileFormat.PrepareContentForSave(
+                    this, Path.GetFileName(targetPath), selectedText, TextFileFormat.CreateUtf8CrLf());
+                if (!prepared.Proceed)
+                    return;
+
+                File.WriteAllText(targetPath, prepared.Content, prepared.Encoding);
                 MessageBox.Show("已儲存為：\n" + targetPath, "完成");
 
                 // 保存當前選中的檔案名稱（如果有的話）
@@ -1151,7 +1250,7 @@ namespace TextSpeedReader
                     }
 
                     // 儲存檔案為 UTF-8
-                    File.WriteAllText(savePath, content, new UTF8Encoding(true));
+                    File.WriteAllText(savePath, TextFileFormat.ToCrLf(content), new UTF8Encoding(false));
 
                     MessageBox.Show($"檔案已儲存至：{Path.GetFileName(savePath)}", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -1611,10 +1710,17 @@ namespace TextSpeedReader
 
             try
             {
-                // 以GB2312編碼儲存簡體中文檔案
+                // 這個功能刻意輸出 GB2312（簡體中文 ANSI），不是 UTF-8，
+                // 因此存檔前一樣跳出格式確認，由使用者決定要 GB2312 還是轉成 UTF-8
                 Encoding gb2312 = Encoding.GetEncoding("GB2312");
-                File.WriteAllText(targetPath, selectedText, gb2312);
-                MessageBox.Show("已儲存為簡體中文檔案：\n" + targetPath, "完成");
+                SaveFormatResult prepared = TextFileFormat.PrepareContentForSave(
+                    this, Path.GetFileName(targetPath), selectedText,
+                    new TextFileFormat(gb2312, false, LineEndingKind.CRLF));
+                if (!prepared.Proceed)
+                    return;
+
+                File.WriteAllText(targetPath, prepared.Content, prepared.Encoding);
+                MessageBox.Show("已儲存為：\n" + targetPath, "完成");
 
                 // 保存當前選中的檔案名稱（如果有的話）
                 string? selectedFileName = null;

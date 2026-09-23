@@ -62,11 +62,23 @@ TextSpeedReader 是一款基於 .NET Windows Forms 開發的多功能文字閱�
 - **目錄名稱繁簡轉換**：將 TreeView 中選取目錄的名稱轉為繁體。
 - 使用 OpenCCNET 函式庫（`HantToHans` / `HansToTW`）。
 
+### 編碼與換行格式（V3.4.0.0 新增）
+- **狀態列格式顯示**：主介面狀態列最右側固定顯示目前檔案的「換行符號格式」與「檔案編碼」兩個欄位；不是 UTF-8 或不是 Windows CRLF 時以紅字標示。
+  - 換行：`Windows (CRLF)` / `UNIX (LF)` / `Mac (CR)` / `混合換行` / `無換行`
+  - 編碼：`UTF-8`、`UTF-8 BOM`、`UTF-16 LE/BE`、`UTF-32 LE/BE`、`ANSI (Big5 / GBK / Shift-JIS / EUC-KR / Windows-1252)`、`ASCII`
+- **存檔前格式確認**：任何存檔動作前都會先判斷格式。已經是「UTF-8 + Windows CRLF」時不打擾使用者直接寫入；否則跳出三選一對話框——
+  - **【是】** 轉換成 UTF-8 (不含 BOM) + Windows CRLF 後儲存
+  - **【否】** 維持原本的編碼與換行格式儲存
+  - **【取消】** 不儲存（切換檔案或關閉程式時按取消，會一併中止該動作，不會弄丟編輯內容）
+- **右鍵選單「變更成 UTF-8 + WINDOWS CRLF 格式」**：一鍵把目前開啟的檔案轉存為 UTF-8 (不含 BOM) + Windows CRLF，對話框會列出「原格式 → 目標格式」供確認。原檔帶有 BOM 時，這個功能會一併把 BOM 移除。
+- **BOM 政策**：新建檔案一律 **UTF-8 不含 BOM**；覆寫既有檔案時**沿用原檔的 BOM 狀態**，不會擅自加上或拿掉。UTF-8 含 BOM 的檔案同樣視為合格格式，存檔不會跳提醒。
+
 ### 儲存功能
-- **覆蓋儲存**：以原始編碼覆蓋目前檔案。
-- **另存新檔**：以 UTF-8-BOM 儲存，支援多種副檔名。
+- **覆蓋儲存**：保留原檔的編碼與換行符號格式覆寫目前檔案（格式不符標準時會先詢問，見上節）。
+- **另存新檔**：以 UTF-8（不含 BOM）+ Windows CRLF 儲存，支援多種副檔名。
 - **選取內容另存**：將目前選取的文字另存為新檔，自動產生不重複的三位數序號檔名。
 - **整篇分割儲存**：將整篇文字以每份 3,000 字切割，批次存為多個序號檔案。
+- 以上所有輸出（含繁簡轉換、編碼轉換等批次產生的新檔）統一為 UTF-8（不含 BOM）+ Windows CRLF。
 
 ### HTML 瀏覽（WebBrowser 模式）
 - 自動偵測 HTML 檔案編碼（GB2312/GBK → UTF-8），必要時產生臨時檔案確保正確顯示。
@@ -78,7 +90,7 @@ TextSpeedReader 是一款基於 .NET Windows Forms 開發的多功能文字閱�
 - **溝通方式**：以標準 `HttpClient` 直接呼叫本機 Ollama REST API（`GET /api/tags`、`POST /api/generate`），不需任何額外套件或後台服務。
   - 位址解析優先順序：Windows 系統變數 `OLLAMA_HOST`（Process → User → Machine）→ 若未設定或連線失敗，自動退回 `http://127.0.0.1:11434`。
 - **模型選擇**：下拉選單即時列出 Ollama 已下載的模型，可「重新整理」。
-- **AI 參數預設表**：內建 10 組（依 `num_ctx` 8192/16384/32768/65536 與溫度組合）常用取樣參數（temperature、num_predict、num_ctx、repeat_penalty、top_k、top_p）供下拉選擇。
+- **AI 參數預設表**：內建 22 組（依 `num_ctx` 8192/16384/32768/65536 與溫度組合）常用取樣參數（temperature、num_predict、num_ctx、repeat_penalty、top_k、top_p）供下拉選擇。
 - **文章類型提示詞（Prompt）**：掃描 `Prompt\*.md` 作為分析提示詞範本（內建「經典情色文學的學術分析」），可透過「編輯」按鈕開啟內建的 Markdown 編輯彈窗（左側即時預覽、右側編輯，90% 螢幕尺寸），支援「另存新檔」建立新的文章類型。
   - 編輯時輸入焦點穩定停留在編輯欄（不會被預覽框搶走游標），且預覽會自動捲動同步到目前編輯的區塊位置。
 - **使用者指令**：可額外輸入指令，與文章類型提示詞、文章本文一併組成最終提示詞送給模型。
@@ -104,12 +116,24 @@ TextSpeedReader 是一款基於 .NET Windows Forms 開發的多功能文字閱�
 | 語言 | C# |
 | 主要表單 | `FormTextSpeedReader`（分拆為多個 partial class 檔案） |
 | 設定儲存 | INI 格式，`.\TextSpeedReader_Settings.ini` |
-| 編碼偵測 | UDE（Universal Charset Detector）+ BOM 判斷 |
+| 編碼偵測 | `JTextFileLib.DetectEncoding()`：① BOM → ② 全檔 UTF-8 合法性驗證 → ③ UDE（Universal Charset Detector）→ ④ 退回 Big5 |
+| 格式管理 | `TextFileFormat.cs`：編碼／換行偵測、換行轉換、存檔前格式確認對話框 |
 | 繁簡轉換 | OpenCCNET |
 | 檔案刪除 | `Microsoft.VisualBasic.FileIO`（使用資源回收筒） |
 | AI 分析 | 本機 Ollama REST API（`HttpClient` + `System.Text.Json`，NDJSON 流式解析） |
 
 ## 更新紀錄
+### V3.4.0.0 - 2026-09-23
+- **修正存檔會把 Windows CRLF 改成 UNIX LF 的問題（根因）**：`SaveCurrentFile()` 直接用 `richTextBoxText.Text` 當寫入內容，但 RichTextBox 控制項在原生視窗代碼建立後，`Text` 屬性回傳的換行**只有 `\n`**（`\r` 會被吃掉）。因此只要按一次 Ctrl+S，CRLF 檔案就會被存成 LF。現在載入檔案時會先記錄原檔換行格式，寫檔前再用 `TextFileFormat.ConvertLineEndings()` 還原回去。
+- **修正存檔會破壞原檔編碼的問題（根因）**：`JTextFileLib.SaveTxtFile()` 原本寫死 `File.WriteAllText(fileName, textString)`，不論原檔是什麼編碼一律輸出 UTF-8 且丟掉 BOM。新增 `SaveTxtFile(..., Encoding)` 多載，改由呼叫端帶入正確編碼，覆寫時完整保留原檔的編碼與 BOM 狀態。
+- **重寫編碼偵測 `JTextFileLib.DetectEncoding()`**：舊版直接丟給 UDE、判不出來就退回 Big5，無 BOM 的 UTF-8 中文檔容易被誤判成 Big5，讀進來變亂碼後再存一次就真的毀了。新版判斷順序改為 **BOM → 全檔 UTF-8 合法性驗證 → UDE → Big5**，並補上 UTF-16／UTF-32 BOM 辨識與 `Encoding.GetEncoding()` 失敗的保護。
+- **狀態列新增「換行符號格式」與「檔案編碼」欄位**：固定在狀態列最右側，非 UTF-8 或非 CRLF 時紅字提示。
+- **新增存檔前格式確認機制**：所有存檔路徑（Ctrl+S 覆蓋儲存、另存新檔、選取內容另存、整篇另存、HTML 轉存 TXT）統一走 `TextFileFormat.PrepareContentForSave()`，格式不是「UTF-8 + Windows CRLF」時詢問要轉換、維持原格式、還是取消。
+- **`SaveCurrentFile()` 改為回傳 `bool`**：在「切換檔案前先存檔」與「關閉程式前先存檔」的流程中，若使用者在格式確認視窗按取消，會一併中止切換／關閉，避免編輯內容被默默丟棄。
+- **右鍵選單新增「變更成 UTF-8 + WINDOWS CRLF 格式」**：以標準設計工具欄位實作，可在 Visual Studio 中視覺化編輯。
+- **統一 BOM 政策為「新檔不含 BOM、既有檔案沿用原狀」**：原本程式中「另存新檔」與繁簡／編碼批次轉換寫死輸出 UTF-8-BOM，與其他路徑不一致；現已全部統一為不含 BOM。由於編碼偵測已有 UTF-8 驗證把關，無 BOM 不會造成誤判，且不會干擾 Markdown、程式碼等工具鏈。
+- **批次輸出換行正規化**：分段存檔、繁簡轉換、編碼轉換等產生的新檔一律輸出 Windows CRLF。
+
 ### V3.3.3.0 - 2026-07-30
 - 優化"markdown 檔案編輯"視窗 成為獨立的，避免一開啟就造成其他視窗無法工作。新增多個 AI提示詞範本。
 ### V3.3.1.0 - 2026-07-29

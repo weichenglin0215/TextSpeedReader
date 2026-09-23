@@ -372,7 +372,15 @@ namespace TextSpeedReader
 
                                         case FormSaveConfirm.SaveOption.Save:
                                             // 儲存檔案（覆蓋目前檔案），不顯示訊息（因為即將切換檔案）
-                                            SaveCurrentFile(false);
+                                            // 若使用者在存檔格式確認視窗按了取消，就不要切換檔案，以免編輯內容遺失
+                                            if (!SaveCurrentFile(false))
+                                            {
+                                                if (listViewFile.SelectedItems.Count > 0)
+                                                {
+                                                    listViewFile.SelectedItems[0].Selected = false;
+                                                }
+                                                return;
+                                            }
                                             break;
                                     }
                                 }
@@ -393,6 +401,11 @@ namespace TextSpeedReader
                 // 讀取文字檔案內容
                 if (JTextFileLib.Instance().ReadTxtFile(tmpFullFileName, ref tmpString, false))
                 {
+                    // 記錄原檔的編碼與換行符號格式（存檔時要用它還原，狀態列也會顯示）。
+                    // 必須在丟進 RichTextBox 之前判斷：RichTextBox.Text 只會回傳 \n，
+                    // 進去之後就分不出原本是 CRLF 還是 LF 了。
+                    m_CurrentFileFormat = TextFileFormat.Detect(tmpFullFileName, tmpString);
+
                     // 如果有歷史記錄，更新當前檔案的閱讀位置
                     if (m_RecentReadListIndex >= 0)
                     {
@@ -475,6 +488,9 @@ namespace TextSpeedReader
                     // 切換到網頁瀏覽器顯示模式
                     this.richTextBoxText.Visible = false;
                     webBrowser1.Visible = true;
+                    // HTML 由瀏覽器控制項呈現，狀態列不顯示文字檔的編碼／換行格式
+                    m_CurrentFileFormat = null;
+                    UpdateFormatStatusLabels();
                     // 載入HTML檔案
                     m_CurrentHtmlFilePath = Path.Combine(m_TreeViewSelectedNodeText, this.listViewFile.SelectedItems[0].Text);
 
@@ -633,6 +649,9 @@ namespace TextSpeedReader
                         else
                         {
                             richTextBoxText.Text = ""; // 沒有檔案時才清空文字框
+                            // 沒有開啟檔案，清掉狀態列的編碼／換行格式顯示
+                            m_CurrentFileFormat = null;
+                            UpdateFormatStatusLabels();
                             // 更新菜單狀態（沒有檔案時禁用相關菜單）
                             UpdateMenuStatus();
                         }

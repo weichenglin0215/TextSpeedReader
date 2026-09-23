@@ -105,6 +105,8 @@ namespace TextSpeedReader
             toolStripMenuItem_WholeTextSaveAsNew = new ToolStripMenuItem();
             toolStripSeparator13 = new ToolStripSeparator();
             toolStripMenuItem_SortLines = new ToolStripMenuItem();
+            toolStripSeparator21 = new ToolStripSeparator();
+            toolStripMenuItem_ConvertToUtf8Crlf = new ToolStripMenuItem();
             webBrowser1 = new WebBrowser();
             navigationBar = new ToolStrip();
             ShowFolderButton = new ToolStripButton();
@@ -140,6 +142,8 @@ namespace TextSpeedReader
             toolStripStatusLabelNews = new ToolStripStatusLabel();
             toolStripStatusLabelFileName = new ToolStripStatusLabel();
             toolStripStatusLabelFixed = new ToolStripStatusLabel();
+            toolStripStatusLabelLineEnding = new ToolStripStatusLabel();
+            toolStripStatusLabelEncoding = new ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)splitContainerMain).BeginInit();
             splitContainerMain.Panel1.SuspendLayout();
             splitContainerMain.Panel2.SuspendLayout();
@@ -477,9 +481,9 @@ namespace TextSpeedReader
             // contextMenuStrip_RichTextBox
             // 
             contextMenuStrip_RichTextBox.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripTextBox1, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_MergeNoneSpace, toolStripSeparator19, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripTextBox2, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_InsertBeginingEndByInsertText, toolStripMenuItem_InsertAnnotationAndSerialNumber, toolStripMenuItem_EndingAddDot, toolStripSeparator20, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripTextBox3, toolStripMenuItem_HalfToFullWidthPunctuation, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripMenuItem_ReCodeText, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines });
+            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripTextBox1, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_MergeNoneSpace, toolStripSeparator19, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripTextBox2, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_InsertBeginingEndByInsertText, toolStripMenuItem_InsertAnnotationAndSerialNumber, toolStripMenuItem_EndingAddDot, toolStripSeparator20, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripTextBox3, toolStripMenuItem_HalfToFullWidthPunctuation, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripMenuItem_ReCodeText, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines, toolStripSeparator21, toolStripMenuItem_ConvertToUtf8Crlf });
             contextMenuStrip_RichTextBox.Name = "contextMenuStrip_RichTextBox";
-            contextMenuStrip_RichTextBox.Size = new Size(536, 718);
+            contextMenuStrip_RichTextBox.Size = new Size(536, 748);
             // 
             // toolStripSeparator11
             // 
@@ -719,6 +723,19 @@ namespace TextSpeedReader
             toolStripMenuItem_SortLines.Size = new Size(535, 24);
             toolStripMenuItem_SortLines.Text = "逐行排序...";
             toolStripMenuItem_SortLines.Click += toolStripMenuItem_SortLines_Click;
+            // 
+            // toolStripSeparator21
+            // 
+            toolStripSeparator21.Name = "toolStripSeparator21";
+            toolStripSeparator21.Size = new Size(532, 6);
+            // 
+            // toolStripMenuItem_ConvertToUtf8Crlf
+            // 
+            toolStripMenuItem_ConvertToUtf8Crlf.Name = "toolStripMenuItem_ConvertToUtf8Crlf";
+            toolStripMenuItem_ConvertToUtf8Crlf.Size = new Size(535, 24);
+            toolStripMenuItem_ConvertToUtf8Crlf.Text = "變更成 UTF-8 + WINDOWS CRLF 格式";
+            toolStripMenuItem_ConvertToUtf8Crlf.ToolTipText = "將目前開啟的檔案轉存成 UTF-8 (不含 BOM) 編碼與 Windows CRLF 換行";
+            toolStripMenuItem_ConvertToUtf8Crlf.Click += toolStripMenuItem_ConvertToUtf8Crlf_Click;
             // 
             // webBrowser1
             // 
@@ -987,7 +1004,7 @@ namespace TextSpeedReader
             // 
             statusStrip1.AutoSize = false;
             statusStrip1.ImageScalingSize = new Size(20, 20);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabelNews, toolStripStatusLabelFileName, toolStripStatusLabelFixed });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabelNews, toolStripStatusLabelFileName, toolStripStatusLabelFixed, toolStripStatusLabelLineEnding, toolStripStatusLabelEncoding });
             statusStrip1.Location = new Point(0, 737);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(1584, 24);
@@ -996,30 +1013,52 @@ namespace TextSpeedReader
             // 
             // toolStripStatusLabelNews
             // 
-            toolStripStatusLabelNews.AutoSize = false;
+            toolStripStatusLabelNews.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Right;
             toolStripStatusLabelNews.Margin = new Padding(0, 1, 0, 1);
             toolStripStatusLabelNews.Name = "toolStripStatusLabelNews";
-            toolStripStatusLabelNews.Size = new Size(600, 22);
+            toolStripStatusLabelNews.Size = new Size(77, 22);
             toolStripStatusLabelNews.Text = "更新訊息";
             toolStripStatusLabelNews.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // toolStripStatusLabelFileName
             // 
-            toolStripStatusLabelFileName.AutoSize = false;
             toolStripStatusLabelFileName.BackColor = SystemColors.ControlLight;
+            toolStripStatusLabelFileName.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Right;
             toolStripStatusLabelFileName.Margin = new Padding(0, 1, 0, 1);
             toolStripStatusLabelFileName.Name = "toolStripStatusLabelFileName";
-            toolStripStatusLabelFileName.Size = new Size(600, 22);
+            toolStripStatusLabelFileName.Size = new Size(45, 22);
             toolStripStatusLabelFileName.Text = "檔名";
             toolStripStatusLabelFileName.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // toolStripStatusLabelFixed
             // 
+            toolStripStatusLabelFixed.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Right;
             toolStripStatusLabelFixed.Margin = new Padding(0, 1, 0, 1);
             toolStripStatusLabelFixed.Name = "toolStripStatusLabelFixed";
-            toolStripStatusLabelFixed.Size = new Size(73, 22);
+            toolStripStatusLabelFixed.Size = new Size(77, 22);
             toolStripStatusLabelFixed.Text = "狀態訊息";
             toolStripStatusLabelFixed.TextAlign = ContentAlignment.MiddleRight;
+            // 
+            // toolStripStatusLabelLineEnding
+            // 
+            toolStripStatusLabelLineEnding.BackColor = SystemColors.ControlLight;
+            toolStripStatusLabelLineEnding.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Right;
+            toolStripStatusLabelLineEnding.Margin = new Padding(0, 1, 0, 1);
+            toolStripStatusLabelLineEnding.Name = "toolStripStatusLabelLineEnding";
+            toolStripStatusLabelLineEnding.Size = new Size(69, 22);
+            toolStripStatusLabelLineEnding.Text = "換行: －";
+            toolStripStatusLabelLineEnding.TextAlign = ContentAlignment.MiddleRight;
+            toolStripStatusLabelLineEnding.ToolTipText = "目前檔案的換行符號格式";
+            // 
+            // toolStripStatusLabelEncoding
+            // 
+            toolStripStatusLabelEncoding.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Right;
+            toolStripStatusLabelEncoding.Margin = new Padding(0, 1, 0, 1);
+            toolStripStatusLabelEncoding.Name = "toolStripStatusLabelEncoding";
+            toolStripStatusLabelEncoding.Size = new Size(69, 22);
+            toolStripStatusLabelEncoding.Text = "編碼: －";
+            toolStripStatusLabelEncoding.TextAlign = ContentAlignment.MiddleRight;
+            toolStripStatusLabelEncoding.ToolTipText = "目前檔案的文字編碼";
             // 
             // FormTextSpeedReader
             // 
@@ -1033,7 +1072,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 3.3.2.0  (AI分析文章)";
+            Text = "TextSpeedReader Ver. 3.4.0.0  (AI分析文章)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -1107,6 +1146,8 @@ namespace TextSpeedReader
         private ToolStripStatusLabel toolStripStatusLabelNews;
         private ToolStripStatusLabel toolStripStatusLabelFixed;
         private ToolStripStatusLabel toolStripStatusLabelFileName;
+        private ToolStripStatusLabel toolStripStatusLabelLineEnding;
+        private ToolStripStatusLabel toolStripStatusLabelEncoding;
         private ToolStripMenuItem toolStripMenuItem_KeepTwoCRBetweenLines;
         private ToolStripMenuItem toolStripMenuItem_WithoutCRBetweenLines;
         private ToolStripMenuItem toolStripMenuItem_DelFiles;
@@ -1146,6 +1187,8 @@ namespace TextSpeedReader
         private ToolStripSeparator toolStripSeparator20;
         private ToolStripMenuItem toolStripMenuItem_MergeByJudgment;
         private ToolStripMenuItem toolStripMenuItem_SortLines;
+        private ToolStripSeparator toolStripSeparator21;
+        private ToolStripMenuItem toolStripMenuItem_ConvertToUtf8Crlf;
         private ToolStripComboBox toolStripComboBoxHistoryList;
         private ToolStripDropDownButton toolStripDropDownButtonHistoryList;
         private ToolStripButton toolStripButtonHTMLChangeFontChecker;
