@@ -1216,6 +1216,18 @@ namespace TextSpeedReader
             ConvertHalfWidthPunctuationToFullWidth();
         }
 
+        // 將直排括弧（︵︶︹︺︽︾﹁﹂﹃﹄ 等）改成橫排括弧（（）〔〕《》「」『』 等）（右鍵選單）
+        private void toolStripMenuItem_VerticalToHorizontalBrackets_Click(object sender, EventArgs e)
+        {
+            ConvertVerticalBracketsToHorizontal();
+        }
+
+        // 將橫排括弧（（）〔〕《》「」『』 等）改成直排括弧（︵︶︹︺︽︾﹁﹂﹃﹄ 等）（右鍵選單）
+        private void toolStripMenuItem_HorizontalToVerticalBrackets_Click(object sender, EventArgs e)
+        {
+            ConvertHorizontalBracketsToVertical();
+        }
+
         // 編輯文字轉換為簡體（右鍵選單）
         private void toolStripMenuItem_EditTextCovertSimplified_Click(object sender, EventArgs e)
         {

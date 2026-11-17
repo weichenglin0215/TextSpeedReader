@@ -1815,6 +1815,83 @@ namespace TextSpeedReader
         // 將選取範圍（或全文）中的半形標點符號轉換為對應的全形標點符號
         private void ConvertHalfWidthPunctuationToFullWidth()
         {
+            // 半形→全形標點對照表（僅轉換一般文章常見的標點，不轉換引號/括號以避免破壞程式碼）
+            var map = new Dictionary<char, char>
+            {
+                [','] = '，',
+                ['.'] = '。',
+                ['!'] = '！',
+                ['?'] = '？',
+                [':'] = '：',
+                [';'] = '；',
+                ['('] = '（',
+                [')'] = '）',
+            };
+            ConvertCharsInSelectionOrDocument(map);
+        }
+
+        // 直排括弧 ↔ 橫排括弧 對照表。
+        // 直排括弧為「CJK 相容直排表示形式」(U+FE17~FE18、U+FE35~FE44、U+FE47~FE48)，
+        // 橫排括弧為一般橫排閱讀使用的全形／CJK 括弧。兩者一一對應，可互相轉換而不遺失資訊。
+        // 為避免外觀相近造成誤植，以 Unicode 碼位撰寫，註解中標示實際字元。
+        private static readonly (char Vertical, char Horizontal)[] VerticalHorizontalBracketPairs =
+        {
+            ('︵', '（'), // ︵ → （
+            ('︶', '）'), // ︶ → ）
+            ('︷', '｛'), // ︷ → ｛
+            ('︸', '｝'), // ︸ → ｝
+            ('︹', '〔'), // ︹ → 〔
+            ('︺', '〕'), // ︺ → 〕
+            ('︻', '【'), // ︻ → 【
+            ('︼', '】'), // ︼ → 】
+            ('︽', '《'), // ︽ → 《
+            ('︾', '》'), // ︾ → 》
+            ('︿', '〈'), // ︿ → 〈
+            ('﹀', '〉'), // ﹀ → 〉
+            ('﹁', '「'), // ﹁ → 「
+            ('﹂', '」'), // ﹂ → 」
+            ('﹃', '『'), // ﹃ → 『
+            ('﹄', '』'), // ﹄ → 』
+            ('﹇', '［'), // ﹇ → ［
+            ('﹈', '］'), // ﹈ → ］
+            ('︗', '〖'), // ︗ → 〖
+            ('︘', '〗'), // ︘ → 〗
+        };
+
+        // 直排括弧 → 橫排括弧
+        private static readonly Dictionary<char, char> VerticalToHorizontalBracketMap = BuildBracketMap(vertical: true);
+
+        // 橫排括弧 → 直排括弧
+        private static readonly Dictionary<char, char> HorizontalToVerticalBracketMap = BuildBracketMap(vertical: false);
+
+        private static Dictionary<char, char> BuildBracketMap(bool vertical)
+        {
+            var map = new Dictionary<char, char>(VerticalHorizontalBracketPairs.Length);
+            foreach (var (v, h) in VerticalHorizontalBracketPairs)
+            {
+                if (vertical)
+                    map[v] = h;
+                else
+                    map[h] = v;
+            }
+            return map;
+        }
+
+        // 將選取範圍（或全文）中的直排括弧轉換為橫排括弧
+        private void ConvertVerticalBracketsToHorizontal()
+        {
+            ConvertCharsInSelectionOrDocument(VerticalToHorizontalBracketMap);
+        }
+
+        // 將選取範圍（或全文）中的橫排括弧轉換為直排括弧
+        private void ConvertHorizontalBracketsToVertical()
+        {
+            ConvertCharsInSelectionOrDocument(HorizontalToVerticalBracketMap);
+        }
+
+        // 依字元對照表逐字取代：有選取文字時只處理選取範圍，否則處理全文
+        private void ConvertCharsInSelectionOrDocument(IReadOnlyDictionary<char, char> map)
+        {
             string text;
             bool processWholeDocument;
             int selectionStart = richTextBoxText.SelectionStart;
@@ -1834,34 +1911,10 @@ namespace TextSpeedReader
             if (string.IsNullOrEmpty(text))
                 return;
 
-            // 半形→全形標點對照表（僅轉換一般文章常見的標點，不轉換引號/括號以避免破壞程式碼）
-            (char from, char to)[] map = new (char, char)[]
-            {
-                (',', '，'),
-                ('.', '。'),
-                ('!', '！'),
-                ('?', '？'),
-                (':', '：'),
-                (';', '；'),
-                ('(', '（'),
-                (')', '）'),
-            };
-
             StringBuilder result = new StringBuilder(text.Length);
             foreach (char c in text)
             {
-                bool converted = false;
-                foreach (var (from, to) in map)
-                {
-                    if (c == from)
-                    {
-                        result.Append(to);
-                        converted = true;
-                        break;
-                    }
-                }
-                if (!converted)
-                    result.Append(c);
+                result.Append(map.TryGetValue(c, out char replacement) ? replacement : c);
             }
 
             string newText = result.ToString();
@@ -1898,6 +1951,10 @@ namespace TextSpeedReader
                 richTextBoxText.SelectedText = newText;
                 richTextBoxText.Select(selStart, newText.Length);
             }
+
+            // 標記檔案已被修改（處理全文時會暫時解除 TextChanged 事件，不會自動標記，所以在此補上）
+            if (!m_IsLoadingFile && m_RecentReadListIndex >= 0)
+                m_IsCurrentFileModified = true;
         }
 
         // 切換 RichTextBox 的自動換行模式，並同步更新工具列按鈕的顯示狀態

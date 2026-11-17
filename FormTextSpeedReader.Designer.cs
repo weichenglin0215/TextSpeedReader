@@ -97,6 +97,8 @@ namespace TextSpeedReader
             toolStripSeparator8 = new ToolStripSeparator();
             toolStripTextBox3 = new ToolStripTextBox();
             toolStripMenuItem_HalfToFullWidthPunctuation = new ToolStripMenuItem();
+            toolStripMenuItem_VerticalToHorizontalBrackets = new ToolStripMenuItem();
+            toolStripMenuItem_HorizontalToVerticalBrackets = new ToolStripMenuItem();
             toolStripMenuItem_EditTextCovertSimplified = new ToolStripMenuItem();
             toolStripMenuItem_EditTextCovertTraditional = new ToolStripMenuItem();
             toolStripMenuItem_ReCodeText = new ToolStripMenuItem();
@@ -481,9 +483,9 @@ namespace TextSpeedReader
             // contextMenuStrip_RichTextBox
             // 
             contextMenuStrip_RichTextBox.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripTextBox1, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_MergeNoneSpace, toolStripSeparator19, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripTextBox2, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_InsertBeginingEndByInsertText, toolStripMenuItem_InsertAnnotationAndSerialNumber, toolStripMenuItem_EndingAddDot, toolStripSeparator20, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripTextBox3, toolStripMenuItem_HalfToFullWidthPunctuation, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripMenuItem_ReCodeText, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines, toolStripSeparator21, toolStripMenuItem_ConvertToUtf8Crlf });
+            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripTextBox1, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_MergeNoneSpace, toolStripSeparator19, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripTextBox2, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_InsertBeginingEndByInsertText, toolStripMenuItem_InsertAnnotationAndSerialNumber, toolStripMenuItem_EndingAddDot, toolStripSeparator20, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripTextBox3, toolStripMenuItem_HalfToFullWidthPunctuation, toolStripMenuItem_VerticalToHorizontalBrackets, toolStripMenuItem_HorizontalToVerticalBrackets, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripMenuItem_ReCodeText, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines, toolStripSeparator21, toolStripMenuItem_ConvertToUtf8Crlf });
             contextMenuStrip_RichTextBox.Name = "contextMenuStrip_RichTextBox";
-            contextMenuStrip_RichTextBox.Size = new Size(536, 748);
+            contextMenuStrip_RichTextBox.Size = new Size(536, 796);
             // 
             // toolStripSeparator11
             // 
@@ -671,6 +673,20 @@ namespace TextSpeedReader
             toolStripMenuItem_HalfToFullWidthPunctuation.Size = new Size(535, 24);
             toolStripMenuItem_HalfToFullWidthPunctuation.Text = "將半形標點符號改成全形";
             toolStripMenuItem_HalfToFullWidthPunctuation.Click += toolStripMenuItem_HalfToFullWidthPunctuation_Click;
+            // 
+            // toolStripMenuItem_VerticalToHorizontalBrackets
+            // 
+            toolStripMenuItem_VerticalToHorizontalBrackets.Name = "toolStripMenuItem_VerticalToHorizontalBrackets";
+            toolStripMenuItem_VerticalToHorizontalBrackets.Size = new Size(535, 24);
+            toolStripMenuItem_VerticalToHorizontalBrackets.Text = "直排括弧改成橫排";
+            toolStripMenuItem_VerticalToHorizontalBrackets.Click += toolStripMenuItem_VerticalToHorizontalBrackets_Click;
+            // 
+            // toolStripMenuItem_HorizontalToVerticalBrackets
+            // 
+            toolStripMenuItem_HorizontalToVerticalBrackets.Name = "toolStripMenuItem_HorizontalToVerticalBrackets";
+            toolStripMenuItem_HorizontalToVerticalBrackets.Size = new Size(535, 24);
+            toolStripMenuItem_HorizontalToVerticalBrackets.Text = "橫排括弧改成直排";
+            toolStripMenuItem_HorizontalToVerticalBrackets.Click += toolStripMenuItem_HorizontalToVerticalBrackets_Click;
             // 
             // toolStripMenuItem_EditTextCovertSimplified
             // 
@@ -1072,7 +1088,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 3.4.0.0  (AI分析文章)";
+            Text = "TextSpeedReader Ver. 3.4.1.0  (AI分析文章)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -1140,6 +1156,8 @@ namespace TextSpeedReader
         private ToolStripMenuItem toolStripMenuItem_RemoveMoreThan120Char;
         private ToolStripMenuItem toolStripMenuItem_FileConvertToTraditional;
         private ToolStripMenuItem toolStripMenuItem_HalfToFullWidthPunctuation;
+        private ToolStripMenuItem toolStripMenuItem_VerticalToHorizontalBrackets;
+        private ToolStripMenuItem toolStripMenuItem_HorizontalToVerticalBrackets;
         private ToolStripMenuItem toolStripMenuItem_EditTextCovertSimplified;
         private ToolStripMenuItem toolStripMenuItem_EditTextCovertTraditional;
         private ToolStripMenuItem toolStripMenuItem_ConvertTraditional;
