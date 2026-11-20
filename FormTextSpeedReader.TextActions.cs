@@ -644,6 +644,66 @@ namespace TextSpeedReader
             return line;
         }
 
+        // 將選取範圍（或全文）中連續多行的空白行合併成單一空白行
+        private void MergeConsecutiveBlankLines()
+        {
+            TransformSelectionOrDocument(MergeConsecutiveBlankLinesInText);
+        }
+
+        // 連續兩行以上的空白行（含只有空格、TAB、全形空白的行）合併成一個空行；
+        // 原本只有單一空白行的地方維持原樣，不會憑空新增空白行，也不會動到非空白行的內容。
+        // 若沒有任何需要合併的地方，直接回傳原文（保留原本的換行符號）。
+        private static string MergeConsecutiveBlankLinesInText(string text)
+        {
+            // 識別換行符類型（優先使用 \r\n，然後是 \n，最後是 \r）
+            string lineBreak = "\r\n";
+            if (!text.Contains("\r\n"))
+            {
+                if (text.Contains("\n"))
+                    lineBreak = "\n";
+                else if (text.Contains("\r"))
+                    lineBreak = "\r";
+            }
+
+            string[] lines = text.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
+            int lastIndex = lines.Length - 1;
+
+            // 最後一個元素若為空字串，代表文字以換行符結尾，它只是結尾而不是一個空白行
+            bool IsBlankLine(int index) =>
+                !(index == lastIndex && lines[index].Length == 0) && string.IsNullOrWhiteSpace(lines[index]);
+
+            List<string> output = new List<string>(lines.Length);
+            bool merged = false;
+            int i = 0;
+            while (i < lines.Length)
+            {
+                if (!IsBlankLine(i))
+                {
+                    output.Add(lines[i]);
+                    i++;
+                    continue;
+                }
+
+                // 計算這一段連續空白行的長度
+                int runEnd = i;
+                while (runEnd < lines.Length && IsBlankLine(runEnd))
+                    runEnd++;
+
+                if (runEnd - i == 1)
+                {
+                    output.Add(lines[i]); // 單一空白行維持原樣
+                }
+                else
+                {
+                    output.Add(string.Empty); // 多行空白行合併成單一空行
+                    merged = true;
+                }
+                i = runEnd;
+            }
+
+            return merged ? string.Join(lineBreak, output) : text;
+        }
+
         // 確保每兩個非空行之間恰好有一個空白行（過多或過少都會統一為單一空白行）
         private void KeepTwoCRBetweenLines()
         {
@@ -1892,6 +1952,21 @@ namespace TextSpeedReader
         // 依字元對照表逐字取代：有選取文字時只處理選取範圍，否則處理全文
         private void ConvertCharsInSelectionOrDocument(IReadOnlyDictionary<char, char> map)
         {
+            TransformSelectionOrDocument(text =>
+            {
+                StringBuilder result = new StringBuilder(text.Length);
+                foreach (char c in text)
+                {
+                    result.Append(map.TryGetValue(c, out char replacement) ? replacement : c);
+                }
+                return result.ToString();
+            });
+        }
+
+        // 將選取範圍（無選取時為全文）交給 transform 轉換後寫回編輯區；
+        // transform 回傳與原文相同的文字時視為無變更，不會觸發修改事件
+        private void TransformSelectionOrDocument(Func<string, string> transform)
+        {
             string text;
             bool processWholeDocument;
             int selectionStart = richTextBoxText.SelectionStart;
@@ -1911,13 +1986,7 @@ namespace TextSpeedReader
             if (string.IsNullOrEmpty(text))
                 return;
 
-            StringBuilder result = new StringBuilder(text.Length);
-            foreach (char c in text)
-            {
-                result.Append(map.TryGetValue(c, out char replacement) ? replacement : c);
-            }
-
-            string newText = result.ToString();
+            string newText = transform(text);
             if (newText == text)
                 return; // 無任何變化，不觸發修改事件
 

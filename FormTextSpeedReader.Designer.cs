@@ -45,6 +45,7 @@ namespace TextSpeedReader
             toolStripMenuItem_CreateSubDirectory = new ToolStripMenuItem();
             toolStripMenuItem_RenameDirectory = new ToolStripMenuItem();
             toolStripMenuItem_DeleteDirectory = new ToolStripMenuItem();
+            toolStripMenuItem_RefreshDirectoryList = new ToolStripMenuItem();
             toolStripMenuItem_ReCodeFolderName = new ToolStripMenuItem();
             toolStripMenuItem_ReCodeFullFoldersFilesName = new ToolStripMenuItem();
             toolStripMenuItem_FolderNameSim2Trad = new ToolStripMenuItem();
@@ -65,6 +66,7 @@ namespace TextSpeedReader
             toolStripMenuItem_FileNameSim2Trad = new ToolStripMenuItem();
             toolStripSeparator14 = new ToolStripSeparator();
             toolStripMenuItem_DelFiles = new ToolStripMenuItem();
+            toolStripMenuItem_RefreshFileList = new ToolStripMenuItem();
             listViewRecentFiles = new ListView();
             columnHeaderFileName = new ColumnHeader();
             columnHeaderCharCount = new ColumnHeader();
@@ -78,6 +80,7 @@ namespace TextSpeedReader
             toolStripMenuItem_RemoveCR = new ToolStripMenuItem();
             toolStripMenuItem_AutoRemoveCRButton2 = new ToolStripMenuItem();
             toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark = new ToolStripMenuItem();
+            toolStripMenuItem_MergeConsecutiveBlankLines = new ToolStripMenuItem();
             toolStripMenuItem_RemoveMoreThan120CharB = new ToolStripMenuItem();
             toolStripMenuItem_MergeNoneSpace = new ToolStripMenuItem();
             toolStripSeparator19 = new ToolStripSeparator();
@@ -258,9 +261,9 @@ namespace TextSpeedReader
             // contextMenuStrip_treeViewFolder
             // 
             contextMenuStrip_treeViewFolder.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_treeViewFolder.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_OpenFileManager, toolStripMenuItem_CreateSubDirectory, toolStripMenuItem_RenameDirectory, toolStripMenuItem_DeleteDirectory, toolStripMenuItem_ReCodeFolderName, toolStripMenuItem_ReCodeFullFoldersFilesName, toolStripMenuItem_FolderNameSim2Trad });
+            contextMenuStrip_treeViewFolder.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_OpenFileManager, toolStripMenuItem_CreateSubDirectory, toolStripMenuItem_RenameDirectory, toolStripMenuItem_DeleteDirectory, toolStripMenuItem_RefreshDirectoryList, toolStripMenuItem_ReCodeFolderName, toolStripMenuItem_ReCodeFullFoldersFilesName, toolStripMenuItem_FolderNameSim2Trad });
             contextMenuStrip_treeViewFolder.Name = "contextMenuStrip_treeViewFolder";
-            contextMenuStrip_treeViewFolder.Size = new Size(389, 172);
+            contextMenuStrip_treeViewFolder.Size = new Size(389, 196);
             // 
             // toolStripMenuItem_OpenFileManager
             // 
@@ -290,6 +293,13 @@ namespace TextSpeedReader
             toolStripMenuItem_DeleteDirectory.Size = new Size(388, 24);
             toolStripMenuItem_DeleteDirectory.Text = "刪除目錄...";
             toolStripMenuItem_DeleteDirectory.Click += toolStripMenuItem_DeleteDirectory_Click;
+            // 
+            // toolStripMenuItem_RefreshDirectoryList
+            // 
+            toolStripMenuItem_RefreshDirectoryList.Name = "toolStripMenuItem_RefreshDirectoryList";
+            toolStripMenuItem_RefreshDirectoryList.Size = new Size(388, 24);
+            toolStripMenuItem_RefreshDirectoryList.Text = "重新整理目錄列表";
+            toolStripMenuItem_RefreshDirectoryList.Click += toolStripMenuItem_RefreshDirectoryList_Click;
             // 
             // toolStripMenuItem_ReCodeFolderName
             // 
@@ -358,9 +368,9 @@ namespace TextSpeedReader
             // contextMenuStrip_ListViewFile
             // 
             contextMenuStrip_ListViewFile.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_ListViewFile.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile2, toolStripMenuItem_SaveTxtAsNewFile2, toolStripMenuItem_ConvertSimple, toolStripMenuItem_ConvertTraditional, toolStripSeparator15, toolStripMenuItem_SearchFiles, toolStripMenuItem_RenameFile, toolStripMenuItem_ReCodeFileName, toolStripMenuItem_FileNameSim2Trad, toolStripSeparator14, toolStripMenuItem_DelFiles });
+            contextMenuStrip_ListViewFile.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_SaveTxtFile2, toolStripMenuItem_SaveTxtAsNewFile2, toolStripMenuItem_ConvertSimple, toolStripMenuItem_ConvertTraditional, toolStripSeparator15, toolStripMenuItem_SearchFiles, toolStripMenuItem_RenameFile, toolStripMenuItem_ReCodeFileName, toolStripMenuItem_FileNameSim2Trad, toolStripSeparator14, toolStripMenuItem_DelFiles, toolStripMenuItem_RefreshFileList });
             contextMenuStrip_ListViewFile.Name = "contextMenuStrip_ListViewFile";
-            contextMenuStrip_ListViewFile.Size = new Size(381, 252);
+            contextMenuStrip_ListViewFile.Size = new Size(381, 276);
             // 
             // toolStripMenuItem_SaveTxtFile2
             // 
@@ -444,6 +454,13 @@ namespace TextSpeedReader
             toolStripMenuItem_DelFiles.Text = "Ｘ刪除檔案...";
             toolStripMenuItem_DelFiles.Click += toolStripMenuItem_DelFiles_Click;
             // 
+            // toolStripMenuItem_RefreshFileList
+            // 
+            toolStripMenuItem_RefreshFileList.Name = "toolStripMenuItem_RefreshFileList";
+            toolStripMenuItem_RefreshFileList.Size = new Size(380, 24);
+            toolStripMenuItem_RefreshFileList.Text = "重新整理檔案列表";
+            toolStripMenuItem_RefreshFileList.Click += toolStripMenuItem_RefreshFileList_Click;
+            // 
             // listViewRecentFiles
             // 
             listViewRecentFiles.AutoArrange = false;
@@ -483,9 +500,9 @@ namespace TextSpeedReader
             // contextMenuStrip_RichTextBox
             // 
             contextMenuStrip_RichTextBox.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripTextBox1, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_MergeNoneSpace, toolStripSeparator19, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripTextBox2, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_InsertBeginingEndByInsertText, toolStripMenuItem_InsertAnnotationAndSerialNumber, toolStripMenuItem_EndingAddDot, toolStripSeparator20, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripTextBox3, toolStripMenuItem_HalfToFullWidthPunctuation, toolStripMenuItem_VerticalToHorizontalBrackets, toolStripMenuItem_HorizontalToVerticalBrackets, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripMenuItem_ReCodeText, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines, toolStripSeparator21, toolStripMenuItem_ConvertToUtf8Crlf });
+            contextMenuStrip_RichTextBox.Items.AddRange(new ToolStripItem[] { toolStripSeparator11, toolStripMenuItem_AutoSelectCR, toolStripMenuItem_AutoSelectWithPunctuation, toolStripSeparator12, toolStripTextBox1, toolStripMenuItem_RemoveCR, toolStripMenuItem_AutoRemoveCRButton2, toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark, toolStripMenuItem_MergeConsecutiveBlankLines, toolStripMenuItem_RemoveMoreThan120CharB, toolStripMenuItem_MergeNoneSpace, toolStripSeparator19, toolStripMenuItem_SplitBeginingByJudgment, toolStripMenuItem_SplitEndByJudgment, toolStripMenuItem_MergeByJudgment, toolStripSeparator10, toolStripTextBox2, toolStripMenuItem_RemoveLeadingAndTrailingSpacesRR, toolStripMenuItem_AddSpaceAtBegining, toolStripMenuItem_InsertBeginingEndByInsertText, toolStripMenuItem_InsertAnnotationAndSerialNumber, toolStripMenuItem_EndingAddDot, toolStripSeparator20, toolStripMenuItem_WithoutCRBetweenLines, toolStripMenuItem_KeepTwoCRBetweenLines, toolStripSeparator8, toolStripTextBox3, toolStripMenuItem_HalfToFullWidthPunctuation, toolStripMenuItem_VerticalToHorizontalBrackets, toolStripMenuItem_HorizontalToVerticalBrackets, toolStripMenuItem_EditTextCovertSimplified, toolStripMenuItem_EditTextCovertTraditional, toolStripMenuItem_ReCodeText, toolStripSeparator9, toolStripMenuItem_SelectedTextSaveAsNew, toolStripMenuItem_WholeTextSaveAsNew, toolStripSeparator13, toolStripMenuItem_SortLines, toolStripSeparator21, toolStripMenuItem_ConvertToUtf8Crlf });
             contextMenuStrip_RichTextBox.Name = "contextMenuStrip_RichTextBox";
-            contextMenuStrip_RichTextBox.Size = new Size(536, 796);
+            contextMenuStrip_RichTextBox.Size = new Size(536, 820);
             // 
             // toolStripSeparator11
             // 
@@ -543,6 +560,13 @@ namespace TextSpeedReader
             toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Size = new Size(535, 24);
             toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Text = "自動移除多餘的斷行，跳過行尾句點或驚嘆號";
             toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark.Click += toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark_Click;
+            // 
+            // toolStripMenuItem_MergeConsecutiveBlankLines
+            // 
+            toolStripMenuItem_MergeConsecutiveBlankLines.Name = "toolStripMenuItem_MergeConsecutiveBlankLines";
+            toolStripMenuItem_MergeConsecutiveBlankLines.Size = new Size(535, 24);
+            toolStripMenuItem_MergeConsecutiveBlankLines.Text = "多行連續空白行合併成單一空白行";
+            toolStripMenuItem_MergeConsecutiveBlankLines.Click += toolStripMenuItem_MergeConsecutiveBlankLines_Click;
             // 
             // toolStripMenuItem_RemoveMoreThan120CharB
             // 
@@ -678,14 +702,14 @@ namespace TextSpeedReader
             // 
             toolStripMenuItem_VerticalToHorizontalBrackets.Name = "toolStripMenuItem_VerticalToHorizontalBrackets";
             toolStripMenuItem_VerticalToHorizontalBrackets.Size = new Size(535, 24);
-            toolStripMenuItem_VerticalToHorizontalBrackets.Text = "直排括弧改成橫排";
+            toolStripMenuItem_VerticalToHorizontalBrackets.Text = "直排括弧改成橫排（）〔〕《》「」『』";
             toolStripMenuItem_VerticalToHorizontalBrackets.Click += toolStripMenuItem_VerticalToHorizontalBrackets_Click;
             // 
             // toolStripMenuItem_HorizontalToVerticalBrackets
             // 
             toolStripMenuItem_HorizontalToVerticalBrackets.Name = "toolStripMenuItem_HorizontalToVerticalBrackets";
             toolStripMenuItem_HorizontalToVerticalBrackets.Size = new Size(535, 24);
-            toolStripMenuItem_HorizontalToVerticalBrackets.Text = "橫排括弧改成直排";
+            toolStripMenuItem_HorizontalToVerticalBrackets.Text = "橫排括弧改成直排︵︶︹︺︽︾﹁﹂﹃﹄";
             toolStripMenuItem_HorizontalToVerticalBrackets.Click += toolStripMenuItem_HorizontalToVerticalBrackets_Click;
             // 
             // toolStripMenuItem_EditTextCovertSimplified
@@ -1088,7 +1112,7 @@ namespace TextSpeedReader
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(5);
             Name = "FormTextSpeedReader";
-            Text = "TextSpeedReader Ver. 3.4.1.0  (AI分析文章)";
+            Text = "TextSpeedReader Ver. 3.5.0.0  (AI分析文章)";
             FormClosing += FormTSRClosing;
             splitContainerMain.Panel1.ResumeLayout(false);
             splitContainerMain.Panel2.ResumeLayout(false);
@@ -1169,6 +1193,7 @@ namespace TextSpeedReader
         private ToolStripMenuItem toolStripMenuItem_KeepTwoCRBetweenLines;
         private ToolStripMenuItem toolStripMenuItem_WithoutCRBetweenLines;
         private ToolStripMenuItem toolStripMenuItem_DelFiles;
+        private ToolStripMenuItem toolStripMenuItem_RefreshFileList;
         private ToolStripSeparator toolStripSeparator11;
         private ToolStripSeparator toolStripSeparator10;
         private ToolStripSeparator toolStripSeparator8;
@@ -1212,6 +1237,7 @@ namespace TextSpeedReader
         private ToolStripButton toolStripButtonHTMLChangeFontChecker;
         private ToolStripMenuItem toolStripMenuItem_InsertBeginingEndByInsertText;
         private ToolStripMenuItem toolStripMenuItem_DeleteDirectory;
+        private ToolStripMenuItem toolStripMenuItem_RefreshDirectoryList;
         private ToolStripMenuItem toolStripMenuItem_ReCodeFileName;
         private ToolStripMenuItem toolStripMenuItem_ReCodeFolderName;
         private ToolStripMenuItem toolStripMenuItem_FolderNameSim2Trad;
@@ -1220,6 +1246,7 @@ namespace TextSpeedReader
         private ToolStripMenuItem toolStripMenuItem_InsertAnnotationAndSerialNumber;
         private ToolStripMenuItem toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMarkOLD;
         private ToolStripMenuItem toolStripMenuItem_AutoRemoveCRWithoutDotAndExclamationMark;
+        private ToolStripMenuItem toolStripMenuItem_MergeConsecutiveBlankLines;
         private ToolStripButton toolStripButtonAutoWordwrap;
         private ToolStripMenuItem toolStripMenuItem_ReCodeText;
         private ToolStripTextBox toolStripTextBox1;

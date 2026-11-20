@@ -666,6 +666,173 @@ namespace TextSpeedReader
             }
         }
 
+        // 重新整理目錄列表：讓 treeViewFolder 與磁碟上的實際目錄一致（在程式外新增或刪除的子目錄都會反映），
+        // 並重新載入 listViewFile 的檔案列表。已展開的節點維持展開狀態。
+        // 若目前所在目錄已不存在，就往上層目錄找，直到找到仍存在的目錄並切換過去。
+        private void RefreshDirectoryList()
+        {
+            // 目前所在目錄；已不存在時往上層找第一個仍存在的目錄（磁碟機都不存在時為 null）
+            string? currentPath = (treeViewFolder.SelectedNode?.Tag as DirectoryInfo)?.FullName;
+            string? existingPath = null;
+            if (!string.IsNullOrEmpty(currentPath))
+            {
+                existingPath = Directory.Exists(currentPath) ? currentPath : FindFirstExistingParentPath(currentPath);
+            }
+
+            // 重整期間先解除 AfterSelect：移除節點時 TreeView 會自動改選其他節點，
+            // 不解除的話會對錯誤的目錄重複載入檔案列表；改在最後針對目標目錄載入一次。
+            TreeNode? targetNode = null;
+            treeViewFolder.AfterSelect -= treeViewFolder_AfterSelect;
+            treeViewFolder.BeginUpdate();
+            try
+            {
+                foreach (TreeNode root in treeViewFolder.Nodes.Cast<TreeNode>().ToList())
+                {
+                    if (root.Tag is DirectoryInfo rootInfo && !Directory.Exists(rootInfo.FullName))
+                    {
+                        root.Remove(); // 磁碟機已不存在（例如隨身碟被拔除）
+                    }
+                    else
+                    {
+                        ReconcileTreeNodeWithDisk(root);
+                    }
+                }
+
+                if (existingPath != null)
+                {
+                    targetNode = FindNodeByPath(existingPath);
+                }
+                if (targetNode == null && treeViewFolder.Nodes.Count > 0)
+                {
+                    targetNode = treeViewFolder.Nodes[0];
+                }
+
+                if (targetNode != null)
+                {
+                    treeViewFolder.SelectedNode = targetNode;
+                    targetNode.EnsureVisible();
+                }
+            }
+            finally
+            {
+                treeViewFolder.EndUpdate();
+                treeViewFolder.AfterSelect += treeViewFolder_AfterSelect;
+            }
+
+            if (targetNode != null)
+            {
+                // 重新載入該目錄的檔案列表（會保留目前選取的檔案，且不會重新開啟文件）
+                treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(targetNode));
+            }
+            else
+            {
+                // 樹狀結構已沒有任何磁碟機節點
+                m_TreeViewSelectedNodeText = string.Empty;
+                listViewFile.Items.Clear();
+                UpdateFileSelectionStatus();
+                UpdateMenuStatus();
+            }
+        }
+
+        // 讓節點的子目錄與磁碟實際內容一致（用於「重新整理目錄列表」）：
+        //  - 已載入子目錄的節點：移除已不存在的子目錄、補上新增的子目錄（原有節點保留，展開狀態不變），再遞迴整理每個原有子節點。
+        //  - 尚未載入子目錄的節點（無子節點或只有 Dummy）：只更新是否顯示展開符號。
+        private void ReconcileTreeNodeWithDisk(TreeNode node)
+        {
+            if (node.Tag is not DirectoryInfo dirInfo)
+                return;
+
+            // 每次重新建立 DirectoryInfo，避免使用到快取的舊資訊
+            DirectoryInfo currentDir = new DirectoryInfo(dirInfo.FullName);
+
+            bool childrenLoaded = node.Nodes.Count > 0 && node.Nodes[0].Text != "Dummy";
+            if (!childrenLoaded)
+            {
+                bool hasDummy = node.Nodes.Count > 0;
+                bool hasSubDirs = HasSubDirectories(currentDir);
+                if (hasSubDirs && !hasDummy)
+                {
+                    node.Nodes.Add("Dummy"); // 新增了子目錄：顯示展開符號，展開時才會載入
+                }
+                else if (!hasSubDirs && hasDummy)
+                {
+                    node.Nodes.Clear(); // 子目錄都被刪除了：移除展開符號
+                }
+                return;
+            }
+
+            DirectoryInfo[] actualDirs;
+            try
+            {
+                actualDirs = currentDir.GetDirectories();
+            }
+            catch
+            {
+                return; // 權限不足或目錄暫時無法讀取時維持原狀
+            }
+
+            var actualNames = new HashSet<string>(actualDirs.Select(d => d.Name), StringComparer.OrdinalIgnoreCase);
+
+            // 移除磁碟上已不存在的子目錄節點（以 Tag 的目錄名稱比對，因此「無存取權限」等附註文字不影響）
+            foreach (TreeNode child in node.Nodes.Cast<TreeNode>().ToList())
+            {
+                if (child.Tag is DirectoryInfo childInfo && !actualNames.Contains(childInfo.Name))
+                {
+                    child.Remove();
+                }
+            }
+
+            var existingChildren = new Dictionary<string, TreeNode>(StringComparer.OrdinalIgnoreCase);
+            foreach (TreeNode child in node.Nodes)
+            {
+                if (child.Tag is DirectoryInfo childInfo)
+                {
+                    existingChildren[childInfo.Name] = child;
+                }
+            }
+
+            // 依磁碟上的順序走訪：已有的節點遞迴整理，新增的目錄插在前一個節點之後
+            TreeNode? previous = null;
+            foreach (DirectoryInfo sub in actualDirs)
+            {
+                if (existingChildren.TryGetValue(sub.Name, out TreeNode? existing))
+                {
+                    ReconcileTreeNodeWithDisk(existing);
+                    previous = existing;
+                }
+                else
+                {
+                    TreeNode newChild = new TreeNode(sub.Name);
+                    newChild.Tag = sub;
+                    newChild.ImageKey = "folder";
+                    if (HasSubDirectories(sub))
+                    {
+                        newChild.Nodes.Add("Dummy");
+                    }
+                    node.Nodes.Insert(previous == null ? 0 : previous.Index + 1, newChild);
+                    previous = newChild;
+                }
+            }
+        }
+
+        // 重新整理檔案列表：重新讀取目前目錄之下的所有檔案
+        private void RefreshFileList()
+        {
+            TreeNode? node = treeViewFolder.SelectedNode;
+            if (node?.Tag is not DirectoryInfo dirInfo)
+                return;
+
+            // 目前目錄已被刪除時，改走「重新整理目錄列表」，往上層找到仍存在的目錄
+            if (!Directory.Exists(dirInfo.FullName))
+            {
+                RefreshDirectoryList();
+                return;
+            }
+
+            // AfterSelect 會重新讀取檔案列表，並記住目前選取的檔案、載入後選回去（不會重新開啟文件）
+            treeViewFolder_AfterSelect(treeViewFolder, new TreeViewEventArgs(node));
+        }
+
         // 比較 TreeNode 目前的子節點清單與實際檔案系統，若有差異則重新載入子目錄（用於外部異動偵測）
         private void RefreshChildNodesIfChanged(TreeNode node)
         {

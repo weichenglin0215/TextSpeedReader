@@ -1541,6 +1541,12 @@ namespace TextSpeedReader
             AutoRemoveCRWithoutDotAndExclamationMark();
         }
 
+        // 將多行連續空白行合併成單一空白行（右鍵選單）
+        private void toolStripMenuItem_MergeConsecutiveBlankLines_Click(object sender, EventArgs e)
+        {
+            MergeConsecutiveBlankLines();
+        }
+
         // 將目前TXT繁體中文轉換成簡體中文並儲存（右鍵選單）
         private void toolStripMenuItem_ConvertToSimplified_Click(object sender, EventArgs e)
         {
@@ -2630,6 +2636,18 @@ namespace TextSpeedReader
         private void toolStripMenuItem_DeleteDirectory_Click(object sender, EventArgs e)
         {
             DeleteDirectory();
+        }
+
+        // 重新整理目錄列表：重新讀取 treeViewFolder 與 listViewFile 的內容（目錄樹右鍵選單）
+        private void toolStripMenuItem_RefreshDirectoryList_Click(object sender, EventArgs e)
+        {
+            RefreshDirectoryList();
+        }
+
+        // 重新整理檔案列表：重新讀取目前目錄之下的所有檔案（檔案列表右鍵選單）
+        private void toolStripMenuItem_RefreshFileList_Click(object sender, EventArgs e)
+        {
+            RefreshFileList();
         }
 
         // 恢復選中檔案的位置（不觸發文件載入）
